@@ -5,7 +5,7 @@ function getChartConfig(series: ChartSeries[]) {
   return Object.fromEntries(
     series.map((item) => [
       item.key,
-      { label: item.label, color: item.color },
+      { label: item.label, color: item.color, icon: item.icon },
     ]),
   ) satisfies ChartConfig;
 }

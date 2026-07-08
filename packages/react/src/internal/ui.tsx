@@ -312,6 +312,7 @@ type ChartConfig = Record<
   {
     label?: React.ReactNode;
     color?: string;
+    icon?: string;
   }
 >;
 
@@ -390,12 +391,26 @@ const ChartTooltip = RechartsPrimitive.Tooltip;
 
 type ChartTooltipContentProps = Partial<TooltipContentProps> & {
   className?: string;
+  formatter?: (value: unknown, name: unknown) => React.ReactNode;
+  hideIndicator?: boolean;
+  hideLabel?: boolean;
+  indicator?: "dot" | "line" | "dashed";
+  labelFormatter?: (label: unknown) => React.ReactNode;
+  labelKey?: string;
+  nameKey?: string;
 };
 
 function ChartTooltipContent({
   active,
   className,
+  formatter,
+  hideIndicator = false,
+  hideLabel = false,
+  indicator = "dot",
   label,
+  labelFormatter,
+  labelKey,
+  nameKey,
   payload,
 }: ChartTooltipContentProps) {
   const { config } = useChart();
@@ -413,15 +428,26 @@ function ChartTooltipContent({
       )}
       data-slot="chart-tooltip"
     >
-      {label ? (
-        <div className="font-medium text-foreground">{label}</div>
+      {!hideLabel && (label || labelKey) ? (
+        <div className="font-medium text-foreground">
+          {labelFormatter
+            ? labelFormatter(label)
+            : getTooltipLabel(label, labelKey, config)}
+        </div>
       ) : null}
       <div className="grid gap-1.5">
         {items.map((item) => {
-          const key = String(item.dataKey ?? item.name ?? "");
+          const key = String(
+            nameKey
+              ? item.payload?.[nameKey]
+              : (item.dataKey ?? item.name ?? ""),
+          );
           const itemConfig = config[key];
           const itemLabel = itemConfig?.label ?? item.name ?? key;
           const color = item.color ?? item.fill ?? itemConfig?.color;
+          const formattedValue = formatter
+            ? formatter(item.value, item.name)
+            : String(item.value ?? "");
 
           return (
             <div
@@ -429,14 +455,31 @@ function ChartTooltipContent({
               key={`${key}-${String(item.value)}`}
             >
               <div className="flex items-center gap-2">
-                <span
-                  className="size-2 rounded-[2px]"
-                  style={{ backgroundColor: color }}
-                />
+                {hideIndicator ? null : (
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-[2px]",
+                      indicator === "dot" && "size-2",
+                      indicator === "line" && "h-2.5 w-1",
+                      indicator === "dashed" &&
+                        "h-0 w-3 border-t-2 border-dashed",
+                    )}
+                    style={
+                      indicator === "dashed"
+                        ? { borderColor: color }
+                        : { backgroundColor: color }
+                    }
+                  />
+                )}
+                {itemConfig?.icon ? (
+                  <span className="font-mono text-[10px] text-muted-foreground">
+                    {itemConfig.icon}
+                  </span>
+                ) : null}
                 <span className="text-muted-foreground">{itemLabel}</span>
               </div>
               <span className="font-mono font-medium text-foreground">
-                {String(item.value ?? "")}
+                {formattedValue}
               </span>
             </div>
           );
@@ -444,6 +487,18 @@ function ChartTooltipContent({
       </div>
     </div>
   );
+}
+
+function getTooltipLabel(
+  label: unknown,
+  labelKey: string | undefined,
+  config: ChartConfig,
+) {
+  if (!labelKey) {
+    return String(label ?? "");
+  }
+
+  return config[labelKey]?.label ?? String(label ?? "");
 }
 
 export {
