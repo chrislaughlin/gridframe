@@ -1,26 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchPanelCardData } from "@gridframe/client";
 import {
   type DashboardCardConfig,
   type PanelCardDataResponse,
   type PanelCardPayload,
-} from "@gridframe/core";
-import { Badge } from "@gridframe/ui/badge";
-import { buttonVariants } from "@gridframe/ui/button";
+} from "./types";
 import {
+  Badge,
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@gridframe/ui/card";
-import { cn } from "@gridframe/ui/utils";
+  buttonVariants,
+  cn,
+} from "./internal/ui";
 
+import { AreaChartVisualization } from "./visualizations/area-chart-visualization";
 import { BarChartVisualization } from "./visualizations/bar-chart-visualization";
 import { DashboardCardState } from "./dashboard-card-state";
+import { fetchPanelCardData } from "./fetch-panel-card-data";
 import { LineChartVisualization } from "./visualizations/line-chart-visualization";
 import { MetricVisualization } from "./visualizations/metric-visualization";
+import { PieChartVisualization } from "./visualizations/pie-chart-visualization";
+import { RadarChartVisualization } from "./visualizations/radar-chart-visualization";
+import { RadialChartVisualization } from "./visualizations/radial-chart-visualization";
 import { TableVisualization } from "./visualizations/table-visualization";
 
 type DashboardCardProps = {
@@ -121,10 +125,18 @@ function renderVisualization(payload: PanelCardPayload) {
   switch (payload.visualization) {
     case "metric":
       return <MetricVisualization data={payload} />;
+    case "area":
+      return <AreaChartVisualization data={payload} />;
     case "bar":
       return <BarChartVisualization data={payload} />;
     case "line":
       return <LineChartVisualization data={payload} />;
+    case "pie":
+      return <PieChartVisualization data={payload} />;
+    case "radar":
+      return <RadarChartVisualization data={payload} />;
+    case "radial":
+      return <RadialChartVisualization data={payload} />;
     case "table":
       return <TableVisualization data={payload} />;
   }

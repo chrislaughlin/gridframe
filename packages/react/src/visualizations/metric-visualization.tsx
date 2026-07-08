@@ -1,5 +1,5 @@
-import { type MetricCardData } from "@gridframe/core";
-import { Badge } from "@gridframe/ui/badge";
+import { Badge } from "../internal/ui";
+import { type MetricCardData } from "../types";
 
 type MetricVisualizationProps = {
   data: MetricCardData;

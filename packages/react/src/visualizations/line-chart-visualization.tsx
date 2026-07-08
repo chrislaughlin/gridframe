@@ -1,26 +1,20 @@
 "use client";
 
-import { type LineChartCardData } from "@gridframe/core";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
-} from "@gridframe/ui/chart";
+} from "../internal/ui";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { type LineChartCardData } from "../types";
+import { getChartConfig } from "./chart-config";
 
 type LineChartVisualizationProps = {
   data: LineChartCardData;
 };
 
 function LineChartVisualization({ data }: LineChartVisualizationProps) {
-  // TODO: Allow user-configurable series labels and colors to override this response-owned metadata.
-  const chartConfig = Object.fromEntries(
-    data.series.map((series) => [
-      series.key,
-      { label: series.label, color: series.color },
-    ]),
-  ) satisfies ChartConfig;
+  const chartConfig = getChartConfig(data.series);
 
   return (
     <ChartContainer className="h-64 w-full" config={chartConfig}>
@@ -38,6 +32,7 @@ function LineChartVisualization({ data }: LineChartVisualizationProps) {
           <Line
             dataKey={series.key}
             dot={false}
+            isAnimationActive={false}
             key={series.key}
             stroke={`var(--color-${series.key})`}
             strokeWidth={2}

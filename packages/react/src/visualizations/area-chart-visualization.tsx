@@ -5,20 +5,24 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "../internal/ui";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { type BarChartCardData } from "../types";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { type AreaChartCardData } from "../types";
 import { getChartConfig } from "./chart-config";
 
-type BarChartVisualizationProps = {
-  data: BarChartCardData;
+type AreaChartVisualizationProps = {
+  data: AreaChartCardData;
 };
 
-function BarChartVisualization({ data }: BarChartVisualizationProps) {
+function AreaChartVisualization({ data }: AreaChartVisualizationProps) {
   const chartConfig = getChartConfig(data.series);
 
   return (
     <ChartContainer className="h-64 w-full" config={chartConfig}>
-      <BarChart accessibilityLayer data={data.data} margin={{ left: 0, right: 8 }}>
+      <AreaChart
+        accessibilityLayer
+        data={data.data}
+        margin={{ left: 0, right: 8 }}
+      >
         <CartesianGrid vertical={false} />
         <XAxis
           axisLine={false}
@@ -29,17 +33,21 @@ function BarChartVisualization({ data }: BarChartVisualizationProps) {
         <YAxis axisLine={false} tickLine={false} tickMargin={8} width={36} />
         <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
         {data.series.map((series) => (
-          <Bar
+          <Area
             dataKey={series.key}
             fill={`var(--color-${series.key})`}
+            fillOpacity={0.22}
             isAnimationActive={false}
             key={series.key}
-            radius={[4, 4, 0, 0]}
+            stackId="area"
+            stroke={`var(--color-${series.key})`}
+            strokeWidth={2}
+            type="natural"
           />
         ))}
-      </BarChart>
+      </AreaChart>
     </ChartContainer>
   );
 }
 
-export { BarChartVisualization };
+export { AreaChartVisualization };

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { type PanelDashboardConfig } from "@gridframe/core";
+import { type PanelDashboardConfig } from "./types";
 
 import { DashboardShell } from "./dashboard-shell";
 

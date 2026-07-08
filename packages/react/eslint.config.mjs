@@ -1,4 +1,4 @@
-import { config } from "@gridframe/eslint-config/react-internal";
+import { config } from "../eslint-config/react-internal.js";
 
 /** @type {import("eslint").Linter.Config[]} */
 export default config;

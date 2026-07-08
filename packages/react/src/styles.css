@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
 
 @source "./**/*.{ts,tsx}";
 
@@ -84,27 +85,4 @@
     --chart-3: oklch(0.75 0.13 75);
     --chart-4: oklch(0.74 0.14 315);
   }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100svh;
-  margin: 0;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-synthesis: none;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-a {
-  color: inherit;
 }

@@ -1,4 +1,3 @@
-import { type TableCardData, type TableRow } from "@gridframe/core";
 import {
   Table,
   TableBody,
@@ -6,8 +5,9 @@ import {
   TableHead,
   TableHeader,
   TableRow as UiTableRow,
-} from "@gridframe/ui/table";
-import { cn } from "@gridframe/ui/utils";
+  cn,
+} from "../internal/ui";
+import { type TableCardData, type TableRow } from "../types";
 
 type TableVisualizationProps = {
   data: TableCardData;

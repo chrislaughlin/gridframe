@@ -4,52 +4,72 @@ import {
 } from "@gridframe/react";
 
 const dashboardConfig = {
-  title: "Product analytics",
+  title: "shadcn/ui charts showcase",
   description:
-    "Weekly adoption, activation, and content signals for a product planning review.",
+    "A Gridframe dashboard example covering the official shadcn/ui chart families: area, bar, line, pie, radar, and radial.",
   footer: {
-    text: "Gridframe first-pass dashboard framework",
+    text: "Gridframe chart dashboard framework",
     href: "https://github.com",
   },
   cards: [
     {
-      id: "activation-rate",
-      name: "Activation rate",
-      visualization: "metric",
-      query: "/api/gridframe/cards/activation-rate",
+      id: "area-chart",
+      name: "Area Chart",
+      visualization: "area",
+      query: "/api/gridframe/cards/area-chart",
       deeplink: {
-        href: "/analytics/activation",
-        label: "View activation cohort",
+        href: "https://ui.shadcn.com/charts/area",
+        label: "Open shadcn area examples",
       },
     },
     {
-      id: "active-users",
-      name: "Active users",
-      visualization: "line",
-      query: "/api/gridframe/cards/active-users",
-      deeplink: {
-        href: "/analytics/active-users",
-        label: "Open user trend",
-      },
-    },
-    {
-      id: "acquisition-channel",
-      name: "Acquisition channel",
+      id: "bar-chart",
+      name: "Bar Chart",
       visualization: "bar",
-      query: "/api/gridframe/cards/acquisition-channel",
+      query: "/api/gridframe/cards/bar-chart",
       deeplink: {
-        href: "/analytics/acquisition",
-        label: "Inspect channels",
+        href: "https://ui.shadcn.com/charts/bar",
+        label: "Open shadcn bar examples",
       },
     },
     {
-      id: "top-pages",
-      name: "Top pages",
-      visualization: "table",
-      query: "/api/gridframe/cards/top-pages",
+      id: "line-chart",
+      name: "Line Chart",
+      visualization: "line",
+      query: "/api/gridframe/cards/line-chart",
       deeplink: {
-        href: "/analytics/pages",
-        label: "Review content paths",
+        href: "https://ui.shadcn.com/charts/line",
+        label: "Open shadcn line examples",
+      },
+    },
+    {
+      id: "pie-chart",
+      name: "Pie Chart",
+      visualization: "pie",
+      query: "/api/gridframe/cards/pie-chart",
+      deeplink: {
+        href: "https://ui.shadcn.com/charts/pie",
+        label: "Open shadcn pie examples",
+      },
+    },
+    {
+      id: "radar-chart",
+      name: "Radar Chart",
+      visualization: "radar",
+      query: "/api/gridframe/cards/radar-chart",
+      deeplink: {
+        href: "https://ui.shadcn.com/charts/radar",
+        label: "Open shadcn radar examples",
+      },
+    },
+    {
+      id: "radial-chart",
+      name: "Radial Chart",
+      visualization: "radial",
+      query: "/api/gridframe/cards/radial-chart",
+      deeplink: {
+        href: "https://ui.shadcn.com/charts/radial",
+        label: "Open shadcn radial examples",
       },
     },
   ],

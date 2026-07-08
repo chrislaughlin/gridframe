@@ -1,6 +1,12 @@
-import { Alert, AlertDescription, AlertTitle } from "@gridframe/ui/alert";
-import { Empty, EmptyDescription, EmptyTitle } from "@gridframe/ui/empty";
-import { Skeleton } from "@gridframe/ui/skeleton";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  Empty,
+  EmptyDescription,
+  EmptyTitle,
+  Skeleton,
+} from "./internal/ui";
 
 type DashboardCardStateProps =
   | {

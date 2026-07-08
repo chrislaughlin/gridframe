@@ -1,6 +1,5 @@
-import { type PanelDashboardConfig } from "@gridframe/core";
-import { Badge } from "@gridframe/ui/badge";
-import { cn } from "@gridframe/ui/utils";
+import { type PanelDashboardConfig } from "./types";
+import { Badge, cn } from "./internal/ui";
 
 import { DashboardCard } from "./dashboard-card";
 
