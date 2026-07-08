@@ -1,12 +1,90 @@
+@import "tailwindcss";
+
+@source "./**/*.{ts,tsx}";
+@source "../../../packages/react/src/**/*.{ts,tsx}";
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --radius: 0.5rem;
+  --background: oklch(0.985 0.006 250);
+  --foreground: oklch(0.22 0.018 255);
+  --card: oklch(0.998 0.004 250);
+  --card-foreground: oklch(0.22 0.018 255);
+  --popover: oklch(0.998 0.004 250);
+  --popover-foreground: oklch(0.22 0.018 255);
+  --primary: oklch(0.47 0.14 252);
+  --primary-foreground: oklch(0.985 0.006 250);
+  --secondary: oklch(0.94 0.012 250);
+  --secondary-foreground: oklch(0.28 0.018 255);
+  --muted: oklch(0.94 0.012 250);
+  --muted-foreground: oklch(0.51 0.026 255);
+  --accent: oklch(0.91 0.035 246);
+  --accent-foreground: oklch(0.28 0.06 252);
+  --destructive: oklch(0.58 0.18 25);
+  --border: oklch(0.88 0.015 250);
+  --input: oklch(0.88 0.015 250);
+  --ring: oklch(0.54 0.13 252);
+  --chart-1: oklch(0.55 0.16 252);
+  --chart-2: oklch(0.58 0.13 180);
+  --chart-3: oklch(0.62 0.14 75);
+  --chart-4: oklch(0.58 0.16 315);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: dark;
+    --background: oklch(0.18 0.018 255);
+    --foreground: oklch(0.93 0.012 250);
+    --card: oklch(0.22 0.02 255);
+    --card-foreground: oklch(0.93 0.012 250);
+    --popover: oklch(0.22 0.02 255);
+    --popover-foreground: oklch(0.93 0.012 250);
+    --primary: oklch(0.68 0.13 252);
+    --primary-foreground: oklch(0.18 0.018 255);
+    --secondary: oklch(0.28 0.022 255);
+    --secondary-foreground: oklch(0.91 0.012 250);
+    --muted: oklch(0.28 0.022 255);
+    --muted-foreground: oklch(0.7 0.02 250);
+    --accent: oklch(0.31 0.045 252);
+    --accent-foreground: oklch(0.91 0.035 246);
+    --destructive: oklch(0.7 0.16 24);
+    --border: oklch(0.33 0.024 255);
+    --input: oklch(0.33 0.024 255);
+    --ring: oklch(0.68 0.13 252);
+    --chart-1: oklch(0.72 0.13 252);
+    --chart-2: oklch(0.68 0.12 180);
+    --chart-3: oklch(0.75 0.13 75);
+    --chart-4: oklch(0.74 0.14 315);
   }
 }
 
@@ -17,34 +95,18 @@ body {
 }
 
 body {
+  min-height: 100svh;
+  margin: 0;
   color: var(--foreground);
   background: var(--background);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-synthesis: none;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
 a {
   color: inherit;
-  text-decoration: none;
-}
-
-.imgDark {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-
-  .imgLight {
-    display: none;
-  }
-  .imgDark {
-    display: unset;
-  }
 }
