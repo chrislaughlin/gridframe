@@ -18,9 +18,10 @@ const DASHBOARD_GRID_GAP: [number, number] = [16, 16];
 type DashboardShellProps = {
   config: PanelDashboardConfig;
   className?: string;
+  toolbar?: React.ReactNode;
 };
 
-function DashboardShell({ config, className }: DashboardShellProps) {
+function DashboardShell({ config, className, toolbar }: DashboardShellProps) {
   const { containerRef, mounted, width } = useContainerWidth({
     measureBeforeMount: true,
   });
@@ -88,6 +89,7 @@ function DashboardShell({ config, className }: DashboardShellProps) {
               ) : null}
             </div>
           </div>
+          {toolbar}
         </header>
 
         <div className="panel-dashboard-grid" ref={containerRef}>
@@ -157,8 +159,20 @@ function getInitialLayout(cards: DashboardCardConfig[]): Layout {
   let rowHeight = 0;
 
   return cards.map((card) => {
-    const width = getDefaultCardWidth(card);
-    const height = getDefaultCardHeight(card);
+    const width = card.layout?.width ?? getDefaultCardWidth(card);
+    const height = card.layout?.height ?? getDefaultCardHeight(card);
+
+    if (card.layout) {
+      return {
+        h: height,
+        i: card.id,
+        minH: 2,
+        minW: 1,
+        w: width,
+        x: card.layout.x,
+        y: card.layout.y,
+      };
+    }
 
     if (x + width > DASHBOARD_COLUMNS) {
       x = 0;

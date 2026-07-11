@@ -8,24 +8,36 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
+    "pretest": "pnpm --filter @gridframe/react build",
+    "test": "vitest run",
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.5.0",
+    "@gridframe/client": "workspace:^",
+    "@gridframe/core": "workspace:^",
     "@gridframe/react": "workspace:*",
+    "better-sqlite3": "^12.11.1",
     "msw": "^2.12.4",
     "next": "16.2.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
     "@gridframe/eslint-config": "workspace:*",
     "@gridframe/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.17",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "eslint": "^9.39.1",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4.1.17",
-    "typescript": "5.9.2"
+    "tsx": "^4.23.0",
+    "typescript": "5.9.2",
+    "vitest": "^4.1.10"
   }
 }

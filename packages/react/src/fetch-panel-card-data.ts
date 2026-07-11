@@ -1,6 +1,11 @@
-import { type PanelCardDataResponse } from "./types";
+import {
+  PanelCardDataResponseSchema,
+  type PanelCardDataResponse,
+} from "@gridframe/core";
 
-async function fetchPanelCardData(query: string): Promise<PanelCardDataResponse> {
+async function fetchPanelCardData(
+  query: string,
+): Promise<PanelCardDataResponse> {
   const response = await fetch(query, {
     headers: {
       Accept: "application/json",
@@ -14,7 +19,7 @@ async function fetchPanelCardData(query: string): Promise<PanelCardDataResponse>
     };
   }
 
-  return (await response.json()) as PanelCardDataResponse;
+  return PanelCardDataResponseSchema.parse(await response.json());
 }
 
 export { fetchPanelCardData };

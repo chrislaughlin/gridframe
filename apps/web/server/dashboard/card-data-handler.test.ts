@@ -1,0 +1,153 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { createCardDataHandler } from "./card-data-handler";
+import { openDashboardDatabase } from "./database";
+import {
+  SqliteDashboardRepository,
+  type DashboardRepository,
+  type PersistedDashboardCard,
+} from "./repository";
+
+const databases: ReturnType<typeof openDashboardDatabase>[] = [];
+
+afterEach(() => {
+  for (const database of databases.splice(0)) {
+    database.close();
+  }
+});
+
+function createRepository() {
+  const database = openDashboardDatabase(":memory:");
+  databases.push(database);
+  return new SqliteDashboardRepository(database);
+}
+
+describe("Card data HTTP handler", () => {
+  it("returns 400 for invalid route identity", async () => {
+    const repository = {
+      bootstrap: vi.fn(),
+      findOwnedCard: vi.fn(),
+    } satisfies DashboardRepository;
+
+    const response = await createCardDataHandler(repository, vi.fn())(
+      new Request("http://localhost/card-data"),
+      { userId: "", dashboardId: "dashboard-1", cardId: "card-1" },
+    );
+
+    expect(response.status).toBe(400);
+    expect(repository.findOwnedCard).not.toHaveBeenCalled();
+  });
+
+  it("forwards the persisted Query once and returns adapted Visualization data", async () => {
+    const repository = createRepository();
+    const dashboard = repository.bootstrap("user-1").dashboard;
+    const card = dashboard.cards.find(
+      (candidate) => candidate.libraryItemKey === "revenue-by-region",
+    );
+    if (!card) throw new Error("Expected seeded chart Card");
+    const fetchSource = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          records: [
+            { region: "North", revenue: 1200 },
+            { region: "South", revenue: 900 },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    const response = await createCardDataHandler(repository, fetchSource)(
+      new Request("http://localhost/api/gridframe/card-data"),
+      { userId: "user-1", dashboardId: dashboard.id, cardId: card.id },
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      status: "success",
+      data: {
+        visualization: "bar",
+        indexKey: "region",
+        data: [
+          { region: "North", revenue: 1200 },
+          { region: "South", revenue: 900 },
+        ],
+      },
+    });
+    expect(fetchSource).toHaveBeenCalledTimes(1);
+    expect(fetchSource).toHaveBeenCalledWith(
+      "http://localhost:3000/api/consumer/cards/revenue-by-region",
+      expect.objectContaining({
+        method: "GET",
+        signal: expect.any(AbortSignal),
+      }),
+    );
+  });
+
+  it("returns the same 404 for a missing or non-owned Card", async () => {
+    const repository = createRepository();
+    const dashboard = repository.bootstrap("user-1").dashboard;
+    const response = await createCardDataHandler(repository, vi.fn())(
+      new Request("http://localhost/card-data"),
+      {
+        userId: "user-2",
+        dashboardId: dashboard.id,
+        cardId: dashboard.cards[0]?.id ?? "missing",
+      },
+    );
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "DASHBOARD_CARD_NOT_FOUND" },
+    });
+  });
+
+  it("rejects an unsafe persisted source Query without forwarding it", async () => {
+    const card = {
+      id: "card-1",
+      dashboardId: "dashboard-1",
+      name: "Unsafe",
+      visualization: "metric",
+      sourceQuery: "https://attacker.example/data",
+      layout: { x: 0, y: 0, width: 1, height: 2 },
+      sortOrder: 0,
+    } satisfies PersistedDashboardCard;
+    const repository = {
+      bootstrap: vi.fn(),
+      findOwnedCard: vi.fn(() => card),
+    } satisfies DashboardRepository;
+    const fetchSource = vi.fn();
+
+    const response = await createCardDataHandler(repository, fetchSource)(
+      new Request("http://localhost/card-data"),
+      { userId: "user-1", dashboardId: "dashboard-1", cardId: "card-1" },
+    );
+
+    expect(response.status).toBe(502);
+    expect(fetchSource).not.toHaveBeenCalled();
+  });
+
+  it("maps upstream failures to a safe Card Query error", async () => {
+    const repository = createRepository();
+    const dashboard = repository.bootstrap("user-1").dashboard;
+    const card = dashboard.cards[0];
+    if (!card) throw new Error("Expected seeded Card");
+
+    const response = await createCardDataHandler(
+      repository,
+      vi.fn().mockResolvedValue(new Response("sensitive", { status: 500 })),
+    )(new Request("http://localhost/card-data"), {
+      userId: "user-1",
+      dashboardId: dashboard.id,
+      cardId: card.id,
+    });
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "CARD_QUERY_FAILED",
+        message: "Card data could not be loaded",
+      },
+    });
+  });
+});
