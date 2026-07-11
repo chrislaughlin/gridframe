@@ -26,18 +26,24 @@
   "scripts": {
     "build": "rm -rf dist && tsc && tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify",
     "lint": "eslint . --max-warnings 0",
+    "test": "vitest run src",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.17",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "19.2.2",
     "eslint": "^9.39.1",
+    "jsdom": "^29.1.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.17",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@gridframe/core": "workspace:^",
     "@tanstack/react-query": "^5.90.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
