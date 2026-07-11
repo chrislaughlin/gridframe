@@ -27,9 +27,12 @@ function LineChartVisualization({ data }: LineChartVisualizationProps) {
     : data.series;
 
   return (
-    <div className="space-y-3">
+    <div className="flex h-full min-h-0 flex-col gap-3">
       {data.interactive ? <LineSummary data={data} /> : null}
-      <ChartContainer className="h-64 w-full" config={chartConfig}>
+      <ChartContainer
+        className="aspect-auto min-h-0 flex-1 w-full"
+        config={chartConfig}
+      >
         <LineChart
           accessibilityLayer
           data={data.data}

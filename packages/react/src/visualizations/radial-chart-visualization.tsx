@@ -32,7 +32,10 @@ function RadialChartVisualization({ data }: RadialChartVisualizationProps) {
       });
 
   return (
-    <ChartContainer className="h-64 w-full" config={chartConfig}>
+    <ChartContainer
+      className="aspect-auto h-full min-h-0 w-full"
+      config={chartConfig}
+    >
       <RadialBarChart
         accessibilityLayer
         barSize={data.stacked ? 24 : 18}

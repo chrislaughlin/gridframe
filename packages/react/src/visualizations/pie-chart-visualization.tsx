@@ -23,8 +23,11 @@ function PieChartVisualization({ data }: PieChartVisualizationProps) {
   const seriesByKey = getSeriesByKey(data.series);
 
   return (
-    <div className="space-y-4">
-      <ChartContainer className="mx-auto h-64 w-full" config={chartConfig}>
+    <div className="flex h-full min-h-0 flex-col gap-4">
+      <ChartContainer
+        className="mx-auto aspect-auto min-h-0 flex-1 w-full"
+        config={chartConfig}
+      >
         <PieChart accessibilityLayer>
           <ChartTooltip
             content={
@@ -159,7 +162,7 @@ function PieChartVisualization({ data }: PieChartVisualizationProps) {
 
 function ChartLegend({ data }: { data: PieChartCardData }) {
   return (
-    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground sm:grid-cols-4">
+    <div className="grid shrink-0 grid-cols-2 gap-2 text-xs text-muted-foreground sm:grid-cols-4">
       {data.series.map((series) => (
         <div className="flex items-center gap-2" key={series.key}>
           <span

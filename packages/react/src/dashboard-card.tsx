@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import { GripVertical } from "lucide-react";
+import * as React from "react";
 import {
   type DashboardCardConfig,
   type PanelCardDataResponse,
   type PanelCardPayload,
 } from "./types";
 import {
-  Badge,
   Card,
   CardContent,
   CardDescription,
@@ -30,26 +31,102 @@ import { TableVisualization } from "./visualizations/table-visualization";
 type DashboardCardProps = {
   card: DashboardCardConfig;
   className?: string;
+  displayName?: string;
+  onRename?: (name: string) => void;
 };
 
-function DashboardCard({ card, className }: DashboardCardProps) {
+function DashboardCard({
+  card,
+  className,
+  displayName = card.name,
+  onRename,
+}: DashboardCardProps) {
   const query = useQuery({
     queryKey: ["panel-dashboard-card", card.id, card.query],
     queryFn: () => fetchPanelCardData(card.query),
   });
+  const [isEditingName, setIsEditingName] = React.useState(false);
+  const [draftName, setDraftName] = React.useState(displayName);
+
+  React.useEffect(() => {
+    if (!isEditingName) {
+      setDraftName(displayName);
+    }
+  }, [displayName, isEditingName]);
+
+  function saveName() {
+    onRename?.(draftName);
+    setIsEditingName(false);
+  }
+
+  function cancelNameEdit() {
+    setDraftName(displayName);
+    setIsEditingName(false);
+  }
 
   return (
-    <Card className={cn("min-h-72", className)} data-panel-card-id={card.id}>
+    <Card
+      className={cn("min-h-72 overflow-hidden", className)}
+      data-panel-card-id={card.id}
+    >
       <CardHeader className="gap-3">
         <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <CardTitle>{card.name}</CardTitle>
-            <CardDescription>{card.query}</CardDescription>
+          <div className="min-w-0 flex-1 space-y-1">
+            {isEditingName ? (
+              <input
+                aria-label="Card name"
+                autoFocus
+                className="panel-card-drag-cancel h-8 w-full rounded-md border border-input bg-background px-2 text-sm font-semibold outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                onBlur={saveName}
+                onChange={(event) => {
+                  setDraftName(event.target.value);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    saveName();
+                  }
+
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    cancelNameEdit();
+                  }
+                }}
+                value={draftName}
+              />
+            ) : (
+              <CardTitle className="truncate">{displayName}</CardTitle>
+            )}
+            <CardDescription className="truncate">{card.query}</CardDescription>
           </div>
-          <Badge variant="outline">{card.visualization}</Badge>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              aria-label="Edit card name"
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "sm" }),
+                "panel-card-drag-cancel h-8 px-2 text-muted-foreground",
+              )}
+              onClick={() => {
+                setIsEditingName(true);
+              }}
+              type="button"
+            >
+              Edit
+            </button>
+            <button
+              aria-label="Drag card"
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "icon" }),
+                "panel-card-drag-handle size-8 cursor-grab text-muted-foreground active:cursor-grabbing",
+              )}
+              type="button"
+            >
+              <GripVertical aria-hidden="true" className="size-4" />
+            </button>
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1">
+      <CardContent className="min-h-0 flex-1 overflow-hidden">
         {query.isPending ? (
           <DashboardCardState state="loading" />
         ) : query.isError ? (

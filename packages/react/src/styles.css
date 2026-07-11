@@ -86,3 +86,105 @@
     --chart-4: oklch(0.74 0.14 315);
   }
 }
+
+.panel-dashboard-grid {
+  min-width: 0;
+  width: 100%;
+}
+
+.panel-dashboard-layout {
+  position: relative;
+}
+
+.panel-dashboard-layout .react-grid-item {
+  transition:
+    transform 200ms ease,
+    width 200ms ease,
+    height 200ms ease;
+}
+
+.panel-dashboard-layout .react-grid-item.cssTransforms {
+  transition-property: transform;
+}
+
+.panel-dashboard-layout .react-grid-item.resizing,
+.panel-dashboard-layout .react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 10;
+}
+
+.panel-dashboard-layout .react-grid-item.react-grid-placeholder {
+  border-radius: var(--radius);
+  background: var(--accent);
+  opacity: 0.35;
+  transition-duration: 100ms;
+  z-index: 2;
+}
+
+.panel-dashboard-layout .react-resizable-handle {
+  position: absolute;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.panel-dashboard-layout .react-grid-item:hover .react-resizable-handle,
+.panel-dashboard-layout .react-grid-item.resizing .react-resizable-handle,
+.panel-dashboard-layout .react-grid-item:focus-within .react-resizable-handle {
+  opacity: 1;
+}
+
+.panel-dashboard-layout .react-resizable-handle::after {
+  position: absolute;
+  display: block;
+  content: "";
+  border-color: var(--muted-foreground);
+  opacity: 0.75;
+}
+
+.panel-dashboard-layout .react-resizable-handle-s {
+  bottom: -6px;
+  left: 16px;
+  right: 16px;
+  height: 12px;
+  cursor: ns-resize;
+}
+
+.panel-dashboard-layout .react-resizable-handle-s::after {
+  bottom: 5px;
+  left: 0;
+  width: 100%;
+  border-bottom: 2px solid;
+}
+
+.panel-dashboard-layout .react-resizable-handle-e {
+  top: 16px;
+  right: -6px;
+  bottom: 16px;
+  width: 12px;
+  cursor: ew-resize;
+}
+
+.panel-dashboard-layout .react-resizable-handle-e::after {
+  top: 0;
+  right: 5px;
+  height: 100%;
+  border-right: 2px solid;
+}
+
+.panel-dashboard-layout .react-resizable-handle-se {
+  right: 4px;
+  bottom: 4px;
+  width: 18px;
+  height: 18px;
+  cursor: se-resize;
+}
+
+.panel-dashboard-layout .react-resizable-handle-se::after {
+  right: 2px;
+  bottom: 2px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid;
+  border-bottom: 2px solid;
+}

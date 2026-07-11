@@ -26,7 +26,10 @@ function BarChartVisualization({ data }: BarChartVisualizationProps) {
   const isHorizontal = data.layout === "horizontal";
 
   return (
-    <ChartContainer className="h-64 w-full" config={chartConfig}>
+    <ChartContainer
+      className="aspect-auto h-full min-h-0 w-full"
+      config={chartConfig}
+    >
       <BarChart
         accessibilityLayer
         data={data.data}

@@ -21,9 +21,12 @@ function AreaChartVisualization({ data }: AreaChartVisualizationProps) {
     : data.series;
 
   return (
-    <div className="space-y-3">
+    <div className="flex h-full min-h-0 flex-col gap-3">
       {data.interactive ? <SegmentedSummary data={data} /> : null}
-      <ChartContainer className="h-64 w-full" config={chartConfig}>
+      <ChartContainer
+        className="aspect-auto min-h-0 flex-1 w-full"
+        config={chartConfig}
+      >
         <AreaChart
           accessibilityLayer
           data={data.data}
@@ -130,7 +133,7 @@ function SegmentedSummary({ data }: { data: AreaChartCardData }) {
 
 function ChartLegend({ data }: { data: AreaChartCardData }) {
   return (
-    <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
+    <div className="flex shrink-0 flex-wrap justify-center gap-4 text-xs text-muted-foreground">
       {data.series.map((series) => (
         <div className="flex items-center gap-2" key={series.key}>
           <span
