@@ -4,6 +4,7 @@ import {
   DashboardClientError,
   bootstrapDashboard,
   fetchDashboardCardData,
+  updateDashboardLayout,
 } from "./index";
 
 const bootstrapResponse = {
@@ -157,5 +158,35 @@ describe("fetchDashboardCardData", () => {
         includeSource: true,
       }),
     ).rejects.toThrow("Dashboard API returned an invalid response");
+  });
+});
+
+describe("updateDashboardLayout", () => {
+  it("submits the complete owner-scoped layout and validates the Dashboard", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify(bootstrapResponse.dashboard), {
+          status: 200,
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    const cards = [{ id: "card-1", x: 0, y: 0, width: 1, height: 2 }];
+
+    await expect(
+      updateDashboardLayout({
+        userId: "user/1",
+        dashboardId: "dashboard-1",
+        revision: "1",
+        cards,
+      }),
+    ).resolves.toEqual(bootstrapResponse.dashboard);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/gridframe/users/user%2F1/dashboards/dashboard-1/layout",
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ revision: "1", cards }),
+      }),
+    );
   });
 });

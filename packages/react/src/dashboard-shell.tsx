@@ -6,12 +6,12 @@ import ReactGridLayout, {
   type LayoutItem,
   useContainerWidth,
 } from "react-grid-layout";
+import { DASHBOARD_GRID_COLUMNS } from "@gridframe/core";
 import { type DashboardCardConfig, type PanelDashboardConfig } from "./types";
 import { Badge, cn } from "./internal/ui";
 
 import { DashboardCard } from "./dashboard-card";
 
-const DASHBOARD_COLUMNS = 4;
 const DASHBOARD_ROW_HEIGHT = 96;
 const DASHBOARD_GRID_GAP: [number, number] = [16, 16];
 
@@ -19,9 +19,21 @@ type DashboardShellProps = {
   config: PanelDashboardConfig;
   className?: string;
   toolbar?: React.ReactNode;
+  editDisabled?: boolean;
+  mutationNotice?: React.ReactNode;
+  onLayoutCommit?: (layout: Layout) => void;
+  onRenameCard?: (cardId: string, name: string) => void;
 };
 
-function DashboardShell({ config, className, toolbar }: DashboardShellProps) {
+function DashboardShell({
+  config,
+  className,
+  toolbar,
+  editDisabled = false,
+  mutationNotice,
+  onLayoutCommit,
+  onRenameCard,
+}: DashboardShellProps) {
   const { containerRef, mounted, width } = useContainerWidth({
     measureBeforeMount: true,
   });
@@ -51,6 +63,11 @@ function DashboardShell({ config, className, toolbar }: DashboardShellProps) {
 
   function handleRenameCard(card: DashboardCardConfig, name: string) {
     const nextName = name.trim();
+
+    if (onRenameCard && nextName && nextName !== card.name) {
+      onRenameCard(card.id, nextName);
+      return;
+    }
 
     setNamesByCardId((currentNames) => {
       const nextNames = { ...currentNames };
@@ -92,18 +109,20 @@ function DashboardShell({ config, className, toolbar }: DashboardShellProps) {
           {toolbar}
         </header>
 
+        {mutationNotice}
+
         <div className="panel-dashboard-grid" ref={containerRef}>
           {mounted ? (
             <ReactGridLayout
               className="panel-dashboard-layout"
               dragConfig={{
-                enabled: true,
+                enabled: !editDisabled,
                 handle: ".panel-card-drag-handle",
                 cancel: ".panel-card-drag-cancel, a, input, textarea, select",
                 bounded: true,
               }}
               gridConfig={{
-                cols: DASHBOARD_COLUMNS,
+                cols: DASHBOARD_GRID_COLUMNS,
                 containerPadding: null,
                 margin: DASHBOARD_GRID_GAP,
                 rowHeight: DASHBOARD_ROW_HEIGHT,
@@ -112,8 +131,14 @@ function DashboardShell({ config, className, toolbar }: DashboardShellProps) {
               onLayoutChange={(nextLayout) => {
                 setLayout(nextLayout);
               }}
+              onDragStop={(nextLayout) => {
+                onLayoutCommit?.(nextLayout);
+              }}
+              onResizeStop={(nextLayout) => {
+                onLayoutCommit?.(nextLayout);
+              }}
               resizeConfig={{
-                enabled: true,
+                enabled: !editDisabled,
                 handles: ["s", "e", "se"],
               }}
               width={width}
@@ -124,6 +149,7 @@ function DashboardShell({ config, className, toolbar }: DashboardShellProps) {
                     card={card}
                     className="h-full min-h-0"
                     displayName={namesByCardId[card.id] ?? card.name}
+                    editDisabled={editDisabled}
                     onRename={(name) => {
                       handleRenameCard(card, name);
                     }}
@@ -174,7 +200,7 @@ function getInitialLayout(cards: DashboardCardConfig[]): Layout {
       };
     }
 
-    if (x + width > DASHBOARD_COLUMNS) {
+    if (x + width > DASHBOARD_GRID_COLUMNS) {
       x = 0;
       y += rowHeight;
       rowHeight = 0;

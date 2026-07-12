@@ -15,7 +15,7 @@ type CardDataIdentity = {
 type FetchSource = (input: string, init: RequestInit) => Promise<Response>;
 
 function createCardDataHandler(
-  repository: DashboardRepository,
+  repository: Pick<DashboardRepository, "findOwnedCard">,
   fetchSource: FetchSource = fetch,
   consumerApiBaseUrl = "http://localhost:3000/api/consumer/",
 ) {

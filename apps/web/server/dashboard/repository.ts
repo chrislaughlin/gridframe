@@ -1,8 +1,10 @@
 import {
   type CardDeeplinkConfig,
   type DashboardFooterConfig,
+  type DashboardLayoutItem,
   type DashboardSummary,
   type VisualizationType,
+  validateDashboardLayout,
 } from "@gridframe/core";
 import { randomUUID } from "node:crypto";
 import { type Database } from "better-sqlite3";
@@ -49,12 +51,39 @@ interface DashboardRepository {
     dashboardId: string,
     cardId: string,
   ): PersistedDashboardCard | undefined;
+  updateLayout(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    cards: DashboardLayoutItem[],
+  ): PersistedDashboard;
+  updateCardName(
+    ownerUserId: string,
+    dashboardId: string,
+    cardId: string,
+    revision: number,
+    name: string,
+  ): PersistedDashboard;
 }
 
 class DashboardNotFoundError extends Error {
   constructor() {
     super("Dashboard not found");
     this.name = "DashboardNotFoundError";
+  }
+}
+
+class DashboardRevisionConflictError extends Error {
+  constructor() {
+    super("Dashboard revision conflict");
+    this.name = "DashboardRevisionConflictError";
+  }
+}
+
+class DashboardInvalidLayoutError extends Error {
+  constructor(readonly errors: string[]) {
+    super(errors.join("; "));
+    this.name = "DashboardInvalidLayoutError";
   }
 }
 
@@ -106,6 +135,101 @@ class SqliteDashboardRepository implements DashboardRepository {
       .get(cardId, dashboardId, ownerUserId) as CardRow | undefined;
 
     return row ? mapCard(row) : undefined;
+  }
+
+  updateLayout(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    cards: DashboardLayoutItem[],
+  ): PersistedDashboard {
+    return this.database.transaction(() => {
+      const dashboard = this.requireOwnedDashboard(ownerUserId, dashboardId);
+      const currentCards = this.loadDashboard(dashboard).cards;
+      const validation = validateDashboardLayout(
+        cards,
+        currentCards.map((card) => card.id),
+      );
+
+      if (!validation.valid) {
+        throw new DashboardInvalidLayoutError(validation.errors);
+      }
+
+      this.incrementRevision(dashboardId, revision);
+      const updateCard = this.database.prepare(
+        `UPDATE dashboard_cards
+         SET grid_x = ?, grid_y = ?, grid_width = ?, grid_height = ?, updated_at = ?
+         WHERE id = ? AND dashboard_id = ?`,
+      );
+      const timestamp = new Date().toISOString();
+
+      for (const card of cards) {
+        updateCard.run(
+          card.x,
+          card.y,
+          card.width,
+          card.height,
+          timestamp,
+          card.id,
+          dashboardId,
+        );
+      }
+
+      return this.loadDashboard(
+        this.requireOwnedDashboard(ownerUserId, dashboardId),
+      );
+    })();
+  }
+
+  updateCardName(
+    ownerUserId: string,
+    dashboardId: string,
+    cardId: string,
+    revision: number,
+    name: string,
+  ): PersistedDashboard {
+    return this.database.transaction(() => {
+      this.requireOwnedDashboard(ownerUserId, dashboardId);
+      const card = this.findOwnedCard(ownerUserId, dashboardId, cardId);
+
+      if (!card) {
+        throw new DashboardNotFoundError();
+      }
+
+      this.incrementRevision(dashboardId, revision);
+      this.database
+        .prepare(
+          `UPDATE dashboard_cards SET name = ?, updated_at = ?
+           WHERE id = ? AND dashboard_id = ?`,
+        )
+        .run(name, new Date().toISOString(), cardId, dashboardId);
+
+      return this.loadDashboard(
+        this.requireOwnedDashboard(ownerUserId, dashboardId),
+      );
+    })();
+  }
+
+  private requireOwnedDashboard(ownerUserId: string, dashboardId: string) {
+    const dashboard = this.findOwnedDashboard(ownerUserId, dashboardId);
+    if (!dashboard) {
+      throw new DashboardNotFoundError();
+    }
+    return dashboard;
+  }
+
+  private incrementRevision(dashboardId: string, revision: number) {
+    const result = this.database
+      .prepare(
+        `UPDATE dashboards
+         SET revision = revision + 1, updated_at = ?
+         WHERE id = ? AND revision = ?`,
+      )
+      .run(new Date().toISOString(), dashboardId, revision);
+
+    if (result.changes !== 1) {
+      throw new DashboardRevisionConflictError();
+    }
   }
 
   private findDefault(ownerUserId: string) {
@@ -258,7 +382,12 @@ function parseJson<T>(value: string | null): T | undefined {
   return value ? (JSON.parse(value) as T) : undefined;
 }
 
-export { DashboardNotFoundError, SqliteDashboardRepository };
+export {
+  DashboardInvalidLayoutError,
+  DashboardNotFoundError,
+  DashboardRevisionConflictError,
+  SqliteDashboardRepository,
+};
 export type {
   DashboardBootstrap,
   DashboardRepository,

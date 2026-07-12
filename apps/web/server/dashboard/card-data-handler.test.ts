@@ -27,7 +27,7 @@ describe("Card data HTTP handler", () => {
     const repository = {
       bootstrap: vi.fn(),
       findOwnedCard: vi.fn(),
-    } satisfies DashboardRepository;
+    } satisfies Pick<DashboardRepository, "bootstrap" | "findOwnedCard">;
 
     const response = await createCardDataHandler(repository, vi.fn())(
       new Request("http://localhost/card-data"),
@@ -115,7 +115,7 @@ describe("Card data HTTP handler", () => {
     const repository = {
       bootstrap: vi.fn(),
       findOwnedCard: vi.fn(() => card),
-    } satisfies DashboardRepository;
+    } satisfies Pick<DashboardRepository, "bootstrap" | "findOwnedCard">;
     const fetchSource = vi.fn();
 
     const response = await createCardDataHandler(repository, fetchSource)(

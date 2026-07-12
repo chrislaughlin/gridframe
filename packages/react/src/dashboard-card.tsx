@@ -32,6 +32,7 @@ type DashboardCardProps = {
   card: DashboardCardConfig;
   className?: string;
   displayName?: string;
+  editDisabled?: boolean;
   onRename?: (name: string) => void;
 };
 
@@ -39,6 +40,7 @@ function DashboardCard({
   card,
   className,
   displayName = card.name,
+  editDisabled = false,
   onRename,
 }: DashboardCardProps) {
   const query = useQuery({
@@ -109,6 +111,7 @@ function DashboardCard({
               onClick={() => {
                 setIsEditingName(true);
               }}
+              disabled={editDisabled}
               type="button"
             >
               Edit
@@ -119,6 +122,7 @@ function DashboardCard({
                 buttonVariants({ variant: "ghost", size: "icon" }),
                 "panel-card-drag-handle size-8 cursor-grab text-muted-foreground active:cursor-grabbing",
               )}
+              disabled={editDisabled}
               type="button"
             >
               <GripVertical aria-hidden="true" className="size-4" />

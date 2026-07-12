@@ -7,7 +7,9 @@ import { promisify } from "node:util";
 
 import { openDashboardDatabase } from "./database";
 import {
+  DashboardInvalidLayoutError,
   DashboardNotFoundError,
+  DashboardRevisionConflictError,
   SqliteDashboardRepository,
 } from "./repository";
 
@@ -111,5 +113,98 @@ describe("SqliteDashboardRepository.bootstrap", () => {
     expect(() => repository.bootstrap("user-2", owned.id)).toThrow(
       DashboardNotFoundError,
     );
+  });
+});
+
+describe("SqliteDashboardRepository mutations", () => {
+  it("persists a complete valid layout and increments the revision once", () => {
+    const repository = createRepository();
+    const dashboard = repository.bootstrap("user-1").dashboard;
+    const [metric, chart, table] = dashboard.cards;
+
+    const updated = repository.updateLayout(
+      "user-1",
+      dashboard.id,
+      dashboard.revision,
+      [
+        { id: metric!.id, x: 0, y: 0, width: 1, height: 2 },
+        { id: chart!.id, x: 1, y: 0, width: 3, height: 4 },
+        { id: table!.id, x: 0, y: 4, width: 4, height: 4 },
+      ],
+    );
+
+    expect(updated.revision).toBe(2);
+    expect(updated.cards[1]?.layout).toEqual({
+      x: 1,
+      y: 0,
+      width: 3,
+      height: 4,
+    });
+    expect(repository.bootstrap("user-1", dashboard.id).dashboard).toEqual(
+      updated,
+    );
+  });
+
+  it("rejects invalid layouts without changing the Dashboard", () => {
+    const repository = createRepository();
+    const dashboard = repository.bootstrap("user-1").dashboard;
+
+    expect(() =>
+      repository.updateLayout(
+        "user-1",
+        dashboard.id,
+        dashboard.revision,
+        dashboard.cards.map((card) => ({
+          id: card.id,
+          x: 0,
+          y: 0,
+          width: 4,
+          height: 4,
+        })),
+      ),
+    ).toThrow(DashboardInvalidLayoutError);
+    expect(repository.bootstrap("user-1").dashboard).toEqual(dashboard);
+  });
+
+  it("renames an owned Card and rejects stale revisions atomically", () => {
+    const repository = createRepository();
+    const dashboard = repository.bootstrap("user-1").dashboard;
+    const card = dashboard.cards[0]!;
+
+    const updated = repository.updateCardName(
+      "user-1",
+      dashboard.id,
+      card.id,
+      dashboard.revision,
+      "Net revenue",
+    );
+
+    expect(updated.revision).toBe(2);
+    expect(updated.cards[0]?.name).toBe("Net revenue");
+    expect(() =>
+      repository.updateCardName(
+        "user-1",
+        dashboard.id,
+        card.id,
+        dashboard.revision,
+        "Stale name",
+      ),
+    ).toThrow(DashboardRevisionConflictError);
+    expect(repository.bootstrap("user-1").dashboard).toEqual(updated);
+  });
+
+  it("does not reveal non-owned Dashboards or Cards", () => {
+    const repository = createRepository();
+    const dashboard = repository.bootstrap("user-1").dashboard;
+
+    expect(() =>
+      repository.updateCardName(
+        "user-2",
+        dashboard.id,
+        dashboard.cards[0]!.id,
+        dashboard.revision,
+        "Not mine",
+      ),
+    ).toThrow(DashboardNotFoundError);
   });
 });

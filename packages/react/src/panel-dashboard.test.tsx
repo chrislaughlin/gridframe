@@ -2,8 +2,52 @@
 
 import "@testing-library/jest-dom/vitest";
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Layout } from "react-grid-layout";
+import type { ReactNode } from "react";
+
+vi.mock("react-grid-layout", () => ({
+  default: ({
+    children,
+    layout,
+    onDragStop,
+  }: {
+    children: ReactNode;
+    layout: Layout;
+    onDragStop?: (layout: Layout) => void;
+  }) => (
+    <div>
+      <button
+        onClick={() =>
+          onDragStop?.(
+            layout.map((item) =>
+              item.i === layout[0]?.i ? { ...item, y: item.y + 2 } : item,
+            ),
+          )
+        }
+        type="button"
+      >
+        Finish moving cards
+      </button>
+      <output data-testid="grid-layout">
+        {JSON.stringify(layout.map(({ i, x, y, w, h }) => ({ i, x, y, w, h })))}
+      </output>
+      {children}
+    </div>
+  ),
+  useContainerWidth: () => ({
+    containerRef: { current: null },
+    mounted: true,
+    width: 1024,
+  }),
+}));
 
 import { PanelDashboard } from "./panel-dashboard";
 import { type PanelCardDataResponse, type PanelDashboardConfig } from "./types";
@@ -170,6 +214,237 @@ describe("PanelDashboard API-managed mode", () => {
     ).toBeInTheDocument();
   });
 
+  it("optimistically renames a Card and commits the server revision", async () => {
+    const bootstrap = apiBootstrap();
+    let resolveMutation!: (response: Response) => void;
+    const fetchMock = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/dashboards/bootstrap")) {
+          return new Response(JSON.stringify(bootstrap), { status: 200 });
+        }
+        if (init?.method === "PATCH") {
+          return new Promise<Response>((resolve) => {
+            resolveMutation = resolve;
+          });
+        }
+        return new Response(JSON.stringify(responseFor("metric")), {
+          status: 200,
+        });
+      },
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
+    await screen.findByText("Total revenue");
+    fireEvent.click(screen.getByRole("button", { name: "Edit card name" }));
+    const input = screen.getByRole("textbox", { name: "Card name" });
+    fireEvent.change(input, { target: { value: "Net revenue" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(screen.getByText("Net revenue")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Edit card name" }),
+    ).toBeDisabled();
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/gridframe/users/user-1/dashboards/dashboard-1/cards/metric",
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify({ revision: "1", name: "Net revenue" }),
+        }),
+      );
+    });
+
+    resolveMutation(
+      new Response(
+        JSON.stringify({
+          ...bootstrap.dashboard,
+          revision: "2",
+          config: {
+            ...bootstrap.dashboard.config,
+            cards: [
+              { ...bootstrap.dashboard.config.cards[0], name: "Net revenue" },
+            ],
+          },
+        }),
+        { status: 200 },
+      ),
+    );
+    await waitFor(() => {
+      expect(screen.getByText("Net revenue")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Edit card name" }),
+      ).toBeEnabled();
+    });
+  });
+
+  it("submits the complete layout only when moving finishes", async () => {
+    const bootstrap = apiBootstrap();
+    let resolveMutation!: (response: Response) => void;
+    const fetchMock = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/dashboards/bootstrap")) {
+          return new Response(JSON.stringify(bootstrap), { status: 200 });
+        }
+        if (init?.method === "PATCH") {
+          return new Promise<Response>((resolve) => {
+            resolveMutation = resolve;
+          });
+        }
+        return new Response(JSON.stringify(responseFor("metric")), {
+          status: 200,
+        });
+      },
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
+    await screen.findByText("Total revenue");
+    expect(
+      fetchMock.mock.calls.filter(([, init]) => init?.method === "PATCH"),
+    ).toHaveLength(0);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Finish moving cards" }),
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/gridframe/users/user-1/dashboards/dashboard-1/layout",
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify({
+            revision: "1",
+            cards: [{ id: "metric", x: 0, y: 2, width: 1, height: 2 }],
+          }),
+        }),
+      );
+    });
+    expect(screen.getByTestId("grid-layout")).toHaveTextContent('"y":2');
+    resolveMutation(
+      new Response(
+        JSON.stringify({
+          ...bootstrap.dashboard,
+          revision: "2",
+          config: {
+            ...bootstrap.dashboard.config,
+            cards: [
+              {
+                ...bootstrap.dashboard.config.cards[0],
+                layout: { x: 0, y: 2, width: 1, height: 2 },
+              },
+            ],
+          },
+        }),
+        { status: 200 },
+      ),
+    );
+  });
+
+  it("rolls back a failed rename and offers retry", async () => {
+    const bootstrap = apiBootstrap();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/dashboards/bootstrap"))
+          return new Response(JSON.stringify(bootstrap), { status: 200 });
+        if (init?.method === "PATCH")
+          return new Response(
+            JSON.stringify({
+              error: {
+                code: "DASHBOARD_LOAD_FAILED",
+                message: "Could not save edit",
+              },
+            }),
+            { status: 500 },
+          );
+        return new Response(JSON.stringify(responseFor("metric")), {
+          status: 200,
+        });
+      }),
+    );
+
+    render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
+    await screen.findByText("Total revenue");
+    fireEvent.click(screen.getByRole("button", { name: "Edit card name" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Card name" }), {
+      target: { value: "Net revenue" },
+    });
+    fireEvent.keyDown(screen.getByRole("textbox", { name: "Card name" }), {
+      key: "Enter",
+    });
+
+    expect(await screen.findByText("Could not save edit")).toBeInTheDocument();
+    expect(screen.getByText("Total revenue")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+  });
+
+  it("refetches and replaces a rename after a revision conflict", async () => {
+    const bootstrap = apiBootstrap();
+    let bootstrapCalls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/dashboards/bootstrap")) {
+          bootstrapCalls += 1;
+          const name =
+            bootstrapCalls > 1
+              ? "Revenue from another session"
+              : "Total revenue";
+          return new Response(
+            JSON.stringify({
+              ...bootstrap,
+              dashboard: {
+                ...bootstrap.dashboard,
+                revision: bootstrapCalls > 1 ? "2" : "1",
+                config: {
+                  ...bootstrap.dashboard.config,
+                  cards: [{ ...bootstrap.dashboard.config.cards[0], name }],
+                },
+              },
+            }),
+            { status: 200 },
+          );
+        }
+        if (init?.method === "PATCH") {
+          return new Response(
+            JSON.stringify({
+              error: { code: "REVISION_CONFLICT", message: "Conflict" },
+            }),
+            { status: 409 },
+          );
+        }
+        return new Response(JSON.stringify(responseFor("metric")), {
+          status: 200,
+        });
+      }),
+    );
+
+    render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
+    await screen.findByText("Total revenue");
+    fireEvent.click(screen.getByRole("button", { name: "Edit card name" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Card name" }), {
+      target: { value: "My edit" },
+    });
+    fireEvent.keyDown(screen.getByRole("textbox", { name: "Card name" }), {
+      key: "Enter",
+    });
+
+    expect(
+      await screen.findByText("Newer Dashboard changes replaced your edit."),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText("Revenue from another session"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Retry" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("switches an uncontrolled Dashboard and notifies the host", async () => {
     const onDashboardChange = vi.fn();
     const fetchMock = vi.fn(
@@ -227,6 +502,20 @@ function apiCard(
     visualization,
     query: `/api/gridframe/users/user-1/dashboards/dashboard-1/cards/${id}/data`,
     layout: { x, y: 0, width, height },
+  };
+}
+
+function apiBootstrap() {
+  return {
+    dashboards: [{ id: "dashboard-1", title: "Operations", isDefault: true }],
+    dashboard: {
+      id: "dashboard-1",
+      revision: "1",
+      config: {
+        title: "Operations",
+        cards: [apiCard("metric", "Total revenue", "metric", 0, 1, 2)],
+      },
+    },
   };
 }
 
