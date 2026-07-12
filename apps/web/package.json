@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@faker-js/faker": "^10.5.0",
-    "@gridframe/client": "workspace:^",
     "@gridframe/core": "workspace:^",
     "@gridframe/react": "workspace:*",
     "@gridframe/server": "workspace:*",

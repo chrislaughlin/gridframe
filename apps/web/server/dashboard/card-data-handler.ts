@@ -1,11 +1,14 @@
-import { errorResponse } from "./bootstrap-handler";
+import { type DashboardApiError } from "@gridframe/core";
 import {
   adaptSourceRecords,
   getCardDefinition,
   normalizeSourceTable,
   type SourceRecord,
 } from "./card-definitions";
-import { type DashboardRepository } from "./repository";
+import {
+  type DashboardRepository,
+  type PersistedDashboardCardWithQuery,
+} from "./repository";
 
 type CardDataIdentity = {
   userId: string;
@@ -16,7 +19,13 @@ type CardDataIdentity = {
 type FetchSource = (input: string, init: RequestInit) => Promise<Response>;
 
 function createCardDataHandler(
-  repository: Pick<DashboardRepository, "findOwnedCard">,
+  repository: {
+    findOwnedCard: (
+      userId: string,
+      dashboardId: string,
+      cardId: string,
+    ) => PersistedDashboardCardWithQuery | undefined;
+  },
   fetchSource: FetchSource = fetch,
   consumerApiBaseUrl = "http://localhost:3000/api/consumer/",
 ) {
@@ -152,6 +161,17 @@ function cardQueryFailed() {
     502,
     "CARD_QUERY_FAILED",
     "Card data could not be loaded",
+  );
+}
+
+function errorResponse(
+  status: number,
+  code: DashboardApiError["error"]["code"],
+  message: string,
+) {
+  return Response.json(
+    { error: { code, message } } satisfies DashboardApiError,
+    { status },
   );
 }
 

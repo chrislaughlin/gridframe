@@ -16,7 +16,10 @@ import {
   DashboardNotFoundError,
   DashboardRevisionConflictError,
   type CardLibraryTemplate,
+  type DashboardBootstrap,
   type DashboardRepository as GridframeDashboardRepository,
+  type PersistedDashboard,
+  type PersistedDashboardCard,
   type DashboardSeed,
 } from "@gridframe/server";
 import { randomUUID } from "node:crypto";
@@ -24,39 +27,6 @@ import { type Database } from "better-sqlite3";
 
 import { defaultDashboardSeed } from "./seed";
 import { cardDefinitions, getCardDefinition } from "./card-definitions";
-
-type PersistedDashboardCard = {
-  id: string;
-  dashboardId: string;
-  libraryItemKey?: string;
-  name: string;
-  visualization: VisualizationType;
-  sourceQuery: string;
-  deeplink?: Omit<CardDeeplinkConfig, "href">;
-  layout: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  sortOrder: number;
-};
-
-type PersistedDashboard = {
-  id: string;
-  ownerUserId: string;
-  title: string;
-  description?: string;
-  footer?: DashboardFooterConfig;
-  isDefault: boolean;
-  revision: number;
-  cards: PersistedDashboardCard[];
-};
-
-type DashboardBootstrap = {
-  dashboards: DashboardSummary[];
-  dashboard: PersistedDashboard;
-};
 
 type DashboardCardCreate = {
   libraryItemKey?: string;
@@ -165,7 +135,7 @@ class SqliteDashboardRepository
     ownerUserId: string,
     dashboardId: string,
     cardId: string,
-  ): PersistedDashboardCard | undefined {
+  ): PersistedDashboardCardWithQuery | undefined {
     const row = this.database
       .prepare(
         `SELECT c.*
@@ -516,6 +486,10 @@ class SqliteDashboardRepository
   }
 }
 
+type PersistedDashboardCardWithQuery = PersistedDashboardCard & {
+  sourceQuery: string;
+};
+
 type DashboardRow = {
   id: string;
   owner_user_id: string;
@@ -541,7 +515,7 @@ type CardRow = {
   sort_order: number;
 };
 
-function mapCard(row: CardRow): PersistedDashboardCard {
+function mapCard(row: CardRow): PersistedDashboardCardWithQuery {
   return {
     id: row.id,
     dashboardId: row.dashboard_id,
@@ -565,7 +539,7 @@ function parseJson<T>(value: string | null): T | undefined {
 }
 
 function firstAvailableLayout(
-  cards: PersistedDashboardCard[],
+  cards: readonly { layout: DashboardCardLayout }[],
   size: { width: number; height: number },
 ): DashboardCardLayout {
   if (size.width > DASHBOARD_GRID_COLUMNS) {
@@ -592,11 +566,11 @@ function layoutsOverlap(a: DashboardCardLayout, b: DashboardCardLayout) {
 }
 
 export {
+  DashboardCardAlreadyAddedError,
   DashboardInvalidLayoutError,
+  DashboardInvalidLibraryItemError,
   DashboardNotFoundError,
   DashboardRevisionConflictError,
-  DashboardCardAlreadyAddedError,
-  DashboardInvalidLibraryItemError,
   SqliteDashboardRepository,
 };
 export type {
@@ -604,4 +578,5 @@ export type {
   DashboardRepository,
   PersistedDashboard,
   PersistedDashboardCard,
+  PersistedDashboardCardWithQuery,
 };

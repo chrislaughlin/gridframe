@@ -5,7 +5,7 @@ import { openDashboardDatabase } from "./database";
 import {
   SqliteDashboardRepository,
   type DashboardRepository,
-  type PersistedDashboardCard,
+  type PersistedDashboardCardWithQuery,
 } from "./repository";
 
 const databases: ReturnType<typeof openDashboardDatabase>[] = [];
@@ -141,7 +141,7 @@ describe("Card data HTTP handler", () => {
       sourceQuery: "https://attacker.example/data",
       layout: { x: 0, y: 0, width: 1, height: 2 },
       sortOrder: 0,
-    } satisfies PersistedDashboardCard;
+    } satisfies PersistedDashboardCardWithQuery;
     const repository = {
       bootstrap: vi.fn(),
       findOwnedCard: vi.fn(() => card),
