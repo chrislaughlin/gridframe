@@ -117,6 +117,107 @@ describe("SqliteDashboardRepository.bootstrap", () => {
 });
 
 describe("SqliteDashboardRepository mutations", () => {
+  it("lists installed templates and supports remove then re-add with a fresh identity", () => {
+    const repository = createRepository();
+    const dashboard = repository.bootstrap("user-1").dashboard;
+    const original = dashboard.cards[0]!;
+
+    expect(
+      repository
+        .listCardLibrary("user-1", dashboard.id)
+        .filter((item) =>
+          dashboard.cards.some((card) => card.libraryItemKey === item.key),
+        )
+        .every((item) => item.addedCardId),
+    ).toBe(true);
+    const removed = repository.removeCard(
+      "user-1",
+      dashboard.id,
+      original.id,
+      dashboard.revision,
+    );
+    expect(removed.cards).toHaveLength(2);
+    expect(
+      repository
+        .listCardLibrary("user-1", dashboard.id)
+        .find((item) => item.key === original.libraryItemKey)?.addedCardId,
+    ).toBeUndefined();
+
+    const added = repository.addCard(
+      "user-1",
+      dashboard.id,
+      removed.revision,
+      original.libraryItemKey!,
+    );
+    const replacement = added.cards.find(
+      (card) => card.libraryItemKey === original.libraryItemKey,
+    )!;
+    expect(replacement.id).not.toBe(original.id);
+    expect(replacement.name).toBe("Total revenue");
+    expect(replacement.layout).toEqual({ x: 0, y: 0, width: 1, height: 2 });
+  });
+
+  it("rejects duplicate, stale, and non-owned Card library mutations", () => {
+    const repository = createRepository();
+    const dashboard = repository.bootstrap("user-1").dashboard;
+    expect(() =>
+      repository.addCard(
+        "user-1",
+        dashboard.id,
+        dashboard.revision,
+        "total-revenue",
+      ),
+    ).toThrow();
+    expect(() =>
+      repository.removeCard(
+        "user-2",
+        dashboard.id,
+        dashboard.cards[0]!.id,
+        dashboard.revision,
+      ),
+    ).toThrow(DashboardNotFoundError);
+    const removed = repository.removeCard(
+      "user-1",
+      dashboard.id,
+      dashboard.cards[0]!.id,
+      dashboard.revision,
+    );
+    expect(() =>
+      repository.addCard(
+        "user-1",
+        dashboard.id,
+        dashboard.revision,
+        "total-revenue",
+      ),
+    ).toThrow(DashboardRevisionConflictError);
+    expect(removed.revision).toBe(2);
+  });
+
+  it("keeps an empty Dashboard valid and places newly added Cards without overlap", () => {
+    const repository = createRepository();
+    let dashboard = repository.bootstrap("user-1").dashboard;
+    for (const card of [...dashboard.cards])
+      dashboard = repository.removeCard(
+        "user-1",
+        dashboard.id,
+        card.id,
+        dashboard.revision,
+      );
+    expect(dashboard.cards).toEqual([]);
+    dashboard = repository.addCard(
+      "user-1",
+      dashboard.id,
+      dashboard.revision,
+      "recent-orders",
+    );
+    expect(dashboard.cards[0]?.layout).toEqual({
+      x: 0,
+      y: 0,
+      width: 4,
+      height: 4,
+    });
+  });
+
   it("persists a complete valid layout and increments the revision once", () => {
     const repository = createRepository();
     const dashboard = repository.bootstrap("user-1").dashboard;

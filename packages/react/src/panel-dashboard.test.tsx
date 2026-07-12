@@ -137,6 +137,92 @@ describe("PanelDashboard static mode", () => {
 });
 
 describe("PanelDashboard API-managed mode", () => {
+  it("adds an available Card from the Card library", async () => {
+    const bootstrap = apiBootstrap();
+    let resolveAdd!: (response: Response) => void;
+    const fetchMock = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/dashboards/bootstrap"))
+          return new Response(JSON.stringify(bootstrap));
+        if (url.endsWith("/card-library"))
+          return new Response(
+            JSON.stringify({
+              items: [
+                {
+                  key: "revenue-by-region",
+                  name: "Revenue by region",
+                  visualization: "bar",
+                  defaultLayout: { width: 3, height: 4 },
+                },
+              ],
+            }),
+          );
+        if (url.endsWith("/cards") && init?.method === "POST")
+          return new Promise<Response>((resolve) => {
+            resolveAdd = resolve;
+          });
+        return new Response(
+          JSON.stringify(responseFor(url.split("/").at(-2) ?? "metric")),
+        );
+      },
+    );
+    const addResponse = new Response(
+      JSON.stringify({
+        dashboard: {
+          ...bootstrap.dashboard,
+          revision: "2",
+          config: {
+            ...bootstrap.dashboard.config,
+            cards: [
+              ...bootstrap.dashboard.config.cards,
+              apiCard("bar", "Revenue by region", "bar", 1, 3, 4),
+            ],
+          },
+        },
+        cardLibrary: {
+          items: [
+            {
+              key: "revenue-by-region",
+              name: "Revenue by region",
+              visualization: "bar",
+              defaultLayout: { width: 3, height: 4 },
+              addedCardId: "bar",
+            },
+          ],
+        },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
+    await screen.findByText("Total revenue");
+    fireEvent.click(screen.getByRole("button", { name: "Card library" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Add" }));
+    await waitFor(() => {
+      expect(
+        document.querySelector(
+          '[data-panel-card-id="pending:revenue-by-region"]',
+        ),
+      ).toBeInTheDocument();
+    });
+    resolveAdd(addResponse);
+    await waitFor(() => {
+      expect(
+        document.querySelector('[data-panel-card-id="bar"]'),
+      ).toBeInTheDocument();
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/cards$/),
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          revision: "1",
+          libraryItemKey: "revenue-by-region",
+        }),
+      }),
+    );
+  });
+
   it("bootstraps and renders metric, chart, and table Cards", async () => {
     const bootstrap = {
       dashboards: [{ id: "dashboard-1", title: "Operations", isDefault: true }],

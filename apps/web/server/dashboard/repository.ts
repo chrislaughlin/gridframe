@@ -1,6 +1,8 @@
 import {
   type CardDeeplinkConfig,
+  type CardLibraryItem,
   type DashboardFooterConfig,
+  type DashboardCardLayout,
   type DashboardLayoutItem,
   type DashboardSummary,
   type VisualizationType,
@@ -10,6 +12,7 @@ import { randomUUID } from "node:crypto";
 import { type Database } from "better-sqlite3";
 
 import { defaultDashboardSeed } from "./seed";
+import { cardDefinitions, getCardDefinition } from "./card-definitions";
 
 type PersistedDashboardCard = {
   id: string;
@@ -64,6 +67,19 @@ interface DashboardRepository {
     revision: number,
     name: string,
   ): PersistedDashboard;
+  listCardLibrary(ownerUserId: string, dashboardId: string): CardLibraryItem[];
+  addCard(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    libraryItemKey: string,
+  ): PersistedDashboard;
+  removeCard(
+    ownerUserId: string,
+    dashboardId: string,
+    cardId: string,
+    revision: number,
+  ): PersistedDashboard;
 }
 
 class DashboardNotFoundError extends Error {
@@ -86,6 +102,9 @@ class DashboardInvalidLayoutError extends Error {
     this.name = "DashboardInvalidLayoutError";
   }
 }
+
+class DashboardCardAlreadyAddedError extends Error {}
+class DashboardInvalidLibraryItemError extends Error {}
 
 class SqliteDashboardRepository implements DashboardRepository {
   constructor(private readonly database: Database) {}
@@ -204,6 +223,101 @@ class SqliteDashboardRepository implements DashboardRepository {
         )
         .run(name, new Date().toISOString(), cardId, dashboardId);
 
+      return this.loadDashboard(
+        this.requireOwnedDashboard(ownerUserId, dashboardId),
+      );
+    })();
+  }
+
+  listCardLibrary(ownerUserId: string, dashboardId: string): CardLibraryItem[] {
+    const dashboard = this.loadDashboard(
+      this.requireOwnedDashboard(ownerUserId, dashboardId),
+    );
+    const installed = new Map(
+      dashboard.cards.map((card) => [card.libraryItemKey, card.id]),
+    );
+    return Object.values(cardDefinitions).map((definition) => ({
+      key: definition.key,
+      name: definition.name,
+      description: definition.description,
+      visualization: definition.visualization,
+      defaultLayout: definition.defaultLayout,
+      addedCardId: installed.get(definition.key),
+    }));
+  }
+
+  addCard(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    libraryItemKey: string,
+  ) {
+    return this.database.transaction(() => {
+      const dashboard = this.loadDashboard(
+        this.requireOwnedDashboard(ownerUserId, dashboardId),
+      );
+      const definition = getCardDefinition(libraryItemKey);
+      if (!definition) throw new DashboardInvalidLibraryItemError();
+      if (
+        dashboard.cards.some((card) => card.libraryItemKey === libraryItemKey)
+      ) {
+        throw new DashboardCardAlreadyAddedError();
+      }
+      this.incrementRevision(dashboardId, revision);
+      const layout = firstAvailableLayout(
+        dashboard.cards,
+        definition.defaultLayout,
+      );
+      const timestamp = new Date().toISOString();
+      this.database
+        .prepare(
+          `INSERT INTO dashboard_cards (
+        id, dashboard_id, library_item_key, name, visualization, source_query,
+        deeplink_json, grid_x, grid_y, grid_width, grid_height, sort_order,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          randomUUID(),
+          dashboardId,
+          definition.key,
+          definition.name,
+          definition.visualization,
+          definition.sourceQuery,
+          JSON.stringify({ label: definition.deeplinkLabel }),
+          layout.x,
+          layout.y,
+          layout.width,
+          layout.height,
+          dashboard.cards.reduce(
+            (max, card) => Math.max(max, card.sortOrder),
+            -1,
+          ) + 1,
+          timestamp,
+          timestamp,
+        );
+      return this.loadDashboard(
+        this.requireOwnedDashboard(ownerUserId, dashboardId),
+      );
+    })();
+  }
+
+  removeCard(
+    ownerUserId: string,
+    dashboardId: string,
+    cardId: string,
+    revision: number,
+  ) {
+    return this.database.transaction(() => {
+      this.requireOwnedDashboard(ownerUserId, dashboardId);
+      if (!this.findOwnedCard(ownerUserId, dashboardId, cardId))
+        throw new DashboardNotFoundError();
+      this.incrementRevision(dashboardId, revision);
+      this.database
+        .prepare(
+          "DELETE FROM dashboard_cards WHERE id = ? AND dashboard_id = ?",
+        )
+        .run(cardId, dashboardId);
       return this.loadDashboard(
         this.requireOwnedDashboard(ownerUserId, dashboardId),
       );
@@ -382,10 +496,34 @@ function parseJson<T>(value: string | null): T | undefined {
   return value ? (JSON.parse(value) as T) : undefined;
 }
 
+function firstAvailableLayout(
+  cards: PersistedDashboardCard[],
+  size: { width: number; height: number },
+): DashboardCardLayout {
+  for (let y = 0; ; y += 1) {
+    for (let x = 0; x + size.width <= 4; x += 1) {
+      const candidate = { x, y, ...size };
+      if (!cards.some((card) => layoutsOverlap(candidate, card.layout)))
+        return candidate;
+    }
+  }
+}
+
+function layoutsOverlap(a: DashboardCardLayout, b: DashboardCardLayout) {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
+}
+
 export {
   DashboardInvalidLayoutError,
   DashboardNotFoundError,
   DashboardRevisionConflictError,
+  DashboardCardAlreadyAddedError,
+  DashboardInvalidLibraryItemError,
   SqliteDashboardRepository,
 };
 export type {

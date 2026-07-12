@@ -23,6 +23,7 @@ import type { Layout } from "react-grid-layout";
 import { type PanelDashboardConfig } from "./types";
 
 import { DashboardShell } from "./dashboard-shell";
+import { CardLibrary } from "./card-library";
 
 type ApiManagedDashboardOptions = {
   userId: string;
@@ -208,7 +209,7 @@ function ApiManagedDashboard({
 
   const response = query.data;
   const dashboard = displayDashboard ?? response.dashboard;
-  const toolbar =
+  const dashboardSelector =
     response.dashboards.length > 1 ? (
       <label className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>Dashboard</span>
@@ -234,6 +235,22 @@ function ApiManagedDashboard({
         {query.isFetching ? <span>Loading selection...</span> : null}
       </label>
     ) : null;
+  const toolbar = (
+    <div className="flex flex-col items-end gap-3">
+      {dashboardSelector}
+      <CardLibrary
+        apiBaseUrl={options.apiBaseUrl}
+        dashboard={dashboard}
+        disabled={mutation.isPending || query.isFetching}
+        onDashboardChange={(next) => {
+          setConfirmedDashboard(next);
+          setDisplayDashboard(next);
+          setShellEpoch((value) => value + 1);
+        }}
+        userId={options.userId}
+      />
+    </div>
+  );
 
   return (
     <DashboardShell

@@ -1,11 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { GripVertical } from "lucide-react";
 import * as React from "react";
-import {
-  type DashboardCardConfig,
-  type PanelCardDataResponse,
-  type PanelCardPayload,
-} from "./types";
+import { type DashboardCardConfig, type PanelCardDataResponse } from "./types";
 import {
   Card,
   CardContent,
@@ -17,16 +13,9 @@ import {
   cn,
 } from "./internal/ui";
 
-import { AreaChartVisualization } from "./visualizations/area-chart-visualization";
-import { BarChartVisualization } from "./visualizations/bar-chart-visualization";
 import { DashboardCardState } from "./dashboard-card-state";
 import { fetchPanelCardData } from "./fetch-panel-card-data";
-import { LineChartVisualization } from "./visualizations/line-chart-visualization";
-import { MetricVisualization } from "./visualizations/metric-visualization";
-import { PieChartVisualization } from "./visualizations/pie-chart-visualization";
-import { RadarChartVisualization } from "./visualizations/radar-chart-visualization";
-import { RadialChartVisualization } from "./visualizations/radial-chart-visualization";
-import { TableVisualization } from "./visualizations/table-visualization";
+import { CardVisualization } from "./card-visualization";
 
 type DashboardCardProps = {
   card: DashboardCardConfig;
@@ -34,6 +23,7 @@ type DashboardCardProps = {
   displayName?: string;
   editDisabled?: boolean;
   onRename?: (name: string) => void;
+  onRemove?: () => void;
 };
 
 function DashboardCard({
@@ -42,6 +32,7 @@ function DashboardCard({
   displayName = card.name,
   editDisabled = false,
   onRename,
+  onRemove,
 }: DashboardCardProps) {
   const query = useQuery({
     queryKey: ["panel-dashboard-card", card.id, card.query],
@@ -102,6 +93,20 @@ function DashboardCard({
             <CardDescription className="truncate">{card.query}</CardDescription>
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            {onRemove ? (
+              <button
+                aria-label="Remove card"
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "panel-card-drag-cancel h-8 px-2 text-muted-foreground",
+                )}
+                disabled={editDisabled}
+                onClick={onRemove}
+                type="button"
+              >
+                Remove
+              </button>
+            ) : null}
             <button
               aria-label="Edit card name"
               className={cn(
@@ -199,28 +204,7 @@ function DashboardCardBody({
     );
   }
 
-  return renderVisualization(payload.data);
-}
-
-function renderVisualization(payload: PanelCardPayload) {
-  switch (payload.visualization) {
-    case "metric":
-      return <MetricVisualization data={payload} />;
-    case "area":
-      return <AreaChartVisualization data={payload} />;
-    case "bar":
-      return <BarChartVisualization data={payload} />;
-    case "line":
-      return <LineChartVisualization data={payload} />;
-    case "pie":
-      return <PieChartVisualization data={payload} />;
-    case "radar":
-      return <RadarChartVisualization data={payload} />;
-    case "radial":
-      return <RadialChartVisualization data={payload} />;
-    case "table":
-      return <TableVisualization data={payload} />;
-  }
+  return <CardVisualization data={payload.data} />;
 }
 
 function isExternalLink(href: string) {

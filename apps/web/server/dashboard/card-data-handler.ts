@@ -2,6 +2,7 @@ import { errorResponse } from "./bootstrap-handler";
 import {
   adaptSourceRecords,
   getCardDefinition,
+  normalizeSourceTable,
   type SourceRecord,
 } from "./card-definitions";
 import { type DashboardRepository } from "./repository";
@@ -76,7 +77,17 @@ function createCardDataHandler(
         return cardQueryFailed();
       }
 
-      return Response.json(adaptSourceRecords(definition, records));
+      const adapted = adaptSourceRecords(definition, records);
+      if (
+        new URL(request.url).searchParams.get("includeSource") === "true" &&
+        adapted.status === "success"
+      ) {
+        return Response.json({
+          ...adapted,
+          sourceData: normalizeSourceTable(records),
+        });
+      }
+      return Response.json(adapted);
     } catch {
       return cardQueryFailed();
     }

@@ -3,11 +3,12 @@
 import "@testing-library/jest-dom/vitest";
 
 import { cleanup, render, screen } from "@testing-library/react";
-import { PanelDashboard } from "@gridframe/react";
+import { DashboardDrillDown, PanelDashboard } from "@gridframe/react";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createBootstrapHandler } from "./bootstrap-handler";
+import { createCardLibraryHandler } from "./card-library-handler";
 import { createCardDataHandler } from "./card-data-handler";
 import { createConsumerCardHandler } from "./consumer-handler";
 import { openDashboardDatabase } from "./database";
@@ -53,6 +54,7 @@ beforeEach(() => {
   const cardHandler = createCardDataHandler(repository, async (input) =>
     consumerHandler(new URL(input).pathname.split("/").at(-1) ?? ""),
   );
+  const cardLibraryHandler = createCardLibraryHandler(repository);
 
   vi.stubGlobal("ResizeObserver", ResizeObserverMock);
   vi.stubGlobal(
@@ -66,6 +68,14 @@ beforeEach(() => {
 
       if (segments.at(-1) === "bootstrap") {
         return bootstrapHandler(request, decodeURIComponent(segments[3] ?? ""));
+      }
+
+      if (segments.at(-1) === "card-library") {
+        return cardLibraryHandler(
+          request,
+          decodeURIComponent(segments[3] ?? ""),
+          decodeURIComponent(segments[5] ?? ""),
+        );
       }
 
       const userId = decodeURIComponent(segments[3] ?? "");
@@ -97,6 +107,41 @@ describe("API-backed Dashboard flow", () => {
     ).toBeInTheDocument();
     expect(await screen.findByText("Order Id")).toBeInTheDocument();
     expect(await screen.findByText("North")).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledTimes(4);
+    expect(fetch).toHaveBeenCalledTimes(5);
+  });
+
+  it("opens a Card Deeplink with the same Visualization and its source data", async () => {
+    render(createElement(PanelDashboard, { dashboard: { userId: "user-1" } }));
+    const link = await screen.findByRole("link", {
+      name: "View revenue source data",
+    });
+    const href = link.getAttribute("href")!;
+    const [, userId, dashboardId, cardId] =
+      href.match(/users\/([^/]+)\/dashboards\/([^/]+)\/cards\/([^/]+)/) ?? [];
+    expect(userId && dashboardId && cardId).toBeTruthy();
+
+    cleanup();
+    render(
+      createElement(DashboardDrillDown, {
+        userId: userId!,
+        dashboardId: dashboardId!,
+        cardId: cardId!,
+      }),
+    );
+    expect(
+      await screen.findByRole("heading", { name: "Total revenue" }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Source data" }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("columnheader", { name: "Amount" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Back to Dashboard" }),
+    ).toHaveAttribute(
+      "href",
+      `/gridframe/users/${userId}/dashboards/${dashboardId}`,
+    );
   });
 });

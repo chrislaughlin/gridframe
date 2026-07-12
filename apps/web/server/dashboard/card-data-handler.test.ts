@@ -84,6 +84,36 @@ describe("Card data HTTP handler", () => {
     );
   });
 
+  it("derives source data from the same forwarded result when requested", async () => {
+    const repository = createRepository();
+    const dashboard = repository.bootstrap("user-1").dashboard;
+    const card = dashboard.cards[0]!;
+    const fetchSource = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          records: [{ amount: 25 }, { amount: 75, region: "North" }],
+        }),
+        { status: 200 },
+      ),
+    );
+    const response = await createCardDataHandler(repository, fetchSource)(
+      new Request("http://localhost/card-data?includeSource=true"),
+      { userId: "user-1", dashboardId: dashboard.id, cardId: card.id },
+    );
+    await expect(response.json()).resolves.toMatchObject({
+      status: "success",
+      data: { visualization: "metric", value: 100 },
+      sourceData: {
+        columns: [
+          { key: "amount", label: "Amount", align: "right" },
+          { key: "region", label: "Region", align: "left" },
+        ],
+        rows: [{ amount: 25 }, { amount: 75, region: "North" }],
+      },
+    });
+    expect(fetchSource).toHaveBeenCalledTimes(1);
+  });
+
   it("returns the same 404 for a missing or non-owned Card", async () => {
     const repository = createRepository();
     const dashboard = repository.bootstrap("user-1").dashboard;

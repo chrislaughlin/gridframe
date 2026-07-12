@@ -36,6 +36,9 @@ function repository(overrides: Partial<DashboardRepository> = {}) {
     findOwnedCard: vi.fn(),
     updateLayout: vi.fn().mockReturnValue(dashboard),
     updateCardName: vi.fn().mockReturnValue(dashboard),
+    listCardLibrary: vi.fn().mockReturnValue([]),
+    addCard: vi.fn().mockReturnValue(dashboard),
+    removeCard: vi.fn().mockReturnValue(dashboard),
     ...overrides,
   } satisfies DashboardRepository;
 }

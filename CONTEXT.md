@@ -16,6 +16,10 @@ _Avoid_: Schema, manifest, layout
 A single dashboard unit with a name, visualization, query, and optional deeplink.
 _Avoid_: Widget, tile, panel
 
+**Card library**:
+The catalog of trusted Card templates available to add to a Dashboard.
+_Avoid_: Widget gallery, component picker
+
 **Query**:
 The card-owned endpoint used to fetch the data for that card.
 _Avoid_: Fetcher, datasource, request

@@ -23,6 +23,7 @@ type DashboardShellProps = {
   mutationNotice?: React.ReactNode;
   onLayoutCommit?: (layout: Layout) => void;
   onRenameCard?: (cardId: string, name: string) => void;
+  onRemoveCard?: (cardId: string) => void;
 };
 
 function DashboardShell({
@@ -33,6 +34,7 @@ function DashboardShell({
   mutationNotice,
   onLayoutCommit,
   onRenameCard,
+  onRemoveCard,
 }: DashboardShellProps) {
   const { containerRef, mounted, width } = useContainerWidth({
     measureBeforeMount: true,
@@ -153,6 +155,9 @@ function DashboardShell({
                     onRename={(name) => {
                       handleRenameCard(card, name);
                     }}
+                    onRemove={
+                      onRemoveCard ? () => onRemoveCard(card.id) : undefined
+                    }
                   />
                 </div>
               ))}

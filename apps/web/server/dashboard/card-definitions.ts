@@ -12,9 +12,11 @@ type SourceRecord = Record<string, unknown>;
 type CardDefinition = {
   key: string;
   name: string;
+  description: string;
   visualization: VisualizationType;
   sourceQuery: string;
   deeplinkLabel: string;
+  defaultLayout: { width: number; height: number };
   generateRecords(faker: Faker): SourceRecord[];
   adapt(records: SourceRecord[]): PanelCardDataResponse;
 };
@@ -22,7 +24,9 @@ type CardDefinition = {
 const cardDefinitions = defineCards({
   "total-revenue": {
     name: "Total revenue",
+    description: "A headline revenue metric calculated from example orders.",
     visualization: "metric",
+    defaultLayout: { width: 1, height: 2 },
     deeplinkLabel: "View revenue source data",
     generateRecords: (faker) =>
       Array.from({ length: 12 }, () => ({
@@ -43,7 +47,9 @@ const cardDefinitions = defineCards({
   },
   "revenue-by-region": {
     name: "Revenue by region",
+    description: "Regional revenue compared in a bar Visualization.",
     visualization: "bar",
+    defaultLayout: { width: 3, height: 4 },
     deeplinkLabel: "View regional revenue source data",
     generateRecords: (faker) =>
       ["North", "South", "East", "West"].map((region) => ({
@@ -72,7 +78,9 @@ const cardDefinitions = defineCards({
   },
   "recent-orders": {
     name: "Recent orders",
+    description: "The latest example orders in a table Visualization.",
     visualization: "table",
+    defaultLayout: { width: 4, height: 4 },
     deeplinkLabel: "View order source data",
     generateRecords: (faker) =>
       Array.from({ length: 8 }, () => ({
@@ -97,7 +105,99 @@ const cardDefinitions = defineCards({
       };
     },
   },
+  "revenue-trend": chartDefinition(
+    "Revenue trend",
+    "Monthly revenue shown as an area Visualization.",
+    "area",
+  ),
+  "orders-trend": chartDefinition(
+    "Orders trend",
+    "Monthly order volume shown as a line Visualization.",
+    "line",
+  ),
+  "channel-share": categoryDefinition(
+    "Channel share",
+    "Revenue share shown as a pie Visualization.",
+    "pie",
+  ),
+  "team-performance": chartDefinition(
+    "Team performance",
+    "Team performance shown as a radar Visualization.",
+    "radar",
+  ),
+  "goal-progress": categoryDefinition(
+    "Goal progress",
+    "Goal progress shown as a radial Visualization.",
+    "radial",
+  ),
 });
+
+function chartDefinition(
+  name: string,
+  description: string,
+  visualization: "area" | "line" | "radar",
+) {
+  return {
+    name,
+    description,
+    visualization,
+    deeplinkLabel: `View ${name.toLowerCase()} source data`,
+    defaultLayout: { width: 2, height: 4 },
+    generateRecords: (faker: Faker) =>
+      ["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((month) => ({
+        month,
+        value: faker.number.int({ min: 20, max: 100 }),
+      })),
+    adapt: (records: SourceRecord[]) => ({
+      status: "success" as const,
+      data: {
+        visualization,
+        indexKey: "month",
+        data: records.map((record) => ({
+          month: stringValue(record.month),
+          value: numberValue(record.value),
+        })),
+        series: [{ key: "value", label: "Value", color: "var(--chart-1)" }],
+      },
+    }),
+  };
+}
+
+function categoryDefinition(
+  name: string,
+  description: string,
+  visualization: "pie" | "radial",
+) {
+  return {
+    name,
+    description,
+    visualization,
+    deeplinkLabel: `View ${name.toLowerCase()} source data`,
+    defaultLayout: { width: 2, height: 4 },
+    generateRecords: (faker: Faker) =>
+      ["Direct", "Partner", "Organic"].map((channel) => ({
+        channel,
+        value: faker.number.int({ min: 20, max: 100 }),
+      })),
+    adapt: (records: SourceRecord[]) => ({
+      status: "success" as const,
+      data: {
+        visualization,
+        nameKey: "channel",
+        valueKey: "value",
+        data: records.map((record) => ({
+          channel: stringValue(record.channel),
+          value: numberValue(record.value),
+        })),
+        series: records.map((record, index) => ({
+          key: stringValue(record.channel),
+          label: stringValue(record.channel),
+          color: `var(--chart-${index + 1})`,
+        })),
+      },
+    }),
+  };
+}
 
 function defineCards<
   T extends Record<string, Omit<CardDefinition, "key" | "sourceQuery">>,
@@ -157,6 +257,18 @@ function tableColumns(row: TableRow): TableColumn[] {
   }));
 }
 
+function normalizeSourceTable(records: SourceRecord[]) {
+  const rows = records.map(toTableRow);
+  const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+  const sample = Object.fromEntries(
+    keys.map((key) => [
+      key,
+      rows.find((row) => row[key] !== undefined)?.[key] ?? null,
+    ]),
+  );
+  return { columns: tableColumns(sample), rows };
+}
+
 function numberValue(value: unknown) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error("Expected a finite number");
@@ -183,5 +295,6 @@ export {
   cardDefinitions,
   generateSourceRecords,
   getCardDefinition,
+  normalizeSourceTable,
 };
 export type { CardDefinition, SourceRecord };
