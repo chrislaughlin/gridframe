@@ -72,16 +72,43 @@ Browser                          Server                       Consumer API
 ## Install
 
 ```bash
-pnpm add @gridframe/react @gridframe/core
-# or for the server side:
-pnpm add @gridframe/server @gridframe/core
-# or for just the API client:
-pnpm add @gridframe/client
+pnpm add @gridframe/core @gridframe/react   # frontend (React components + schemas)
+pnpm add @gridframe/server @gridframe/core   # backend (server handlers + schemas)
+pnpm add @gridframe/client                   # standalone typed API client
 ```
 
-All packages require `@gridframe/core` (Zod schemas and types). Peer dependencies:
-- `@gridframe/react` requires React 19 and React DOM 19.
-- `@gridframe/server` has no framework peer dependency — use it with Next.js, Express, Hono, TanStack Start, or any Fetch-capable server.
+### Peer dependencies
+
+| Package | Requires |
+|---------|----------|
+| `@gridframe/core` | None (zero-dependency schemas + types) |
+| `@gridframe/react` | `react@^19`, `react-dom@^19` |
+| `@gridframe/server` | None (Fetch-native — works with Next.js, Express, Hono, TanStack Start, etc.) |
+| `@gridframe/client` | None (standalone `fetch` wrapper) |
+
+### Import CSS
+
+The React package provides pre-built styles for dashboard components and shadcn/ui charts:
+
+```tsx
+import "@gridframe/react/styles.css";
+```
+
+You also need Tailwind CSS v4 with `@tailwindcss/postcss` — see `apps/web/postcss.config.mjs` and `apps/web/app/globals.css` for the reference setup.
+
+### Minimal app setup
+
+For a new Next.js project with the App Router:
+
+```tsx
+// app/layout.tsx
+import "@gridframe/react/styles.css";
+import "./globals.css";
+
+export default function RootLayout({ children }) {
+  return <html lang="en"><body>{children}</body></html>;
+}
+```
 
 ## Getting started
 
@@ -156,7 +183,7 @@ export default function UserDashboard({ userId }: { userId: string }) {
 ```ts
 import { bootstrapDashboard, fetchDashboardCardData } from "@gridframe/client";
 
-const { dashboard } = await bootstrapDashboard({
+const { dashboard, dashboards } = await bootstrapDashboard({
   apiBaseUrl: "/api/gridframe",
   userId: "user-1",
 });
@@ -167,8 +194,454 @@ const response = await fetchDashboardCardData({
   dashboardId: dashboard.id,
   cardId: "card-1",
 });
-// response.data => PanelCardPayload (validated against Zod schema)
+// response.data.status === "success"
+// response.data.data => PanelCardPayload (validated against Zod schema)
 ```
+
+## Defining cards and dashboards
+
+Cards are the atomic unit of a Gridframe dashboard. Every card has a visualization type, a layout position, and a data source. Dashboards are collections of cards with a title, optional description, and optional footer.
+
+### Static dashboard config (frontend-only)
+
+Pass a `PanelDashboardConfig` object directly to `<PanelDashboard config={...}>`:
+
+```ts
+import type { PanelDashboardConfig } from "@gridframe/react";
+import type { PanelCardPayload } from "@gridframe/core";
+
+const config: PanelDashboardConfig = {
+  title: "Sales Overview",
+  description: "Key metrics for Q1",
+  footer: { text: "Updated daily" },
+  cards: [
+    {
+      id: "card-1",
+      name: "Total Revenue",
+      layout: { x: 0, y: 0, width: 4, height: 2 },
+      query: "/api/revenue",
+      deeplink: { href: "/drill-down/revenue", label: "View source" },
+      visualization: {
+        type: "metric",
+        value: 128_500,
+        label: "Revenue",
+        trend: { direction: "up", value: "12%" },
+      } satisfies PanelCardPayload,
+    },
+    {
+      id: "card-2",
+      name: "Revenue by Region",
+      layout: { x: 0, y: 2, width: 4, height: 4 },
+      query: "/api/revenue-by-region",
+      visualization: {
+        type: "bar",
+        indexKey: "region",
+        data: [
+          { region: "North", revenue: 62000 },
+          { region: "South", revenue: 41000 },
+          { region: "East", revenue: 38000 },
+          { region: "West", revenue: 55000 },
+        ],
+        series: [
+          { key: "revenue", label: "Revenue", color: "var(--chart-1)" },
+        ],
+      } satisfies PanelCardPayload,
+    },
+  ],
+};
+```
+
+The visualization payload (`PanelCardPayload`) is a discriminated union on `type`:
+
+| `type` | Required fields | Optional fields |
+|--------|----------------|-----------------|
+| `metric` | `value`, `label` | `helperText`, `trend` (`{direction, value, label?}`) |
+| `bar` | `indexKey`, `data`, `series` | `layout`, `stacked`, `showLabels`, `tooltip`, `activeIndex`, `mixed`, `variant` |
+| `area` | `indexKey`, `data`, `series` | `curveType`, `stacked`, `stackOffset`, `showGradient`, `showLegend`, `interactive` |
+| `line` | `indexKey`, `data`, `series` | `curveType`, `showDots`, `showLabels`, `interactive` |
+| `pie` | `nameKey`, `valueKey`, `data`, `series` | `donut`, `showLabels`, `showLegend`, `activeIndex`, `centerText`, `separator` |
+| `radar` | `indexKey`, `data`, `series` | `showDots`, `linesOnly`, `gridType`, `showLegend`, `customLabels` |
+| `radial` | `nameKey`, `valueKey`, `data`, `series` | `showLabel`, `showGrid`, `centerText`, `shape`, `stacked` |
+| `table` | `columns`, `rows` | — |
+
+### API-managed dashboard (with backend)
+
+In API-managed mode, the server defines which cards exist and what data they produce. The client receives a dashboard document from the bootstrap endpoint.
+
+**Server-side card definitions** use `CardLibraryTemplate` for the card library:
+
+```ts
+import type { CardLibraryTemplate } from "@gridframe/server";
+
+const myCardLibrary: CardLibraryTemplate[] = [
+  {
+    key: "total-revenue",
+    name: "Total Revenue",
+    description: "A headline revenue metric.",
+    visualization: "metric",
+    defaultLayout: { width: 1, height: 2 },
+    deeplinkLabel: "View revenue source data",
+  },
+  {
+    key: "recent-orders",
+    name: "Recent Orders",
+    description: "The latest orders in a table.",
+    visualization: "table",
+    defaultLayout: { width: 4, height: 4 },
+  },
+];
+```
+
+**Default dashboard seed** controls what a new user sees on first bootstrap:
+
+```ts
+import type { DashboardSeed } from "@gridframe/server";
+
+const mySeed: DashboardSeed = {
+  title: "My Dashboard",
+  description: "A custom default dashboard",
+  footer: { text: "Example footer" },
+  cards: [
+    { libraryItemKey: "total-revenue", layout: { x: 0, y: 0, width: 1, height: 2 } },
+    { libraryItemKey: "recent-orders", layout: { x: 0, y: 2, width: 4, height: 4 } },
+  ],
+};
+```
+
+The seed is returned from the `defaultDashboard` callback passed to `createDashboardHandlers`.
+
+**Card data resolver** adapts source records into `PanelCardDataResponse`:
+
+```ts
+import type { CardDataResolverInput, PanelCardDataResponse } from "@gridframe/server";
+
+async function resolveMyCardData(
+  input: CardDataResolverInput,
+): Promise<PanelCardDataResponse> {
+  // input.card has the persisted card fields (libraryItemKey, visualization, etc.)
+  // Fetch from your consumer API or database, then adapt:
+  return {
+    status: "success",
+    data: {
+      visualization: "metric",
+      value: 42_000,
+      label: "Custom Metric",
+    },
+  };
+}
+```
+
+### Card layout grid
+
+The dashboard uses a 4-column grid (`DASHBOARD_GRID_COLUMNS = 4`) with 96px row height and 16px gap. Layouts are defined as `{x, y, width, height}` where `x` and `width` are in column units (0–3, max width 4) and `y` and `height` are in row units. When a card is added from the library, placement is automatic (first-fit, top-to-left-to-right).
+
+## Custom styling and theming
+
+Gridframe uses CSS custom properties for all colors, so theming is just a matter of overriding the variables.
+
+### Theme variables
+
+The built-in stylesheet (`@gridframe/react/styles.css`) defines these variables with light and dark defaults. Override them in your own CSS after the import:
+
+```css
+/* app/globals.css */
+@import "tailwindcss";
+@import "@gridframe/react/styles.css";
+
+:root {
+  /* Semantic colors */
+  --background: oklch(0.985 0.006 250);
+  --foreground: oklch(0.22 0.018 255);
+  --card: oklch(0.998 0.004 250);
+  --card-foreground: oklch(0.22 0.018 255);
+  --popover: oklch(0.998 0.004 250);
+  --popover-foreground: oklch(0.22 0.018 255);
+  --primary: oklch(0.47 0.14 252);
+  --primary-foreground: oklch(0.985 0.006 250);
+  --secondary: oklch(0.94 0.012 250);
+  --secondary-foreground: oklch(0.28 0.018 255);
+  --muted: oklch(0.94 0.012 250);
+  --muted-foreground: oklch(0.51 0.026 255);
+  --accent: oklch(0.91 0.035 246);
+  --accent-foreground: oklch(0.28 0.06 252);
+  --destructive: oklch(0.58 0.18 25);
+  --border: oklch(0.88 0.015 250);
+  --input: oklch(0.88 0.015 250);
+  --ring: oklch(0.54 0.13 252);
+
+  /* Chart colors (used by series definitions) */
+  --chart-1: oklch(0.55 0.16 252);
+  --chart-2: oklch(0.58 0.13 180);
+  --chart-3: oklch(0.62 0.14 75);
+  --chart-4: oklch(0.58 0.16 315);
+  --chart-5: oklch(0.52 0.12 30);
+
+  /* Border radius */
+  --radius: 0.5rem;
+}
+```
+
+To add dark mode, wrap overrides in a `prefers-color-scheme: dark` media query or a `.dark` class selector:
+
+```css
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.18 0.018 255);
+    --foreground: oklch(0.93 0.012 250);
+    --card: oklch(0.22 0.02 255);
+    --primary: oklch(0.68 0.13 252);
+    /* ... override every variable for dark mode ... */
+  }
+}
+
+/* Or with a class-based toggle: */
+.dark {
+  --background: oklch(0.18 0.018 255);
+  /* ... same overrides ... */
+}
+```
+
+### Chart colors
+
+Each card's `series` array references chart colors by variable name:
+
+```ts
+series: [
+  { key: "desktop", label: "Desktop", color: "var(--chart-1)" },
+  { key: "mobile", label: "Mobile", color: "var(--chart-2)" },
+]
+```
+
+Swap out the `--chart-*` values to change the entire dashboard's chart palette at once. Add more chart variables (`--chart-5`, `--chart-6`, etc.) and reference them in new card definitions.
+
+### Layout customization
+
+The grid dimensions are controlled by constants in `@gridframe/core`:
+
+| Constant | Default | Description |
+|----------|---------|-------------|
+| `DASHBOARD_GRID_COLUMNS` | `4` | Number of columns in the layout grid. Changing this affects the first-fit placement algorithm and layout validation. |
+
+Row height and gap are set in the React component styles and can be overridden:
+
+```css
+/* Override grid row height and gap */
+.react-grid-layout {
+  --gridframe-row-height: 80px;
+  --gridframe-gap: 12px;
+}
+```
+
+### Tailwind CSS v4 integration
+
+If you use Tailwind CSS v4, wire the CSS variables as theme tokens so you can use them with Tailwind utility classes:
+
+```css
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+```
+
+This lets you use classes like `bg-card text-muted-foreground border-border` in your own components alongside the dashboard.
+
+### Reference: complete globals.css
+
+See [`apps/web/app/globals.css`](apps/web/app/globals.css) for the full theme setup used by the example app, including light/dark color schemes, font configuration, and Tailwind integration.
+
+## Consumer API and database integration
+
+Gridframe separates dashboard state from card data. The database stores dashboard structure (titles, layouts, card names) while a **consumer API** supplies the actual data that each card visualizes. The server mediates all consumer requests so the browser never sees internal API URLs.
+
+### Architecture
+
+```
+Browser                      Gridframe server                   Consumer API / Database
+  │                               │                                     │
+  │  POST /bootstrap              │                                     │
+  │──────────────────────────────>│  Create/lookup default dashboard     │
+  │                               │  └─ SQLite: insert dashboards,      │
+  │                               │     dashboard_cards rows            │
+  │<──────────────────────────────│                                     │
+  │  { dashboards, dashboard }    │                                     │
+  │                               │                                     │
+  │  GET /cards/:id/data          │                                     │
+  │──────────────────────────────>│  Look up card in DB                 │
+  │                               │  └─ SQLite: SELECT source_query     │
+  │                               │                                     │
+  │                               │  Validate + proxy to consumer API   │
+  │                               │────────────────────────────────────>│
+  │                               │  { records: [...] }                 │
+  │                               │<────────────────────────────────────│
+  │                               │                                     │
+  │                               │  Adapt records into PanelCardPayload│
+  │<──────────────────────────────│                                     │
+  │  { status: "success", data }  │                                     │
+```
+
+### Database (dashboard persistence)
+
+The database stores dashboards and their cards. It does **not** store the visualized data — only configuration.
+
+You implement the `DashboardRepository` interface for your database of choice. The reference implementation uses SQLite:
+
+```ts
+// repositories/SqliteDashboardRepository.ts
+import Database from "better-sqlite3";
+import { createDashboardHandlers, type DashboardRepository } from "@gridframe/server";
+
+class SqliteDashboardRepository implements DashboardRepository {
+  constructor(private db: Database.Database) {}
+
+  bootstrap(userId, dashboardId, seed, cardLibrary) { /* ... */ }
+  loadDashboard(userId, dashboardId) { /* ... */ }
+  updateLayout(userId, dashboardId, revision, cards) { /* ... */ }
+  updateCardName(userId, dashboardId, cardId, revision, name) { /* ... */ }
+  listCardLibrary(userId, dashboardId) { /* ... */ }
+  addCard(userId, dashboardId, revision, card) { /* ... */ }
+  removeCard(userId, dashboardId, cardId, revision) { /* ... */ }
+  findOwnedCard(userId, dashboardId, cardId) { /* ... */ }
+}
+```
+
+**Key implementation details from the SQLite reference:**
+
+- **Migrations** — Numbered SQL files in a `migrations/` directory. A migration runner checks a `schema_migrations` table and applies new files sequentially. See `apps/web/server/dashboard/database.ts` and `apps/web/server/dashboard/migrations/0001-initial.sql`.
+- **Revision locking** — Every mutation checks the dashboard's `revision` column atomically (`UPDATE ... WHERE revision = ?`). If it doesn't match, the operation throws `DashboardRevisionConflictError` and the client refetches. See `SqliteDashboardRepository.incrementRevision` in `apps/web/server/dashboard/repository.ts`.
+- **Transactions** — All mutations that touch multiple tables (bootstrapping a dashboard with seed cards, updating layout with revision check) run inside SQLite transactions.
+- **Row-level structure** — Each card stores a `source_query` column containing the internal URL path to its consumer data (e.g., `/api/consumer/cards/total-revenue`). This URL is never sent to the browser — the server replaces it with a mediated Gridframe API URL during serialization.
+
+### Consumer API (card data)
+
+The consumer API is your own backend that returns source records for each card key. It is a **separate HTTP service** (or route) that Gridframe calls server-side.
+
+Minimal consumer endpoint (from the example app):
+
+```ts
+// app/api/consumer/cards/[sourceKey]/route.ts
+import { createConsumerCardHandler } from "~/server/dashboard/consumer-handler";
+
+export async function GET(request, { params }) {
+  const { sourceKey } = await params;
+  return createConsumerCardHandler()(sourceKey);
+}
+```
+
+The consumer returns JSON with a `records` array:
+
+```json
+{
+  "records": [
+    { "region": "North", "revenue": 62000 },
+    { "region": "South", "revenue": 41000 }
+  ]
+}
+```
+
+### Mediated card data flow
+
+The actual card data request path is:
+
+1. Browser calls `GET /api/gridframe/users/:userId/dashboards/:dashboardId/cards/:cardId/data`
+2. Server looks up the card in the database (`findOwnedCard`) — validates ownership
+3. Server reads the persisted `source_query` from the card row (e.g., `/api/consumer/cards/total-revenue`)
+4. Server validates the source URL is safe (no path traversal, same-origin with `GRIDFRAME_CONSUMER_API_BASE_URL`)
+5. Server fetches the consumer API, enforcing a 3-second timeout and forwarding the request's abort signal
+6. Server adapts the raw records into a `PanelCardDataResponse` using the card definition's `adapt` function
+7. If `?includeSource=true`, the server also attaches the normalized source records for drill-down views
+8. Server returns the validated payload to the browser
+
+This mediation ensures:
+- **Internal URLs stay internal** — the browser only knows Gridframe API paths
+- **SSRF protection** — `resolveSourceUrl` in `apps/web/server/dashboard/card-data-handler.ts` rejects absolute URLs, path traversal (`..`), protocol-relative URLs (`//`), fragments, and requests outside the configured consumer base path
+- **Error sanitization** — upstream failures produce a generic `CARD_QUERY_FAILED` (502) response, never leaking internal error details or stack traces
+- **Deterministic data** — in the example app, consumer records are seeded by card key using `@faker-js/faker` with a deterministic seed, so repeated requests return identical data
+
+### Card data resolver (server package)
+
+If you use `@gridframe/server`'s `createDashboardHandlers`, the `resolveCardData` callback replaces the need for a custom card data route. The server package provides a built-in `fetchCardData` handler that calls your resolver:
+
+```ts
+const handlers = createDashboardHandlers({
+  repository: myRepo,
+  cardLibrary: myLibrary,
+  defaultDashboard: () => mySeed,
+  resolveCardData: async ({ card, request }) => {
+    // card.sourceQuery is the persisted internal URL
+    // Fetch from your consumer API, database, or cache:
+    const response = await fetch(card.sourceQuery);
+    const data = await response.json();
+    // Adapt to PanelCardDataResponse:
+    return {
+      status: "success",
+      data: {
+        visualization: card.visualization,
+        value: data.total,
+        label: "Revenue",
+      },
+    };
+  },
+});
+```
+
+You can then mount `handlers.fetchCardData` in a route:
+
+```ts
+// app/api/gridframe/.../cards/[cardId]/data/route.ts
+export async function GET(request, { params }) {
+  const { userId, dashboardId, cardId } = await params;
+  return handlers.fetchCardData(request, { userId, dashboardId, cardId });
+}
+```
+
+The example app uses a custom `card-data-handler.ts` instead of the built-in `fetchCardData` because it needs to add SSRF-safe URL resolution and source record adaptation on top of the basic consumer fetch. You can choose either approach depending on your needs.
+
+### Configuration
+
+| Env variable | Default | Purpose |
+|---|---|---|
+| `GRIDFRAME_DATABASE_PATH` | `.data/gridframe.sqlite` | File path for the SQLite database. Use `:memory:` for testing. |
+| `GRIDFRAME_CONSUMER_API_BASE_URL` | `http://localhost:3000/api/consumer/` | Base URL for the mediated card data proxy. Only URLs under this base are forwarded. |
+
+### Using a different database
+
+The `DashboardRepository` interface is database-agnostic. Implement it for PostgreSQL, MySQL, MongoDB, or any other store:
+
+```ts
+import { type DashboardRepository } from "@gridframe/server";
+
+class PostgresDashboardRepository implements DashboardRepository {
+  // Implement all DashboardRepository methods using your DB client
+}
+```
+
+Then pass it to `createDashboardHandlers`:
+
+```ts
+const handlers = createDashboardHandlers({
+  repository: new PostgresDashboardRepository(pool),
+  cardLibrary,
+  defaultDashboard: ({ userId }) => seed,
+  resolveCardData: resolveMyCardData,
+});
+```
+
+The `SqliteDashboardRepository` in `apps/web/server/dashboard/repository.ts` is the canonical reference implementation.
 
 ## Server integration
 
@@ -229,23 +702,46 @@ Implement this interface for your database:
 
 ```ts
 interface DashboardRepository {
-  bootstrap(userId: string, seed: DashboardSeed): Promise<PersistedDashboard>;
-  loadDashboard(dashboardId: string): Promise<PersistedDashboard | null>;
-  updateLayout(
+  bootstrap(
+    ownerUserId: string,
+    dashboardId: string | undefined,
+    seed: DashboardSeed,
+    cardLibrary: readonly CardLibraryTemplate[],
+  ): MaybePromise<DashboardBootstrap>;
+  loadDashboard(
+    ownerUserId: string,
     dashboardId: string,
-    revision: string,
-    cards: DashboardCardLayout[],
-  ): Promise<PersistedDashboard>;
-  updateCardName(cardId: string, name: string): Promise<PersistedDashboardCard>;
-  addCard(dashboardId: string, revision: string, card: {
-    name: string;
-    visualization: VisualizationType;
-    sourceQuery: string;
-    layout: DashboardCardLayout;
-    deeplink?: CardDeeplinkConfig;
-  }): Promise<PersistedDashboard>;
-  removeCard(cardId: string, revision: string): Promise<PersistedDashboardCard>;
-  findOwnedCard(cardId: string, dashboardId: string): Promise<PersistedDashboardCard | null>;
+  ): MaybePromise<PersistedDashboard>;
+  updateLayout(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    cards: DashboardLayoutItem[],
+  ): MaybePromise<PersistedDashboard>;
+  updateCardName(
+    ownerUserId: string,
+    dashboardId: string,
+    cardId: string,
+    revision: number,
+    name: string,
+  ): MaybePromise<PersistedDashboard>;
+  addCard(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    card: DashboardCardCreate,
+  ): MaybePromise<PersistedDashboard>;
+  removeCard(
+    ownerUserId: string,
+    dashboardId: string,
+    cardId: string,
+    revision: number,
+  ): MaybePromise<PersistedDashboard>;
+  findOwnedCard(
+    ownerUserId: string,
+    dashboardId: string,
+    cardId: string,
+  ): MaybePromise<PersistedDashboardCard | undefined>;
 }
 ```
 
@@ -309,22 +805,84 @@ Responses are validated against the Zod schemas in `@gridframe/core`. On validat
 
 ## Run the complete example
 
+### Prerequisites
+
+- **Node.js** >= 20.9
+- **pnpm** >= 9.0 (install with `corepack enable && corepack prepare pnpm@9 --activate`)
+- **TypeScript** 5.9
+
+### Clone and install
+
 ```bash
+git clone <repo-url>
+cd gridframe
 pnpm install
+```
+
+### Start in development mode
+
+```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The example redirects to an API-managed Dashboard for `example-user`. Move or resize Cards, rename one, open the Card library to add any supported Visualisation, remove and re-add templates, and follow any Card footer Deeplink to inspect the Visualisation and the exact normalised source records used to produce it.
+This runs the Turborepo pipeline which starts both apps:
 
-The example stores its SQLite database at `.data/gridframe.sqlite`. Remove that file to reset the fake users and their Dashboards.
+| App | URL | Description |
+|-----|-----|-------------|
+| **web** | http://localhost:3000 | Full API-managed dashboard example with SQLite |
+| **docs** | http://localhost:3001 | Documentation and component showcase |
 
-## Verify
+### What you'll see
+
+Open http://localhost:3000. The home page immediately redirects to `/gridframe/users/example-user/dashboards`. On the first request, the server:
+
+1. Lazily creates a SQLite database at `.data/gridframe.sqlite`
+2. Bootstraps a default dashboard ("Operations overview") for `example-user`
+3. Seeds three initial cards: Total revenue (metric), Revenue by region (bar), Recent orders (table)
+4. Returns the dashboard document to the browser
+
+Once loaded, you can:
+
+- **Drag and resize** cards — layout changes are persisted to SQLite with revision-conflict detection
+- **Rename a card** — click the card header to edit
+- **Open the card library** — add any of the 8 visualisation types (area, line, pie, radar, radial charts)
+- **Remove and re-add** cards — the library tracks which cards are installed and uses first-fit placement
+- **Follow a card deeplink** — click a card footer link to drill down into the card's visualisation and see the exact normalised source records used to produce it
+
+### Reset data
 
 ```bash
-pnpm check-types
-pnpm lint
-pnpm test
+rm -rf apps/web/.data
+```
+
+This deletes the SQLite database. The next request will create a fresh database and boot a new default dashboard.
+
+### Build for production
+
+```bash
 pnpm build
+```
+
+Builds all packages and apps. Output goes to:
+
+- `packages/react/dist/` — compiled React components + CSS
+- `apps/web/.next/` — Next.js production build
+- `apps/docs/.next/` — Next.js production build
+
+### Start production server
+
+```bash
+pnpm start           # starts all apps in production mode
+pnpm --filter web start   # or just the web app
+```
+
+### Verify everything works
+
+```bash
+pnpm check-types     # TypeScript type checking across all packages and apps
+pnpm lint            # ESLint (zero warnings required)
+pnpm test            # Vitest runs across all packages and apps
+pnpm build           # Full production build
 ```
 
 ## Workspace
