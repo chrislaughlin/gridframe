@@ -2,6 +2,7 @@
 @import "tailwindcss/utilities";
 
 @source "./**/*.{ts,tsx}";
+@source "../../ui/src/**/*.{ts,tsx}";
 
 @theme inline {
   --color-background: var(--background);
@@ -125,18 +126,18 @@
   position: absolute;
   z-index: 3;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 150ms ease;
 }
 
-  pointer-events: none;
 .panel-dashboard-layout
   .react-grid-item:has([data-panel-card-editing="true"])
   .react-resizable-handle {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .panel-dashboard-layout .react-resizable-handle::after {
-  pointer-events: auto;
   position: absolute;
   display: block;
   content: "";

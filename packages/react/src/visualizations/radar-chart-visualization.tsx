@@ -17,9 +17,12 @@ function RadarChartVisualization({ data }: RadarChartVisualizationProps) {
   const chartConfig = getChartConfig(data.series);
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
+    <div
+      className="flex min-h-0 w-full flex-1 flex-col gap-3"
+      data-slot="flex-chart-visualization"
+    >
       <ChartContainer
-        className="aspect-auto min-h-0 flex-1 w-full"
+        className="aspect-auto h-full min-h-0 w-full"
         config={chartConfig}
       >
         <RadarChart accessibilityLayer data={data.data}>

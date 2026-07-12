@@ -4,6 +4,7 @@ export * from "./button";
 export * from "./card";
 export * from "./chart";
 export * from "./code";
+export * from "./dialog";
 export * from "./empty";
 export * from "./skeleton";
 export * from "./table";

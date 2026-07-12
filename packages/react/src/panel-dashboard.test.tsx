@@ -132,6 +132,18 @@ describe("PanelDashboard static mode", () => {
       expect(await screen.findByText(card.name)).toBeInTheDocument();
     }
 
+    expect(
+      document.querySelectorAll('[data-slot="flex-chart-visualization"]'),
+    ).toHaveLength(3);
+    for (const visualization of document.querySelectorAll(
+      '[data-slot="flex-chart-visualization"]',
+    )) {
+      expect(visualization).toHaveClass("flex-1", "w-full");
+      expect(visualization.querySelector('[data-slot="chart"]')).toHaveClass(
+        "h-full",
+      );
+    }
+
     expect(fetch).toHaveBeenCalledTimes(cards.length);
   });
 });
@@ -196,7 +208,15 @@ describe("PanelDashboard API-managed mode", () => {
     vi.stubGlobal("fetch", fetchMock);
     render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
     await screen.findByText("Total revenue");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Card library" }));
+    expect(
+      screen.getByRole("dialog", { name: "Card library" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toHaveClass("z-50");
+    expect(document.querySelector('[data-slot="dialog-overlay"]')).toHaveClass(
+      "z-50",
+    );
     fireEvent.click(await screen.findByRole("button", { name: "Add" }));
     await waitFor(() => {
       expect(
@@ -205,12 +225,18 @@ describe("PanelDashboard API-managed mode", () => {
         ),
       ).toBeInTheDocument();
     });
+    expect(
+      screen.getByRole("dialog", { name: "Card library" }),
+    ).toBeInTheDocument();
     resolveAdd(addResponse);
     await waitFor(() => {
       expect(
         document.querySelector('[data-panel-card-id="bar"]'),
       ).toBeInTheDocument();
     });
+    expect(
+      screen.getByRole("dialog", { name: "Card library" }),
+    ).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(/\/cards$/),
       expect.objectContaining({
@@ -263,6 +289,14 @@ describe("PanelDashboard API-managed mode", () => {
     expect(await screen.findByText("Total revenue")).toBeInTheDocument();
     expect(await screen.findByText("Revenue by region")).toBeInTheDocument();
     expect(await screen.findByText("Recent orders")).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        "/api/gridframe/users/user-1/dashboards/dashboard-1/cards/metric/data",
+      ),
+    ).not.toBeInTheDocument();
+    expect(
+      document.querySelector('[data-slot="metric-visualization"]'),
+    ).toHaveClass("min-h-0", "h-full");
     expect(fetch).toHaveBeenCalledWith(
       "/api/gridframe/users/user-1/dashboards/bootstrap",
       expect.objectContaining({ method: "POST" }),
@@ -333,8 +367,8 @@ describe("PanelDashboard API-managed mode", () => {
     fireEvent.change(input, { target: { value: "Net revenue" } });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    expect(screen.getByText("Net revenue")).toBeInTheDocument();
     expect(card).not.toHaveAttribute("data-panel-card-editing");
+    expect(screen.getByText("Net revenue")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Edit card name" }),
     ).toBeDisabled();

@@ -21,10 +21,13 @@ function AreaChartVisualization({ data }: AreaChartVisualizationProps) {
     : data.series;
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
+    <div
+      className="flex min-h-0 w-full flex-1 flex-col gap-3"
+      data-slot="flex-chart-visualization"
+    >
       {data.interactive ? <SegmentedSummary data={data} /> : null}
       <ChartContainer
-        className="aspect-auto min-h-0 flex-1 w-full"
+        className="aspect-auto h-full min-h-0 w-full"
         config={chartConfig}
       >
         <AreaChart

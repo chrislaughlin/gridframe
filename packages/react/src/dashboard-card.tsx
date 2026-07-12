@@ -5,7 +5,6 @@ import { type DashboardCardConfig, type PanelCardDataResponse } from "./types";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -91,7 +90,6 @@ function DashboardCard({
             ) : (
               <CardTitle className="truncate">{displayName}</CardTitle>
             )}
-            <CardDescription className="truncate">{card.query}</CardDescription>
           </div>
           <div className="flex shrink-0 items-center gap-1">
             {onRemove ? (
@@ -136,7 +134,7 @@ function DashboardCard({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="min-h-0 flex-1 overflow-hidden">
+      <CardContent className="flex min-h-0 flex-1 overflow-hidden">
         {query.isPending ? (
           <DashboardCardState state="loading" />
         ) : query.isError ? (

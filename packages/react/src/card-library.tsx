@@ -15,12 +15,23 @@ import type {
   DashboardBootstrapResponse,
   DashboardDocument,
 } from "@gridframe/core";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@gridframe/ui";
 
 type Props = {
   userId: string;
   apiBaseUrl?: string;
   dashboard: DashboardDocument;
   disabled: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onDashboardChange: (dashboard: DashboardDocument) => void;
 };
 
@@ -29,10 +40,11 @@ function CardLibrary({
   apiBaseUrl,
   dashboard,
   disabled,
+  open,
+  onOpenChange,
   onDashboardChange,
 }: Props) {
   const queryClient = useQueryClient();
-  const [open, setOpen] = React.useState(false);
   const identity = { userId, apiBaseUrl, dashboardId: dashboard.id };
   const queryKey = [
     "gridframe-card-library",
@@ -143,28 +155,31 @@ function CardLibrary({
   });
 
   return (
-    <div className="flex flex-col items-end gap-3">
-      <button
-        className="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium"
-        onClick={() => setOpen((value) => !value)}
-        type="button"
-      >
-        Card library
-      </button>
-      {open ? (
-        <section
-          aria-label="Card library"
-          className="w-full min-w-72 rounded-lg border border-border bg-background p-3 shadow-lg"
-        >
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Card library</Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[min(42rem,calc(100vh-2rem))] overflow-y-auto sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Card library</DialogTitle>
+          <DialogDescription>
+            Add or remove Cards from this Dashboard.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col">
           {query.isPending ? (
             <p className="text-sm text-muted-foreground">
               Loading Card library...
             </p>
           ) : null}
           {query.isError ? (
-            <button onClick={() => void query.refetch()} type="button">
+            <Button
+              onClick={() => void query.refetch()}
+              size="sm"
+              variant="outline"
+            >
               Retry Card library
-            </button>
+            </Button>
           ) : null}
           {query.data?.items.map((item) => (
             <div
@@ -179,8 +194,7 @@ function CardLibrary({
                   </p>
                 ) : null}
               </div>
-              <button
-                className="rounded-md border border-input px-2 py-1 text-xs font-medium"
+              <Button
                 disabled={disabled || mutation.isPending}
                 onClick={() =>
                   mutation.mutate(
@@ -189,10 +203,11 @@ function CardLibrary({
                       : { kind: "add", item },
                   )
                 }
-                type="button"
+                size="sm"
+                variant="outline"
               >
                 {item.addedCardId ? "Remove" : "Add"}
-              </button>
+              </Button>
             </div>
           ))}
           {mutation.isError ? (
@@ -207,19 +222,19 @@ function CardLibrary({
                   : mutation.error.message}
               </span>
               {mutation.variables ? (
-                <button
-                  className="font-medium"
+                <Button
                   onClick={() => mutation.mutate(mutation.variables!)}
-                  type="button"
+                  size="sm"
+                  variant="ghost"
                 >
                   Retry
-                </button>
+                </Button>
               ) : null}
             </div>
           ) : null}
-        </section>
-      ) : null}
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -10,6 +10,7 @@
     "./card": "./src/card.tsx",
     "./chart": "./src/chart.tsx",
     "./code": "./src/code.tsx",
+    "./dialog": "./src/dialog.tsx",
     "./empty": "./src/empty.tsx",
     "./skeleton": "./src/skeleton.tsx",
     "./table": "./src/table.tsx",
@@ -30,8 +31,10 @@
     "typescript": "5.9.2"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.19",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lucide-react": "^1.23.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "recharts": "^3.3.0",

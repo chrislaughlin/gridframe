@@ -86,6 +86,7 @@ function ApiManagedDashboard({
   const [displayDashboard, setDisplayDashboard] =
     React.useState<DashboardDocument>();
   const [notice, setNotice] = React.useState<string>();
+  const [isCardLibraryOpen, setIsCardLibraryOpen] = React.useState(false);
   const [shellEpoch, setShellEpoch] = React.useState(0);
   const [retryAction, setRetryAction] =
     React.useState<DashboardMutationAction>();
@@ -241,11 +242,13 @@ function ApiManagedDashboard({
         apiBaseUrl={options.apiBaseUrl}
         dashboard={dashboard}
         disabled={mutation.isPending || query.isFetching}
+        onOpenChange={setIsCardLibraryOpen}
         onDashboardChange={(next) => {
           setConfirmedDashboard(next);
           setDisplayDashboard(next);
           setShellEpoch((value) => value + 1);
         }}
+        open={isCardLibraryOpen}
         userId={options.userId}
       />
     </div>
