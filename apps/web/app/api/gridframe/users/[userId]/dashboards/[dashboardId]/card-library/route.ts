@@ -1,5 +1,4 @@
-import { createCardLibraryHandler } from "~/server/dashboard/card-library-handler";
-import { getDashboardRepository } from "~/server/dashboard/service";
+import { getDashboardHandlers } from "~/server/dashboard/handlers";
 
 export const runtime = "nodejs";
 
@@ -8,11 +7,10 @@ async function GET(
   context: { params: Promise<{ userId: string; dashboardId: string }> },
 ) {
   const { userId, dashboardId } = await context.params;
-  return createCardLibraryHandler(getDashboardRepository())(
-    request,
+  return getDashboardHandlers().listCardLibrary(request, {
     userId,
     dashboardId,
-  );
+  });
 }
 
 export { GET };

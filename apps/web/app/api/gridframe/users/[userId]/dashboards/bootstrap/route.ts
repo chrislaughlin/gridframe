@@ -1,5 +1,4 @@
-import { createBootstrapHandler } from "~/server/dashboard/bootstrap-handler";
-import { getDashboardRepository } from "~/server/dashboard/service";
+import { getDashboardHandlers } from "~/server/dashboard/handlers";
 
 export const runtime = "nodejs";
 
@@ -8,7 +7,7 @@ async function POST(
   context: { params: Promise<{ userId: string }> },
 ) {
   const { userId } = await context.params;
-  return createBootstrapHandler(getDashboardRepository())(request, userId);
+  return getDashboardHandlers().bootstrap(request, { userId });
 }
 
 export { POST };

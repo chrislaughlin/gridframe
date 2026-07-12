@@ -12,6 +12,10 @@ _Avoid_: Page, report, board
 A JSON-style description of a dashboard's title, cards, and footer.
 _Avoid_: Schema, manifest, layout
 
+**Dashboard repository**:
+The consumer-owned persistence boundary used by Gridframe server handlers to load and mutate Dashboards.
+_Avoid_: Storage adapter, database service
+
 **Card**:
 A single dashboard unit with a name, visualization, query, and optional deeplink.
 _Avoid_: Widget, tile, panel
@@ -19,6 +23,14 @@ _Avoid_: Widget, tile, panel
 **Card library**:
 The catalog of trusted Card templates available to add to a Dashboard.
 _Avoid_: Widget gallery, component picker
+
+**Dashboard seed**:
+The initial Dashboard template used when a user has no saved Dashboard yet.
+_Avoid_: Starter board, default config
+
+**Card data resolver**:
+The consumer-provided function that returns validated data for a Card.
+_Avoid_: Fetcher, source adapter
 
 **Query**:
 The card-owned endpoint used to fetch the data for that card.

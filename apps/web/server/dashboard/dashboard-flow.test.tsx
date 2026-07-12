@@ -7,10 +7,10 @@ import { DashboardDrillDown, PanelDashboard } from "@gridframe/react";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createBootstrapHandler } from "./bootstrap-handler";
-import { createCardLibraryHandler } from "./card-library-handler";
-import { createCardDataHandler } from "./card-data-handler";
-import { createConsumerCardHandler } from "./consumer-handler";
+import { createDashboardHandlers } from "@gridframe/server";
+
+import { cardLibrary, resolveExampleCardData } from "./card-definitions";
+import { defaultDashboardSeed } from "./seed";
 import { openDashboardDatabase } from "./database";
 import { SqliteDashboardRepository } from "./repository";
 
@@ -49,12 +49,12 @@ class ResizeObserverMock implements ResizeObserver {
 beforeEach(() => {
   database = openDashboardDatabase(":memory:");
   const repository = new SqliteDashboardRepository(database);
-  const consumerHandler = createConsumerCardHandler();
-  const bootstrapHandler = createBootstrapHandler(repository);
-  const cardHandler = createCardDataHandler(repository, async (input) =>
-    consumerHandler(new URL(input).pathname.split("/").at(-1) ?? ""),
-  );
-  const cardLibraryHandler = createCardLibraryHandler(repository);
+  const handlers = createDashboardHandlers({
+    repository,
+    cardLibrary,
+    defaultDashboard: () => defaultDashboardSeed,
+    resolveCardData: resolveExampleCardData,
+  });
 
   vi.stubGlobal("ResizeObserver", ResizeObserverMock);
   vi.stubGlobal(
@@ -67,21 +67,22 @@ beforeEach(() => {
       const segments = new URL(request.url).pathname.split("/").filter(Boolean);
 
       if (segments.at(-1) === "bootstrap") {
-        return bootstrapHandler(request, decodeURIComponent(segments[3] ?? ""));
+        return handlers.bootstrap(request, {
+          userId: decodeURIComponent(segments[3] ?? ""),
+        });
       }
 
       if (segments.at(-1) === "card-library") {
-        return cardLibraryHandler(
-          request,
-          decodeURIComponent(segments[3] ?? ""),
-          decodeURIComponent(segments[5] ?? ""),
-        );
+        return handlers.listCardLibrary(request, {
+          userId: decodeURIComponent(segments[3] ?? ""),
+          dashboardId: decodeURIComponent(segments[5] ?? ""),
+        });
       }
 
       const userId = decodeURIComponent(segments[3] ?? "");
       const dashboardId = decodeURIComponent(segments[5] ?? "");
       const cardId = decodeURIComponent(segments[7] ?? "");
-      return cardHandler(request, { userId, dashboardId, cardId });
+      return handlers.fetchCardData(request, { userId, dashboardId, cardId });
     }),
   );
 });

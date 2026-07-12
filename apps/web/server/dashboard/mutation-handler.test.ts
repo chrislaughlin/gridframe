@@ -33,6 +33,7 @@ const dashboard = {
 function repository(overrides: Partial<DashboardRepository> = {}) {
   return {
     bootstrap: vi.fn(),
+    loadDashboard: vi.fn().mockReturnValue(dashboard),
     findOwnedCard: vi.fn(),
     updateLayout: vi.fn().mockReturnValue(dashboard),
     updateCardName: vi.fn().mockReturnValue(dashboard),

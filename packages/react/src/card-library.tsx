@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@gridframe/ui";
+} from "./internal/ui";
 
 type Props = {
   userId: string;

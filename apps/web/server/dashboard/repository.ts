@@ -1,13 +1,23 @@
 import {
   type CardDeeplinkConfig,
   type CardLibraryItem,
-  type DashboardFooterConfig,
   type DashboardCardLayout,
+  type DashboardFooterConfig,
   type DashboardLayoutItem,
   type DashboardSummary,
   type VisualizationType,
   validateDashboardLayout,
 } from "@gridframe/core";
+import {
+  DashboardCardAlreadyAddedError,
+  DashboardInvalidLayoutError,
+  DashboardInvalidLibraryItemError,
+  DashboardNotFoundError,
+  DashboardRevisionConflictError,
+  type CardLibraryTemplate,
+  type DashboardRepository as GridframeDashboardRepository,
+  type DashboardSeed,
+} from "@gridframe/server";
 import { randomUUID } from "node:crypto";
 import { type Database } from "better-sqlite3";
 
@@ -47,8 +57,22 @@ type DashboardBootstrap = {
   dashboard: PersistedDashboard;
 };
 
+type DashboardCardCreate = {
+  libraryItemKey?: string;
+  name: string;
+  visualization: VisualizationType;
+  deeplink?: Omit<CardDeeplinkConfig, "href">;
+  layout: DashboardCardLayout;
+};
+
 interface DashboardRepository {
-  bootstrap(ownerUserId: string, dashboardId?: string): DashboardBootstrap;
+  bootstrap(
+    ownerUserId: string,
+    dashboardId?: string,
+    seed?: DashboardSeed,
+    cardLibrary?: readonly CardLibraryTemplate[],
+  ): DashboardBootstrap;
+  loadDashboard(ownerUserId: string, dashboardId: string): PersistedDashboard;
   findOwnedCard(
     ownerUserId: string,
     dashboardId: string,
@@ -74,6 +98,12 @@ interface DashboardRepository {
     revision: number,
     libraryItemKey: string,
   ): PersistedDashboard;
+  addCard(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    card: DashboardCardCreate,
+  ): PersistedDashboard;
   removeCard(
     ownerUserId: string,
     dashboardId: string,
@@ -82,40 +112,25 @@ interface DashboardRepository {
   ): PersistedDashboard;
 }
 
-class DashboardNotFoundError extends Error {
-  constructor() {
-    super("Dashboard not found");
-    this.name = "DashboardNotFoundError";
-  }
-}
-
-class DashboardRevisionConflictError extends Error {
-  constructor() {
-    super("Dashboard revision conflict");
-    this.name = "DashboardRevisionConflictError";
-  }
-}
-
-class DashboardInvalidLayoutError extends Error {
-  constructor(readonly errors: string[]) {
-    super(errors.join("; "));
-    this.name = "DashboardInvalidLayoutError";
-  }
-}
-
-class DashboardCardAlreadyAddedError extends Error {}
-class DashboardInvalidLibraryItemError extends Error {}
-
-class SqliteDashboardRepository implements DashboardRepository {
+class SqliteDashboardRepository
+  implements DashboardRepository, GridframeDashboardRepository
+{
   constructor(private readonly database: Database) {}
 
-  bootstrap(ownerUserId: string, dashboardId?: string): DashboardBootstrap {
+  bootstrap(
+    ownerUserId: string,
+    dashboardId?: string,
+    seed: DashboardSeed = defaultDashboardSeed,
+    cardLibrary: readonly CardLibraryTemplate[] = Object.values(
+      cardDefinitions,
+    ),
+  ): DashboardBootstrap {
     return this.database
       .transaction(() => {
         let defaultDashboard = this.findDefault(ownerUserId);
 
         if (!defaultDashboard) {
-          this.seedDefault(ownerUserId);
+          this.seedDefault(ownerUserId, seed, cardLibrary);
           defaultDashboard = this.findDefault(ownerUserId);
         }
 
@@ -133,10 +148,16 @@ class SqliteDashboardRepository implements DashboardRepository {
 
         return {
           dashboards: this.listOwnedDashboards(ownerUserId),
-          dashboard: this.loadDashboard(dashboard),
+          dashboard: this.loadDashboardRow(dashboard),
         };
       })
       .immediate();
+  }
+
+  loadDashboard(ownerUserId: string, dashboardId: string): PersistedDashboard {
+    return this.loadDashboardRow(
+      this.requireOwnedDashboard(ownerUserId, dashboardId),
+    );
   }
 
   findOwnedCard(
@@ -164,7 +185,7 @@ class SqliteDashboardRepository implements DashboardRepository {
   ): PersistedDashboard {
     return this.database.transaction(() => {
       const dashboard = this.requireOwnedDashboard(ownerUserId, dashboardId);
-      const currentCards = this.loadDashboard(dashboard).cards;
+      const currentCards = this.loadDashboardRow(dashboard).cards;
       const validation = validateDashboardLayout(
         cards,
         currentCards.map((card) => card.id),
@@ -194,7 +215,7 @@ class SqliteDashboardRepository implements DashboardRepository {
         );
       }
 
-      return this.loadDashboard(
+      return this.loadDashboardRow(
         this.requireOwnedDashboard(ownerUserId, dashboardId),
       );
     })();
@@ -223,14 +244,14 @@ class SqliteDashboardRepository implements DashboardRepository {
         )
         .run(name, new Date().toISOString(), cardId, dashboardId);
 
-      return this.loadDashboard(
+      return this.loadDashboardRow(
         this.requireOwnedDashboard(ownerUserId, dashboardId),
       );
     })();
   }
 
   listCardLibrary(ownerUserId: string, dashboardId: string): CardLibraryItem[] {
-    const dashboard = this.loadDashboard(
+    const dashboard = this.loadDashboardRow(
       this.requireOwnedDashboard(ownerUserId, dashboardId),
     );
     const installed = new Map(
@@ -251,23 +272,38 @@ class SqliteDashboardRepository implements DashboardRepository {
     dashboardId: string,
     revision: number,
     libraryItemKey: string,
-  ) {
+  ): PersistedDashboard;
+  addCard(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    card: DashboardCardCreate,
+  ): PersistedDashboard;
+  addCard(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    cardOrLibraryItemKey: string | DashboardCardCreate,
+  ): PersistedDashboard {
     return this.database.transaction(() => {
-      const dashboard = this.loadDashboard(
+      const dashboard = this.loadDashboardRow(
         this.requireOwnedDashboard(ownerUserId, dashboardId),
       );
-      const definition = getCardDefinition(libraryItemKey);
-      if (!definition) throw new DashboardInvalidLibraryItemError();
-      if (
-        dashboard.cards.some((card) => card.libraryItemKey === libraryItemKey)
-      ) {
-        throw new DashboardCardAlreadyAddedError();
+      const card =
+        typeof cardOrLibraryItemKey === "string"
+          ? this.cardFromExampleDefinition(dashboard, cardOrLibraryItemKey)
+          : cardOrLibraryItemKey;
+      if (card.libraryItemKey) {
+        if (
+          dashboard.cards.some(
+            (dashboardCard) =>
+              dashboardCard.libraryItemKey === card.libraryItemKey,
+          )
+        ) {
+          throw new DashboardCardAlreadyAddedError();
+        }
       }
       this.incrementRevision(dashboardId, revision);
-      const layout = firstAvailableLayout(
-        dashboard.cards,
-        definition.defaultLayout,
-      );
       const timestamp = new Date().toISOString();
       this.database
         .prepare(
@@ -280,15 +316,15 @@ class SqliteDashboardRepository implements DashboardRepository {
         .run(
           randomUUID(),
           dashboardId,
-          definition.key,
-          definition.name,
-          definition.visualization,
-          definition.sourceQuery,
-          JSON.stringify({ label: definition.deeplinkLabel }),
-          layout.x,
-          layout.y,
-          layout.width,
-          layout.height,
+          card.libraryItemKey,
+          card.name,
+          card.visualization,
+          card.libraryItemKey ? `/api/consumer/cards/${card.libraryItemKey}` : "",
+          card.deeplink ? JSON.stringify(card.deeplink) : null,
+          card.layout.x,
+          card.layout.y,
+          card.layout.width,
+          card.layout.height,
           dashboard.cards.reduce(
             (max, card) => Math.max(max, card.sortOrder),
             -1,
@@ -296,7 +332,7 @@ class SqliteDashboardRepository implements DashboardRepository {
           timestamp,
           timestamp,
         );
-      return this.loadDashboard(
+      return this.loadDashboardRow(
         this.requireOwnedDashboard(ownerUserId, dashboardId),
       );
     })();
@@ -318,7 +354,7 @@ class SqliteDashboardRepository implements DashboardRepository {
           "DELETE FROM dashboard_cards WHERE id = ? AND dashboard_id = ?",
         )
         .run(cardId, dashboardId);
-      return this.loadDashboard(
+      return this.loadDashboardRow(
         this.requireOwnedDashboard(ownerUserId, dashboardId),
       );
     })();
@@ -379,7 +415,7 @@ class SqliteDashboardRepository implements DashboardRepository {
     }));
   }
 
-  private loadDashboard(row: DashboardRow): PersistedDashboard {
+  private loadDashboardRow(row: DashboardRow): PersistedDashboard {
     const cards = this.database
       .prepare(
         "SELECT * FROM dashboard_cards WHERE dashboard_id = ? ORDER BY sort_order ASC",
@@ -398,7 +434,11 @@ class SqliteDashboardRepository implements DashboardRepository {
     };
   }
 
-  private seedDefault(ownerUserId: string) {
+  private seedDefault(
+    ownerUserId: string,
+    seed: DashboardSeed,
+    cardLibrary: readonly CardLibraryTemplate[],
+  ) {
     const dashboardId = randomUUID();
     const timestamp = new Date().toISOString();
 
@@ -412,9 +452,9 @@ class SqliteDashboardRepository implements DashboardRepository {
       .run(
         dashboardId,
         ownerUserId,
-        defaultDashboardSeed.title,
-        defaultDashboardSeed.description,
-        JSON.stringify(defaultDashboardSeed.footer),
+        seed.title,
+        seed.description,
+        JSON.stringify(seed.footer),
         timestamp,
         timestamp,
       );
@@ -427,24 +467,51 @@ class SqliteDashboardRepository implements DashboardRepository {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
 
-    defaultDashboardSeed.cards.forEach((card, index) => {
+    seed.cards.forEach((card, index) => {
+      const template = cardLibrary.find(
+        (item) => item.key === card.libraryItemKey,
+      );
+      if (!template) throw new DashboardInvalidLibraryItemError();
+      const layout = card.layout ?? {
+        x: 0,
+        y: index * template.defaultLayout.height,
+        ...template.defaultLayout,
+      };
+
       insertCard.run(
         randomUUID(),
         dashboardId,
-        card.key,
-        card.name,
-        card.visualization,
-        card.sourceQuery,
-        JSON.stringify({ label: card.deeplinkLabel }),
-        card.layout.x,
-        card.layout.y,
-        card.layout.width,
-        card.layout.height,
+        template.key,
+        template.name,
+        template.visualization,
+        `/api/consumer/cards/${template.key}`,
+        template.deeplinkLabel
+          ? JSON.stringify({ label: template.deeplinkLabel })
+          : null,
+        layout.x,
+        layout.y,
+        layout.width,
+        layout.height,
         index,
         timestamp,
         timestamp,
       );
     });
+  }
+
+  private cardFromExampleDefinition(
+    dashboard: PersistedDashboard,
+    libraryItemKey: string,
+  ): DashboardCardCreate {
+    const definition = getCardDefinition(libraryItemKey);
+    if (!definition) throw new DashboardInvalidLibraryItemError();
+    return {
+      libraryItemKey: definition.key,
+      name: definition.name,
+      visualization: definition.visualization,
+      deeplink: { label: definition.deeplinkLabel },
+      layout: firstAvailableLayout(dashboard.cards, definition.defaultLayout),
+    };
   }
 }
 

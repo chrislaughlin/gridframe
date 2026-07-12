@@ -53,11 +53,29 @@ API-managed mode bootstraps a user-owned Dashboard and enables persistence, the 
 
 `PanelDashboard` owns its TanStack Query client in both modes. Import `@gridframe/react/styles.css` once in the host application.
 
+## Server API
+
+API-managed mode expects a companion backend. Reusable backend behavior now lives in `@gridframe/server` as Fetch-native handlers:
+
+```ts
+import { createDashboardHandlers } from "@gridframe/server";
+
+const handlers = createDashboardHandlers({
+  repository,
+  cardLibrary,
+  defaultDashboard: ({ userId }) => dashboardSeedFor(userId),
+  resolveCardData: async ({ card }) => loadCardData(card),
+});
+```
+
+Consumers mount those handlers in their framework of choice. The Next.js example in `apps/web` is the canonical adapter; Express, TanStack Start, and Vite-style servers only need to pass a Fetch `Request` plus route params. Host applications remain responsible for authorizing access to the supplied `userId` and Dashboard IDs.
+
 ## Workspace
 
 - `packages/core` — canonical contracts, schemas, and Dashboard layout validation
 - `packages/client` — typed Dashboard API client
 - `packages/react` — Dashboard UI plus shared `CardVisualization` and `SourceDataTable`
+- `packages/server` — framework-neutral Dashboard API handlers and repository contracts
 - `apps/web` — complete Next.js, SQLite, and faker-backed consumer example
 - `apps/docs` — documentation application
 
