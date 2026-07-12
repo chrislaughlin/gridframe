@@ -557,6 +557,11 @@ function firstAvailableLayout(
   cards: readonly PersistedDashboardCard[],
   size: { width: number; height: number },
 ): DashboardCardLayout {
+  if (size.width > DASHBOARD_GRID_COLUMNS) {
+    throw new DashboardInvalidLayoutError([
+      `Card width ${size.width} exceeds the ${DASHBOARD_GRID_COLUMNS}-column grid`,
+    ]);
+  }
   for (let y = 0; ; y += 1) {
     for (let x = 0; x + size.width <= DASHBOARD_GRID_COLUMNS; x += 1) {
       const candidate = { x, y, ...size };
