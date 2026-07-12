@@ -118,7 +118,10 @@ function DashboardDrillDownContent({
         </p>
         <h1 className="text-3xl font-semibold">{query.data.card.name}</h1>
       </header>
-      <section className="min-h-96 rounded-lg border border-border p-6">
+      <section
+        className="h-96 rounded-lg border border-border p-6"
+        data-slot="drill-down-visualization"
+      >
         <CardVisualization data={query.data.data.data} />
       </section>
       <section className="space-y-4">

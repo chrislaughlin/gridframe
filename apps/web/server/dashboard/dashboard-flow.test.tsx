@@ -135,6 +135,9 @@ describe("API-backed Dashboard flow", () => {
       await screen.findByRole("heading", { name: "Source data" }),
     ).toBeInTheDocument();
     expect(
+      document.querySelector('[data-slot="drill-down-visualization"]'),
+    ).toHaveClass("h-96");
+    expect(
       await screen.findByRole("columnheader", { name: "Amount" }),
     ).toBeInTheDocument();
     expect(
