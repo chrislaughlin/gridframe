@@ -323,12 +323,18 @@ describe("PanelDashboard API-managed mode", () => {
 
     render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
     await screen.findByText("Total revenue");
+    const card = screen
+      .getByText("Total revenue")
+      .closest("[data-panel-card-id]");
+    expect(card).not.toHaveAttribute("data-panel-card-editing");
     fireEvent.click(screen.getByRole("button", { name: "Edit card name" }));
     const input = screen.getByRole("textbox", { name: "Card name" });
+    expect(card).toHaveAttribute("data-panel-card-editing", "true");
     fireEvent.change(input, { target: { value: "Net revenue" } });
     fireEvent.keyDown(input, { key: "Enter" });
 
     expect(screen.getByText("Net revenue")).toBeInTheDocument();
+    expect(card).not.toHaveAttribute("data-panel-card-editing");
     expect(
       screen.getByRole("button", { name: "Edit card name" }),
     ).toBeDisabled();

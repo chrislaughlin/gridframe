@@ -60,6 +60,7 @@ function DashboardCard({
   return (
     <Card
       className={cn("min-h-72 overflow-hidden", className)}
+      data-panel-card-editing={isEditingName ? "true" : undefined}
       data-panel-card-id={card.id}
     >
       <CardHeader className="gap-3">

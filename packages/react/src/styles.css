@@ -128,13 +128,15 @@
   transition: opacity 150ms ease;
 }
 
-.panel-dashboard-layout .react-grid-item:hover .react-resizable-handle,
-.panel-dashboard-layout .react-grid-item.resizing .react-resizable-handle,
-.panel-dashboard-layout .react-grid-item:focus-within .react-resizable-handle {
+  pointer-events: none;
+.panel-dashboard-layout
+  .react-grid-item:has([data-panel-card-editing="true"])
+  .react-resizable-handle {
   opacity: 1;
 }
 
 .panel-dashboard-layout .react-resizable-handle::after {
+  pointer-events: auto;
   position: absolute;
   display: block;
   content: "";
