@@ -1,6 +1,6 @@
 {
   "name": "@gridframe/client",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -24,6 +24,6 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@gridframe/core": "workspace:*"
+    "@gridframe/core": "^1.0.0"
   }
 }
