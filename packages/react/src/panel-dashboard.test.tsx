@@ -394,6 +394,9 @@ describe("PanelDashboard API-managed mode", () => {
 
     render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
     await screen.findByText("Total revenue");
+    const dashboardShell = document.querySelector(
+      '[data-slot="panel-dashboard"]',
+    );
     expect(
       fetchMock.mock.calls.filter(([, init]) => init?.method === "PATCH"),
     ).toHaveLength(0);
@@ -402,6 +405,9 @@ describe("PanelDashboard API-managed mode", () => {
       screen.getByRole("button", { name: "Finish moving cards" }),
     );
 
+    expect(document.querySelector('[data-slot="panel-dashboard"]')).toBe(
+      dashboardShell,
+    );
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
         "/api/gridframe/users/user-1/dashboards/dashboard-1/layout",

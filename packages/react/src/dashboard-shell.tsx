@@ -134,9 +134,11 @@ function DashboardShell({
                 setLayout(nextLayout);
               }}
               onDragStop={(nextLayout) => {
+                setLayout(nextLayout);
                 onLayoutCommit?.(nextLayout);
               }}
               onResizeStop={(nextLayout) => {
+                setLayout(nextLayout);
                 onLayoutCommit?.(nextLayout);
               }}
               resizeConfig={{

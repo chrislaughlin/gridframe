@@ -131,9 +131,8 @@ function ApiManagedDashboard({
     onMutate: (action) => {
       setNotice(undefined);
       setRetryAction(undefined);
-      setDisplayDashboard(action.optimistic);
-      if (action.kind === "layout") {
-        setShellEpoch((value) => value + 1);
+      if (action.kind !== "layout") {
+        setDisplayDashboard(action.optimistic);
       }
     },
     onSuccess: (dashboard, action) => {
@@ -254,7 +253,7 @@ function ApiManagedDashboard({
 
   return (
     <DashboardShell
-      key={`${dashboard.id}:${dashboard.revision}:${shellEpoch}`}
+      key={`${dashboard.id}:${shellEpoch}`}
       className={className}
       config={dashboard.config}
       editDisabled={mutation.isPending || query.isFetching}
