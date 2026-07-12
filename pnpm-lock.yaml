@@ -60,9 +60,6 @@ importers:
       '@faker-js/faker':
         specifier: ^10.5.0
         version: 10.5.0
-      '@gridframe/client':
-        specifier: workspace:^
-        version: link:../../packages/client
       '@gridframe/core':
         specifier: workspace:^
         version: link:../../packages/core
@@ -217,14 +214,11 @@ importers:
   packages/react:
     dependencies:
       '@gridframe/client':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../client
       '@gridframe/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
-      '@gridframe/ui':
-        specifier: workspace:^
-        version: link:../ui
       '@radix-ui/react-dialog':
         specifier: ^1.1.19
         version: 1.1.19(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)

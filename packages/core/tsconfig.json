@@ -1,8 +1,9 @@
 {
   "extends": "@gridframe/typescript-config/base.json",
   "compilerOptions": {
-    "noEmit": true
+    "outDir": "dist",
+    "rootDir": "src"
   },
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["dist", "node_modules", "src/**/*.test.ts"]
 }

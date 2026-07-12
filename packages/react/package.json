@@ -43,8 +43,8 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@gridframe/client": "^1.0.0",
-    "@gridframe/core": "^1.0.0",
+    "@gridframe/client": "workspace:*",
+    "@gridframe/core": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.19",
     "@tanstack/react-query": "^5.90.12",
     "class-variance-authority": "^0.7.1",

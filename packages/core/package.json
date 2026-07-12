@@ -1,17 +1,25 @@
 {
   "name": "@gridframe/core",
   "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "files": [
-    "src",
+    "dist",
     "README.md"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
+    "build": "rm -rf dist && tsc",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run src",
     "check-types": "tsc --noEmit"
