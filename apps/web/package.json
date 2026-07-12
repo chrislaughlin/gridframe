@@ -17,6 +17,7 @@
     "@gridframe/client": "workspace:^",
     "@gridframe/core": "workspace:^",
     "@gridframe/react": "workspace:*",
+    "@gridframe/server": "workspace:*",
     "better-sqlite3": "^12.11.1",
     "msw": "^2.12.4",
     "next": "16.2.0",

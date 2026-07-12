@@ -46,6 +46,7 @@
     "@gridframe/client": "workspace:^",
     "@gridframe/core": "workspace:^",
     "@gridframe/ui": "workspace:^",
+    "@radix-ui/react-dialog": "^1.1.19",
     "@tanstack/react-query": "^5.90.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

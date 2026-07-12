@@ -6,6 +6,7 @@ import {
   type TableRow,
   type VisualizationType,
 } from "@gridframe/core";
+import { type CardDataResolverInput } from "@gridframe/server";
 
 type SourceRecord = Record<string, unknown>;
 
@@ -131,6 +132,39 @@ const cardDefinitions = defineCards({
     "radial",
   ),
 });
+
+const cardLibrary = Object.values(cardDefinitions).map((definition) => ({
+  key: definition.key,
+  name: definition.name,
+  description: definition.description,
+  visualization: definition.visualization,
+  defaultLayout: definition.defaultLayout,
+  deeplinkLabel: definition.deeplinkLabel,
+}));
+
+function resolveExampleCardData({
+  card,
+  request,
+}: CardDataResolverInput): PanelCardDataResponse {
+  const definition = getCardDefinition(card.libraryItemKey);
+  if (!definition || definition.visualization !== card.visualization) {
+    throw new Error("Card definition is not available");
+  }
+
+  const records = generateSourceRecords(definition);
+  const adapted = adaptSourceRecords(definition, records);
+  if (
+    new URL(request.url).searchParams.get("includeSource") === "true" &&
+    adapted.status === "success"
+  ) {
+    return {
+      ...adapted,
+      sourceData: normalizeSourceTable(records),
+    };
+  }
+
+  return adapted;
+}
 
 function chartDefinition(
   name: string,
@@ -292,9 +326,11 @@ function hashSourceKey(value: string) {
 
 export {
   adaptSourceRecords,
+  cardLibrary,
   cardDefinitions,
   generateSourceRecords,
   getCardDefinition,
   normalizeSourceTable,
+  resolveExampleCardData,
 };
 export type { CardDefinition, SourceRecord };

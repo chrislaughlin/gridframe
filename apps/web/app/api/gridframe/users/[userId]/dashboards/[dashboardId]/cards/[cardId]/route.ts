@@ -1,6 +1,4 @@
-import { createCardMutationHandler } from "~/server/dashboard/mutation-handler";
-import { getDashboardRepository } from "~/server/dashboard/service";
-import { createRemoveCardHandler } from "~/server/dashboard/card-library-handler";
+import { getDashboardHandlers } from "~/server/dashboard/handlers";
 
 export const runtime = "nodejs";
 
@@ -11,12 +9,11 @@ async function PATCH(
   },
 ) {
   const { userId, dashboardId, cardId } = await context.params;
-  return createCardMutationHandler(getDashboardRepository())(
-    request,
+  return getDashboardHandlers().updateCard(request, {
     userId,
     dashboardId,
     cardId,
-  );
+  });
 }
 
 export { PATCH };
@@ -28,12 +25,11 @@ async function DELETE(
   },
 ) {
   const { userId, dashboardId, cardId } = await context.params;
-  return createRemoveCardHandler(getDashboardRepository())(
-    request,
+  return getDashboardHandlers().removeCard(request, {
     userId,
     dashboardId,
     cardId,
-  );
+  });
 }
 
 export { DELETE };

@@ -1,5 +1,4 @@
-import { createLayoutMutationHandler } from "~/server/dashboard/mutation-handler";
-import { getDashboardRepository } from "~/server/dashboard/service";
+import { getDashboardHandlers } from "~/server/dashboard/handlers";
 
 export const runtime = "nodejs";
 
@@ -8,11 +7,7 @@ async function PATCH(
   context: { params: Promise<{ userId: string; dashboardId: string }> },
 ) {
   const { userId, dashboardId } = await context.params;
-  return createLayoutMutationHandler(getDashboardRepository())(
-    request,
-    userId,
-    dashboardId,
-  );
+  return getDashboardHandlers().updateLayout(request, { userId, dashboardId });
 }
 
 export { PATCH };
