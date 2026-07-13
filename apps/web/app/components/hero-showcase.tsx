@@ -8,18 +8,13 @@ function HeroShowcase() {
   return (
     <div className="rounded-xl border border-border bg-card p-1 shadow-sm">
       <div className="rounded-lg border border-border/50 bg-background p-4 sm:p-6">
-        <div className="mb-6 flex items-end justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Live preview
-            </p>
-            <h3 className="text-lg font-semibold tracking-tight text-foreground">
-              Operations overview
-            </h3>
-          </div>
-          <span className="hidden rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground sm:inline-block">
-            Drag cards to rearrange
-          </span>
+        <div className="mb-6 space-y-1">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Live preview
+          </p>
+          <h3 className="text-lg font-semibold tracking-tight text-foreground">
+            Operations overview
+          </h3>
         </div>
 
         <div className={styles.previewGrid}>
