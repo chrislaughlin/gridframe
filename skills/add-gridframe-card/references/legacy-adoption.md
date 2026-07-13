@@ -6,7 +6,7 @@ Before editing, show the discovered Card library, resolver, seed, handlers, repo
 
 Migrate only the Card boundary:
 
-1. Confirm that the installed `@gridframe/server` 1.x package exports `defineCards`, then import it and convert the existing library entries into a keyed registry.
+1. Require `@gridframe/server` 1.1.0 or newer, confirm that it exports `defineCards`, then import it and convert the existing library entries into a keyed registry.
 2. Move each resolver branch beside its matching definition without changing data access or response behavior.
 3. Replace the old library and resolver arguments with `cards.cardLibrary` and `cards.resolveCardData`.
 4. Replace every seed literal that refers to a migrated Card key with `cards.definitions[key].key`.

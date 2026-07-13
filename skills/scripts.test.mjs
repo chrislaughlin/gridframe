@@ -69,6 +69,23 @@ test("validator rejects missing paths and mismatched package majors", () => {
   });
 });
 
+test("validator requires the defineCards server release", () => {
+  withFixture((root) => {
+    createIntegration(root);
+    const packageJson = JSON.parse(read(join(root, "package.json")));
+    packageJson.dependencies["@gridframe/server"] = "^1.0.1";
+    writeJson(join(root, "package.json"), packageJson);
+
+    const result = run(validator, root, true);
+    assert.equal(result.status, "invalid");
+    assert(
+      result.errors.includes(
+        "@gridframe/server must be version 1.1.0 or newer",
+      ),
+    );
+  });
+});
+
 test("validator reports ambiguous manifests in a monorepo", () => {
   withFixture((root) => {
     createIntegration(join(root, "apps/one"));
@@ -122,12 +139,67 @@ test("Card inspector rejects mismatched Gridframe package majors", () => {
   });
 });
 
+test("Card inspector requires the defineCards server release", () => {
+  withFixture((root) => {
+    createIntegration(root);
+    const packageJson = JSON.parse(read(join(root, "package.json")));
+    packageJson.dependencies["@gridframe/server"] = "1.0.1";
+    writeJson(join(root, "package.json"), packageJson);
+
+    const result = run(cardInspector, root, true);
+    assert.equal(result.status, "invalid");
+    assert(
+      result.manifests[0].errors.includes(
+        "@gridframe/server must be version 1.1.0 or newer",
+      ),
+    );
+  });
+});
+
+test("validators conservatively enforce the defineCards server range", () => {
+  const cases = [
+    ["^1.1", true],
+    ["~1.1.0", true],
+    [">=1.1.0 <2", true],
+    ["1.1.x", true],
+    ["1.2.0", true],
+    ["workspace:*", true],
+    ["workspace:^1.1.0", true],
+    ["<1.1.0", false],
+    ["1.x", false],
+    ["*", false],
+    ["latest", false],
+    ["1.1.0-beta.1", false],
+    ["^1.0.1 || ^1.1.0", false],
+  ];
+
+  for (const script of [validator, cardInspector]) {
+    for (const [range, valid] of cases) {
+      withFixture((root) => {
+        createIntegration(root);
+        const packageJson = JSON.parse(read(join(root, "package.json")));
+        packageJson.dependencies["@gridframe/server"] = range;
+        writeJson(join(root, "package.json"), packageJson);
+
+        const result = run(script, root, !valid);
+        const errors =
+          result.errors ?? result.manifests.flatMap((manifest) => manifest.errors);
+        assert.equal(
+          errors.includes("@gridframe/server must be version 1.1.0 or newer"),
+          !valid,
+          `${script} handled ${range}`,
+        );
+      });
+    }
+  }
+});
+
 function createIntegration(root) {
   writeJson(join(root, "package.json"), {
     dependencies: {
       "@gridframe/core": "^1.0.1",
       "@gridframe/react": "^1.0.1",
-      "@gridframe/server": "^1.0.1",
+      "@gridframe/server": "^1.1.0",
     },
   });
   for (const file of [

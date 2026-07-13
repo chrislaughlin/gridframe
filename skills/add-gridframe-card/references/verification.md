@@ -11,4 +11,4 @@ Verify through the Card definition and user-visible flow:
 7. A real Card data HTTP request succeeds for the authenticated owner and fails safely for another user.
 8. In a browser, add the Card, inspect its labels/formatting, resize it, reload, and verify optional source data.
 
-Run the inspector after editing to catch broken manifest paths or mismatched Gridframe package majors. If browser or live-data verification cannot run, name that gap explicitly.
+Run the inspector after editing to catch broken manifest paths, mismatched Gridframe package majors, or `@gridframe/server` versions older than 1.1.0. If browser or live-data verification cannot run, name that gap explicitly.

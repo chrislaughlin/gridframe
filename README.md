@@ -107,6 +107,8 @@ npx skills add chrislaughlin/gridframe
 - `setup-gridframe-dashboard` builds the first authenticated, API-managed Dashboard using the application's existing database and one real Card.
 - `add-gridframe-card` adds later Card definitions to the Card library and leaves the Dashboard seed unchanged unless asked.
 
+Both skills require `@gridframe/server` 1.1.0 or newer.
+
 Example prompts:
 
 ```text

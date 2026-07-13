@@ -96,6 +96,11 @@ function validateManifest(path) {
     if (majors.some((major) => major !== 1)) {
       errors.push("These skills support Gridframe 1.x");
     }
+    if (
+      !dependencyRequiresAtLeast(packages["@gridframe/server"], [1, 1, 0])
+    ) {
+      errors.push("@gridframe/server must be version 1.1.0 or newer");
+    }
   }
   return { path, valid: errors.length === 0, errors, manifest, packages };
 }
@@ -153,4 +158,26 @@ function findUp(start, name) {
 function majorVersion(range) {
   const match = String(range).match(/(?:^|[^0-9])(\d+)\./);
   return match ? Number(match[1]) : undefined;
+}
+
+function dependencyRequiresAtLeast(range, minimum) {
+  let value = String(range).trim();
+  if (/^workspace:(?:\*|\^|~)$/.test(value)) return true;
+  value = value.replace(/^workspace:/, "");
+  const match = value.match(
+    /^(?:\^|~|>=)?\s*(\d+)(?:\.(\d+|x|\*))?(?:\.(\d+|x|\*))?(?:\s+<\s*\d+(?:\.\d+){0,2})?$/i,
+  );
+  if (!match) return false;
+  const version = match.slice(1).map((part) =>
+    part === undefined || part === "x" || part === "*" ? 0 : Number(part),
+  );
+  return (
+    version.some(
+      (part, index) =>
+        part > minimum[index] &&
+        version
+          .slice(0, index)
+          .every((value, prior) => value === minimum[prior]),
+    ) || version.every((part, index) => part === minimum[index])
+  );
 }

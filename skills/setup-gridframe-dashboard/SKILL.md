@@ -15,7 +15,7 @@ Run `node scripts/inspect-project.mjs <application-root>` from this skill direct
 - [persistence-and-auth.md](references/persistence-and-auth.md) before changing persistence or routes.
 - The relevant section of [frameworks.md](references/frameworks.md) before mounting handlers.
 
-Use installed Gridframe 1.x type declarations as the final source of truth. Preserve the application's package manager, file layout, database library, migration style, auth boundary, and test conventions.
+Require `@gridframe/server` 1.1.0 or newer within Gridframe 1.x, and use the installed type declarations as the final source of truth. Preserve the application's package manager, file layout, database library, migration style, auth boundary, and test conventions.
 
 If durable persistence or authenticated identity has no established choice, stop and ask the developer. Do not silently introduce an in-memory repository or trust a route `userId`.
 
@@ -23,7 +23,7 @@ If the application has no React client surface, stop and ask where Gridframe's R
 
 ## 2. Implement one working slice
 
-1. Install the needed matching-major Gridframe packages.
+1. Install matching-major Gridframe packages, with `@gridframe/server` at 1.1.0 or newer.
 2. Implement `DashboardRepository` with the existing database. Keep mutations transactional and enforce revision changes atomically.
 3. Create a `defineCards` registry with one real Card. Resolve data from an existing application service or database and return a valid `PanelCardDataResponse`.
 4. Create one Dashboard seed containing that Card via `cards.definitions.<key>.key`.
