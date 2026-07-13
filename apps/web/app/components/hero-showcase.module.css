@@ -1,0 +1,68 @@
+.previewGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  min-width: 0;
+}
+
+.primaryChart,
+.halfWidth,
+.fullWidth {
+  min-width: 0;
+}
+
+.tallChart {
+  min-height: 20rem;
+}
+
+@media (min-width: 48rem) {
+  .previewGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .metricGrid,
+  .primaryChart,
+  .fullWidth {
+    grid-column: 1 / -1;
+  }
+
+  .metricGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .halfWidth {
+    grid-column: span 3 / span 3;
+  }
+
+  .tallChart {
+    min-height: 18rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .previewGrid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .metricGrid {
+    grid-column: span 7 / span 7;
+  }
+
+  .primaryChart {
+    grid-column: span 5 / span 5;
+  }
+
+  .halfWidth {
+    grid-column: span 6 / span 6;
+  }
+
+  .fullWidth {
+    grid-column: 1 / -1;
+  }
+}

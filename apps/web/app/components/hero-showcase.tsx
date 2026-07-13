@@ -2,6 +2,7 @@
 
 import { CardVisualization } from "@gridframe/react";
 import type { PanelCardPayload } from "@gridframe/core";
+import styles from "./hero-showcase.module.css";
 
 function HeroShowcase() {
   return (
@@ -21,32 +22,35 @@ function HeroShowcase() {
           </span>
         </div>
 
-        <div className="grid grid-cols-4 gap-4">
-          <div className="col-span-4 grid grid-cols-3 gap-4 sm:col-span-1 sm:grid-cols-1">
-            <HeroCard name="Revenue">
+        <div className={styles.previewGrid}>
+          <div className={styles.metricGrid}>
+            <HeroCard contentClassName="p-3" name="Revenue">
               <CardVisualization data={metricRevenue} />
             </HeroCard>
-            <HeroCard name="Users">
+            <HeroCard contentClassName="p-3" name="Users">
               <CardVisualization data={metricUsers} />
             </HeroCard>
-            <HeroCard name="Uptime">
+            <HeroCard contentClassName="p-3" name="Uptime">
               <CardVisualization data={metricUptime} />
             </HeroCard>
           </div>
 
-          <HeroCard className="col-span-4 sm:col-span-3" name="Revenue by Region">
+          <HeroCard className={styles.primaryChart} name="Revenue by Region">
             <CardVisualization data={barData} />
           </HeroCard>
 
-          <HeroCard className="col-span-2" name="Revenue Trend">
+          <HeroCard className={styles.halfWidth} name="Revenue Trend">
             <CardVisualization data={areaData} />
           </HeroCard>
 
-          <HeroCard className="col-span-2" name="Channel Share">
+          <HeroCard
+            className={`${styles.halfWidth} ${styles.tallChart}`}
+            name="Channel Share"
+          >
             <CardVisualization data={pieData} />
           </HeroCard>
 
-          <HeroCard className="col-span-4" name="Recent Orders">
+          <HeroCard className={styles.fullWidth} name="Recent Orders">
             <CardVisualization data={tableData} />
           </HeroCard>
         </div>
@@ -59,10 +63,12 @@ function HeroCard({
   name,
   children,
   className = "",
+  contentClassName = "p-4",
 }: {
   name: string;
   children: React.ReactNode;
   className?: string;
+  contentClassName?: string;
 }) {
   return (
     <div
@@ -73,7 +79,11 @@ function HeroCard({
           {name}
         </span>
       </div>
-      <div className="flex flex-1 flex-col overflow-hidden p-4">{children}</div>
+      <div
+        className={`flex flex-1 flex-col overflow-hidden ${contentClassName}`}
+      >
+        {children}
+      </div>
     </div>
   );
 }
