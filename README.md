@@ -104,8 +104,8 @@ Install Gridframe's consumer skills from this repository:
 npx skills add chrislaughlin/gridframe
 ```
 
-- `setup-gridframe-dashboard` builds the first authenticated, API-managed Dashboard using the application's existing database and one real Card.
-- `add-gridframe-card` adds later Card definitions to the Card library and leaves the Dashboard seed unchanged unless asked.
+- [`setup-gridframe-dashboard`](skills/setup-gridframe-dashboard/SKILL.md) builds the first authenticated, API-managed Dashboard using the application's existing database and one real Card.
+- [`add-gridframe-card`](skills/add-gridframe-card/SKILL.md) adds later Card definitions to the Card library and leaves the Dashboard seed unchanged unless asked.
 
 Both skills require `@gridframe/server` 1.1.0 or newer.
 

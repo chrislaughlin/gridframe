@@ -231,6 +231,69 @@ export default function Dashboard() {
   );
 }
 
+function AgentSkills() {
+  const skills = [
+    {
+      description:
+        "Inspect an app's auth, database, framework, and source layout, then build its first authenticated API-managed Dashboard with one real Card.",
+      href: "https://github.com/chrislaughlin/gridframe/tree/main/skills/setup-gridframe-dashboard",
+      name: "setup-gridframe-dashboard",
+    },
+    {
+      description:
+        "Add future Card definitions and resolvers to the Card library without changing the Dashboard seed unless you explicitly ask.",
+      href: "https://github.com/chrislaughlin/gridframe/tree/main/skills/add-gridframe-card",
+      name: "add-gridframe-card",
+    },
+  ];
+
+  return (
+    <section className="border-b border-border" id="agent-skills">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+          <div>
+            <p className="text-sm font-medium text-primary">Agent skills</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Let your coding agent wire up Gridframe
+            </h2>
+            <p className="mt-3 max-w-lg text-muted-foreground">
+              Install the Gridframe skills once, then ask your agent to set up
+              the first Dashboard or add Cards as your product grows.
+            </p>
+            <code className="mt-6 inline-flex max-w-full overflow-x-auto rounded-md border border-border bg-muted px-4 py-3 text-xs text-muted-foreground">
+              npx skills add chrislaughlin/gridframe
+            </code>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Requires @gridframe/server 1.1.0 or newer.
+            </p>
+          </div>
+          <div className="grid gap-4">
+            {skills.map((skill) => (
+              <a
+                className="group rounded-lg border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-accent"
+                href={skill.href}
+                key={skill.name}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <code className="text-sm font-medium text-primary">
+                  {skill.name}
+                </code>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {skill.description}
+                </p>
+                <span className="mt-4 inline-block text-sm font-medium text-foreground">
+                  View skill source <span aria-hidden="true">↗</span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Architecture() {
   const packages = [
     {
@@ -322,6 +385,7 @@ function Home() {
       <Features />
       <VisualizationShowcase />
       <CodeExample />
+      <AgentSkills />
       <Architecture />
       <CallToAction />
     </>
