@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/chrislaughlin/gridframe/main/skills/gridframe.schema.json",
+  "title": "Gridframe integration manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "version", "mode", "paths"],
+  "properties": {
+    "$schema": {
+      "const": "https://raw.githubusercontent.com/chrislaughlin/gridframe/main/skills/gridframe.schema.json"
+    },
+    "version": { "const": 1 },
+    "mode": { "const": "api-managed" },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cardDefinitions",
+        "dashboardSeed",
+        "handlers",
+        "repository",
+        "dashboardComponent",
+        "routeMounts"
+      ],
+      "properties": {
+        "cardDefinitions": { "$ref": "#/$defs/relativePath" },
+        "dashboardSeed": { "$ref": "#/$defs/relativePath" },
+        "handlers": { "$ref": "#/$defs/relativePath" },
+        "repository": { "$ref": "#/$defs/relativePath" },
+        "dashboardComponent": { "$ref": "#/$defs/relativePath" },
+        "routeMounts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/relativePath" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "not": { "pattern": "^(?:/|[A-Za-z]:[\\\\/])" }
+    }
+  }
+}

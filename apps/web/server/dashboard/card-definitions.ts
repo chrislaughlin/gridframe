@@ -4,25 +4,29 @@ import {
   type PanelCardDataResponse,
   type TableColumn,
   type TableRow,
-  type VisualizationType,
 } from "@gridframe/core";
-import { type CardDataResolverInput } from "@gridframe/server";
+import {
+  defineCards as defineGridframeCards,
+  type CardDefinition as GridframeCardDefinition,
+} from "@gridframe/server";
 
 type SourceRecord = Record<string, unknown>;
 
-type CardDefinition = {
+type CardDefinition = GridframeCardDefinition & {
   key: string;
-  name: string;
   description: string;
-  visualization: VisualizationType;
   sourceQuery: string;
   deeplinkLabel: string;
-  defaultLayout: { width: number; height: number };
   generateRecords(faker: Faker): SourceRecord[];
   adapt(records: SourceRecord[]): PanelCardDataResponse;
 };
 
-const cardDefinitions = defineCards({
+type CardDefinitionInput = Omit<
+  CardDefinition,
+  "key" | "resolve" | "sourceQuery"
+>;
+
+const cards = defineExampleCards({
   "total-revenue": {
     name: "Total revenue",
     description: "A headline revenue metric calculated from example orders.",
@@ -133,38 +137,8 @@ const cardDefinitions = defineCards({
   ),
 });
 
-const cardLibrary = Object.values(cardDefinitions).map((definition) => ({
-  key: definition.key,
-  name: definition.name,
-  description: definition.description,
-  visualization: definition.visualization,
-  defaultLayout: definition.defaultLayout,
-  deeplinkLabel: definition.deeplinkLabel,
-}));
-
-function resolveExampleCardData({
-  card,
-  request,
-}: CardDataResolverInput): PanelCardDataResponse {
-  const definition = getCardDefinition(card.libraryItemKey);
-  if (!definition || definition.visualization !== card.visualization) {
-    throw new Error("Card definition is not available");
-  }
-
-  const records = generateSourceRecords(definition);
-  const adapted = adaptSourceRecords(definition, records);
-  if (
-    new URL(request.url).searchParams.get("includeSource") === "true" &&
-    adapted.status === "success"
-  ) {
-    return {
-      ...adapted,
-      sourceData: normalizeSourceTable(records),
-    };
-  }
-
-  return adapted;
-}
+const { cardLibrary, definitions: cardDefinitions, resolveCardData } = cards;
+const resolveExampleCardData = resolveCardData;
 
 function chartDefinition(
   name: string,
@@ -233,19 +207,49 @@ function categoryDefinition(
   };
 }
 
-function defineCards<
-  T extends Record<string, Omit<CardDefinition, "key" | "sourceQuery">>,
+function defineExampleCards<
+  const T extends Record<string, CardDefinitionInput>,
 >(definitions: T) {
-  return Object.fromEntries(
-    Object.entries(definitions).map(([key, definition]) => [
-      key,
-      {
-        ...definition,
+  const registry = defineGridframeCards(
+    Object.fromEntries(
+      Object.entries(definitions).map(([key, definition]) => [
         key,
-        sourceQuery: `/api/consumer/cards/${key}`,
-      },
-    ]),
-  ) as { [K in keyof T]: CardDefinition & { key: K } };
+        {
+          ...definition,
+          sourceQuery: `/api/consumer/cards/${key}`,
+          resolve: ({ request }) =>
+            resolveDefinitionData(key, definition, request),
+        },
+      ]),
+    ) as Record<string, CardDefinitionInput & GridframeCardDefinition>,
+  );
+
+  return {
+    ...registry,
+    definitions: registry.definitions as {
+      [K in keyof T]: CardDefinition & { key: K };
+    },
+  };
+}
+
+function resolveDefinitionData(
+  key: string,
+  definition: CardDefinitionInput,
+  request: Request,
+): PanelCardDataResponse {
+  const faker = new Faker({ locale: [en] });
+  faker.seed(hashSourceKey(key));
+  const records = definition.generateRecords(faker);
+  const adapted = adaptSourceRecords(definition, records);
+
+  if (
+    new URL(request.url).searchParams.get("includeSource") === "true" &&
+    adapted.status === "success"
+  ) {
+    return { ...adapted, sourceData: normalizeSourceTable(records) };
+  }
+
+  return adapted;
 }
 
 function getCardDefinition(key: string | undefined) {
@@ -261,7 +265,7 @@ function generateSourceRecords(definition: CardDefinition) {
 }
 
 function adaptSourceRecords(
-  definition: CardDefinition,
+  definition: Pick<CardDefinition, "adapt">,
   records: SourceRecord[],
 ) {
   if (records.length === 0) {

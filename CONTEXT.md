@@ -20,6 +20,10 @@ _Avoid_: Storage adapter, database service
 A single dashboard unit with a name, visualization, query, and optional deeplink.
 _Avoid_: Widget, tile, panel
 
+**Card definition**:
+The consumer-owned source of truth for a Card's library metadata, Visualization, default layout, and data.
+_Avoid_: Widget definition, card schema
+
 **Card library**:
 The catalog of trusted Card templates available to add to a Dashboard.
 _Avoid_: Widget gallery, component picker

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/chrislaughlin/gridframe/main/skills/gridframe.schema.json",
+  "version": 1,
+  "mode": "api-managed",
+  "paths": {
+    "cardDefinitions": "server/dashboard/card-definitions.ts",
+    "dashboardSeed": "server/dashboard/seed.ts",
+    "handlers": "server/dashboard/handlers.ts",
+    "repository": "server/dashboard/repository.ts",
+    "dashboardComponent": "app/gridframe/users/[userId]/dashboards/dashboard-page.tsx",
+    "routeMounts": ["app/api/gridframe"]
+  }
+}

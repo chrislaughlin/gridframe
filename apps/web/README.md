@@ -130,7 +130,7 @@ The eight built-in cards are:
 | `team-performance`  | radar  | 2x4    | Performance dimensions    |
 | `goal-progress`     | radial | 2x4    | Goal progress metrics     |
 
-The exported `cardLibrary` array and `resolveExampleCardData` function are what get passed to `createDashboardHandlers`.
+The example uses `defineCards`, which derives the exported `cardLibrary` array and `resolveExampleCardData` dispatcher passed to `createDashboardHandlers`.
 
 ### Seed config (`seed.ts`)
 

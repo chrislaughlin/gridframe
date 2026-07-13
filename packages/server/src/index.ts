@@ -9,6 +9,7 @@ import {
   RemoveDashboardCardRequestSchema,
   UpdateDashboardCardRequestSchema,
   UpdateDashboardLayoutRequestSchema,
+  VisualizationTypeSchema,
   type CardDeeplinkConfig,
   type CardLibraryItem,
   type DashboardApiError,
@@ -34,6 +35,26 @@ type CardLibraryTemplate = {
     height: number;
   };
   deeplinkLabel?: string;
+};
+
+type CardDefinitionResolver = (
+  input: CardDataResolverInput,
+) => MaybePromise<PanelCardDataResponse>;
+
+type CardDefinition = Omit<CardLibraryTemplate, "key"> & {
+  resolve: CardDefinitionResolver;
+};
+
+type CardDefinitionMap = Record<string, CardDefinition>;
+
+type DefinedCardMap<T extends CardDefinitionMap> = {
+  readonly [K in keyof T]: T[K] & { readonly key: K };
+};
+
+type DefinedCards<T extends CardDefinitionMap> = {
+  readonly definitions: DefinedCardMap<T>;
+  readonly cardLibrary: readonly CardLibraryTemplate[];
+  resolveCardData(input: CardDataResolverInput): Promise<PanelCardDataResponse>;
 };
 
 type DashboardSeedCard = {
@@ -127,7 +148,9 @@ type DashboardHandlerOptions = {
   repository: DashboardRepository;
   cardLibrary:
     | readonly CardLibraryTemplate[]
-    | ((context: DashboardContext) => MaybePromise<readonly CardLibraryTemplate[]>);
+    | ((
+        context: DashboardContext,
+      ) => MaybePromise<readonly CardLibraryTemplate[]>);
   defaultDashboard: (context: DashboardContext) => MaybePromise<DashboardSeed>;
   resolveCardData: (
     input: CardDataResolverInput,
@@ -189,6 +212,88 @@ class DashboardInvalidLibraryItemError extends Error {
   constructor() {
     super("Unknown Card library item");
     this.name = "DashboardInvalidLibraryItemError";
+  }
+}
+
+function defineCards<const T extends CardDefinitionMap>(
+  input: T,
+): DefinedCards<T> {
+  const entries = Object.entries(input);
+
+  for (const [key, definition] of entries) {
+    validateCardDefinition(key, definition);
+  }
+
+  const definitions = Object.fromEntries(
+    entries.map(([key, definition]) => [key, { ...definition, key }]),
+  ) as DefinedCardMap<T>;
+  const cardLibrary = entries.map(([key, definition]) => ({
+    key,
+    name: definition.name,
+    description: definition.description,
+    visualization: definition.visualization,
+    defaultLayout: definition.defaultLayout,
+    deeplinkLabel: definition.deeplinkLabel,
+  }));
+
+  return {
+    definitions,
+    cardLibrary,
+    async resolveCardData(input) {
+      const key = input.card.libraryItemKey;
+      const definition = key ? definitions[key] : undefined;
+
+      if (!key || !definition) {
+        throw new Error(`Card definition ${key ?? "unknown"} is not available`);
+      }
+      if (definition.visualization !== input.card.visualization) {
+        throw new Error(`Card definition ${key} does not match the Card`);
+      }
+
+      const response = PanelCardDataResponseSchema.parse(
+        await definition.resolve(input),
+      );
+      if (
+        response.status === "success" &&
+        response.data.visualization !== definition.visualization
+      ) {
+        throw new Error(
+          `Card definition ${key} returned ${response.data.visualization} data for a ${definition.visualization} Card`,
+        );
+      }
+
+      return response;
+    },
+  };
+}
+
+function validateCardDefinition(key: string, definition: CardDefinition) {
+  const layout = definition.defaultLayout;
+  const hasValidLayout =
+    typeof layout === "object" &&
+    layout !== null &&
+    Number.isInteger(layout.width) &&
+    layout.width > 0 &&
+    layout.width <= DASHBOARD_GRID_COLUMNS &&
+    Number.isInteger(layout.height) &&
+    layout.height > 0;
+  const hasValidMetadata =
+    typeof definition.name === "string" &&
+    definition.name.trim().length > 0 &&
+    (definition.description === undefined ||
+      typeof definition.description === "string") &&
+    (definition.deeplinkLabel === undefined ||
+      typeof definition.deeplinkLabel === "string") &&
+    typeof definition.resolve === "function";
+
+  if (!key.trim() || !hasValidMetadata) {
+    throw new Error(`Card definition ${key || "unknown"} has invalid metadata`);
+  }
+  if (!VisualizationTypeSchema.safeParse(definition.visualization).success) {
+    throw new Error(`Card definition ${key} has an invalid Visualization`);
+  }
+  if (!hasValidLayout) {
+    throw new Error(`Card definition ${key} has an invalid default layout`);
   }
 }
 
@@ -340,7 +445,10 @@ function createDashboardHandlers(options: DashboardHandlerOptions) {
 
       try {
         const [dashboard, cardLibrary] = await Promise.all([
-          options.repository.loadDashboard(identity.userId, identity.dashboardId),
+          options.repository.loadDashboard(
+            identity.userId,
+            identity.dashboardId,
+          ),
           resolveCardLibrary(options.cardLibrary, identity),
         ]);
 
@@ -359,12 +467,19 @@ function createDashboardHandlers(options: DashboardHandlerOptions) {
         : undefined;
 
       if (!parsed.success || revision === undefined || !isDashboard(identity)) {
-        return errorResponse(400, "INVALID_REQUEST", "Invalid Card add request");
+        return errorResponse(
+          400,
+          "INVALID_REQUEST",
+          "Invalid Card add request",
+        );
       }
 
       try {
         const [dashboard, cardLibrary] = await Promise.all([
-          options.repository.loadDashboard(identity.userId, identity.dashboardId),
+          options.repository.loadDashboard(
+            identity.userId,
+            identity.dashboardId,
+          ),
           resolveCardLibrary(options.cardLibrary, identity),
         ]);
         const template = cardLibrary.find(
@@ -393,7 +508,10 @@ function createDashboardHandlers(options: DashboardHandlerOptions) {
             deeplink: template.deeplinkLabel
               ? { label: template.deeplinkLabel }
               : undefined,
-            layout: firstAvailableLayout(dashboard.cards, template.defaultLayout),
+            layout: firstAvailableLayout(
+              dashboard.cards,
+              template.defaultLayout,
+            ),
           },
         );
 
@@ -445,7 +563,11 @@ function createDashboardHandlers(options: DashboardHandlerOptions) {
 
     fetchCardData: async (request: Request, identity: CardIdentity) => {
       if (!isCard(identity)) {
-        return errorResponse(400, "INVALID_REQUEST", "Invalid Card data request");
+        return errorResponse(
+          400,
+          "INVALID_REQUEST",
+          "Invalid Card data request",
+        );
       }
 
       try {
@@ -585,9 +707,7 @@ async function resolveCardLibrary(
   cardLibrary: DashboardHandlerOptions["cardLibrary"],
   context: DashboardContext,
 ) {
-  return typeof cardLibrary === "function"
-    ? cardLibrary(context)
-    : cardLibrary;
+  return typeof cardLibrary === "function" ? cardLibrary(context) : cardLibrary;
 }
 
 function mutationError(error: unknown, invalidMessage: string) {
@@ -696,8 +816,12 @@ export {
   DashboardNotFoundError,
   DashboardRevisionConflictError,
   createDashboardHandlers,
+  defineCards,
 };
 export type {
+  CardDefinition,
+  CardDefinitionMap,
+  CardDefinitionResolver,
   CardDataResolverInput,
   CardLibraryTemplate,
   DashboardBootstrap,
@@ -705,6 +829,8 @@ export type {
   DashboardRepository,
   DashboardSeed,
   DashboardSeedCard,
+  DefinedCardMap,
+  DefinedCards,
   PersistedDashboard,
   PersistedDashboardCard,
 };

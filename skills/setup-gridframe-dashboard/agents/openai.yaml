@@ -1,0 +1,4 @@
+interface:
+  display_name: "Set Up Gridframe Dashboard"
+  short_description: "Build an API-managed Gridframe Dashboard"
+  default_prompt: "Use $setup-gridframe-dashboard to add an API-managed Gridframe Dashboard to this application."

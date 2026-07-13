@@ -3,13 +3,29 @@
 Framework-neutral server helpers for API-managed Gridframe Dashboards.
 
 ```ts
-import { createDashboardHandlers } from "@gridframe/server";
+import { createDashboardHandlers, defineCards } from "@gridframe/server";
+
+const cards = defineCards({
+  revenue: {
+    name: "Revenue",
+    visualization: "metric",
+    defaultLayout: { width: 1, height: 2 },
+    resolve: async ({ userId }) => ({
+      status: "success",
+      data: {
+        visualization: "metric",
+        value: await revenueForUser(userId),
+        label: "Revenue",
+      },
+    }),
+  },
+});
 
 const handlers = createDashboardHandlers({
   repository,
-  cardLibrary,
+  cardLibrary: cards.cardLibrary,
   defaultDashboard: ({ userId }) => dashboardSeedFor(userId),
-  resolveCardData: async ({ card }) => loadCardData(card),
+  resolveCardData: cards.resolveCardData,
 });
 ```
 
@@ -30,15 +46,26 @@ export async function POST(
 ## Express route
 
 ```ts
-app.post("/api/gridframe/users/:userId/dashboards/bootstrap", async (req, res) => {
-  const request = new Request(req.protocol + "://" + req.get("host") + req.originalUrl, {
-    method: req.method,
-    headers: req.headers as HeadersInit,
-    body: JSON.stringify(req.body),
-  });
-  const response = await handlers.bootstrap(request, { userId: req.params.userId });
-  res.status(response.status).set(Object.fromEntries(response.headers)).send(await response.text());
-});
+app.post(
+  "/api/gridframe/users/:userId/dashboards/bootstrap",
+  async (req, res) => {
+    const request = new Request(
+      req.protocol + "://" + req.get("host") + req.originalUrl,
+      {
+        method: req.method,
+        headers: req.headers as HeadersInit,
+        body: JSON.stringify(req.body),
+      },
+    );
+    const response = await handlers.bootstrap(request, {
+      userId: req.params.userId,
+    });
+    res
+      .status(response.status)
+      .set(Object.fromEntries(response.headers))
+      .send(await response.text());
+  },
+);
 ```
 
 ## TanStack Start or Vite-style server

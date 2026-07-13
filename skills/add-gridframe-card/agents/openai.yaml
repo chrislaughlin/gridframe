@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add Gridframe Card"
+  short_description: "Add a Card to a Gridframe Dashboard"
+  default_prompt: "Use $add-gridframe-card to add a new Card to this application’s Gridframe Card library."

@@ -7,7 +7,8 @@
     "start": "turbo run start",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "test": "turbo run test",
+    "test": "pnpm test:skills && turbo run test",
+    "test:skills": "node --test skills/scripts.test.mjs",
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
