@@ -5,10 +5,7 @@ import {
   normalizeSourceTable,
   type SourceRecord,
 } from "./card-definitions";
-import {
-  type DashboardRepository,
-  type PersistedDashboardCardWithQuery,
-} from "./repository";
+import { type PersistedDashboardCardWithQuery } from "./repository";
 
 type CardDataIdentity = {
   userId: string;
@@ -24,7 +21,10 @@ function createCardDataHandler(
       userId: string,
       dashboardId: string,
       cardId: string,
-    ) => PersistedDashboardCardWithQuery | undefined;
+    ) =>
+      | PersistedDashboardCardWithQuery
+      | undefined
+      | Promise<PersistedDashboardCardWithQuery | undefined>;
   },
   fetchSource: FetchSource = fetch,
   consumerApiBaseUrl = "http://localhost:3000/api/consumer/",
@@ -41,7 +41,7 @@ function createCardDataHandler(
       return errorResponse(400, "INVALID_REQUEST", "Invalid Card data request");
     }
 
-    const card = repository.findOwnedCard(
+    const card = await repository.findOwnedCard(
       identity.userId,
       identity.dashboardId,
       identity.cardId,

@@ -20,9 +20,6 @@
 .DS_Store
 *.pem
 /.data/
-*.sqlite
-*.sqlite-shm
-*.sqlite-wal
 
 # debug
 npm-debug.log*

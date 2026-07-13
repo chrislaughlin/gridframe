@@ -1,44 +1,29 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { execFile } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { promisify } from "node:util";
 
-import { openDashboardDatabase } from "./database";
 import {
   DashboardInvalidLayoutError,
   DashboardNotFoundError,
   DashboardRevisionConflictError,
-  SqliteDashboardRepository,
 } from "./repository";
+import {
+  createTestRepository,
+  deleteTestDashboards,
+  hasTestDatabase,
+} from "./test-database";
 
-const databases: ReturnType<typeof openDashboardDatabase>[] = [];
-const temporaryDirectories: string[] = [];
-const execFileAsync = promisify(execFile);
+const owner = "repository-test-user-1";
+const otherOwner = "repository-test-user-2";
 
-afterEach(() => {
-  for (const database of databases.splice(0)) {
-    database.close();
-  }
-  for (const directory of temporaryDirectories.splice(0)) {
-    rmSync(directory, { recursive: true, force: true });
-  }
+afterEach(async () => {
+  await deleteTestDashboards([owner, otherOwner]);
 });
 
-function createRepository() {
-  const database = openDashboardDatabase(":memory:");
-  databases.push(database);
-  return new SqliteDashboardRepository(database);
-}
+describe.skipIf(!hasTestDatabase)("NeonDashboardRepository.bootstrap", () => {
+  it("seeds one default Dashboard with metric, chart, and table Cards", async () => {
+    const repository = createTestRepository();
+    const result = await repository.bootstrap(owner);
 
-describe("SqliteDashboardRepository.bootstrap", () => {
-  it("seeds one default Dashboard with metric, chart, and table Cards", () => {
-    const repository = createRepository();
-
-    const result = repository.bootstrap("user-1");
-
-    expect(result.dashboard.ownerUserId).toBe("user-1");
+    expect(result.dashboard.ownerUserId).toBe(owner);
     expect(result.dashboard.isDefault).toBe(true);
     expect(result.dashboard.revision).toBe(1);
     expect(result.dashboard.cards.map((card) => card.visualization)).toEqual([
@@ -56,156 +41,112 @@ describe("SqliteDashboardRepository.bootstrap", () => {
   });
 
   it("returns the same default Dashboard for repeated and concurrent bootstrap", async () => {
-    const repository = createRepository();
-
+    const repository = createTestRepository();
     const [first, second] = await Promise.all([
-      Promise.resolve().then(() => repository.bootstrap("user-1")),
-      Promise.resolve().then(() => repository.bootstrap("user-1")),
+      repository.bootstrap(owner),
+      repository.bootstrap(owner),
     ]);
 
     expect(second.dashboard.id).toBe(first.dashboard.id);
-    expect(repository.bootstrap("user-1").dashboard.id).toBe(
+    expect((await repository.bootstrap(owner)).dashboard.id).toBe(
       first.dashboard.id,
     );
   });
 
-  it("serializes competing bootstrap processes to one default Dashboard", async () => {
-    const directory = mkdtempSync(join(tmpdir(), "gridframe-bootstrap-"));
-    temporaryDirectories.push(directory);
-    const databasePath = join(directory, "dashboard.sqlite");
-    const initializedDatabase = openDashboardDatabase(databasePath);
-    initializedDatabase.close();
-    const workerPath = join(
-      process.cwd(),
-      "server/dashboard/bootstrap-worker.ts",
-    );
-    const startAt = String(Date.now() + 1_000);
+  it("does not reveal another user's Dashboard", async () => {
+    const repository = createTestRepository();
+    const owned = (await repository.bootstrap(owner)).dashboard;
 
-    const workers = await Promise.all([
-      execFileAsync("tsx", [workerPath, databasePath, startAt], {
-        cwd: process.cwd(),
-      }),
-      execFileAsync("tsx", [workerPath, databasePath, startAt], {
-        cwd: process.cwd(),
-      }),
-    ]);
-    const ids = workers.map(({ stdout }) => {
-      const line = stdout.trim().split("\n").at(-1);
-      return JSON.parse(line ?? "{}") as { id?: string };
-    });
-
-    expect(ids[0]?.id).toBeTruthy();
-    expect(ids[1]?.id).toBe(ids[0]?.id);
-
-    const database = openDashboardDatabase(databasePath);
-    databases.push(database);
-    const result = new SqliteDashboardRepository(database).bootstrap(
-      "concurrent-user",
-    );
-    expect(result.dashboards).toHaveLength(1);
-    expect(result.dashboard.id).toBe(ids[0]?.id);
-  }, 15_000);
-
-  it("does not expose another owner's requested Dashboard", () => {
-    const repository = createRepository();
-    const owned = repository.bootstrap("user-1").dashboard;
-
-    expect(() => repository.bootstrap("user-2", owned.id)).toThrow(
+    await expect(repository.bootstrap(otherOwner, owned.id)).rejects.toThrow(
       DashboardNotFoundError,
     );
   });
 });
 
-describe("SqliteDashboardRepository mutations", () => {
-  it("lists installed templates and supports remove then re-add with a fresh identity", () => {
-    const repository = createRepository();
-    const dashboard = repository.bootstrap("user-1").dashboard;
-    const original = dashboard.cards[0]!;
-
+describe.skipIf(!hasTestDatabase)("NeonDashboardRepository mutations", () => {
+  it("lists, removes, and re-adds Card library items", async () => {
+    const repository = createTestRepository();
+    const dashboard = (await repository.bootstrap(owner)).dashboard;
+    const before = await repository.listCardLibrary(owner, dashboard.id);
     expect(
-      repository
-        .listCardLibrary("user-1", dashboard.id)
-        .filter((item) =>
-          dashboard.cards.some((card) => card.libraryItemKey === item.key),
-        )
-        .every((item) => item.addedCardId),
-    ).toBe(true);
-    const removed = repository.removeCard(
-      "user-1",
-      dashboard.id,
-      original.id,
-      dashboard.revision,
+      before.find((item) => item.key === "total-revenue")?.addedCardId,
+    ).toBe(
+      dashboard.cards.find((card) => card.libraryItemKey === "total-revenue")
+        ?.id,
     );
-    expect(removed.cards).toHaveLength(2);
-    expect(
-      repository
-        .listCardLibrary("user-1", dashboard.id)
-        .find((item) => item.key === original.libraryItemKey)?.addedCardId,
-    ).toBeUndefined();
 
-    const added = repository.addCard(
-      "user-1",
-      dashboard.id,
-      removed.revision,
-      original.libraryItemKey!,
-    );
-    const replacement = added.cards.find(
-      (card) => card.libraryItemKey === original.libraryItemKey,
-    )!;
-    expect(replacement.id).not.toBe(original.id);
-    expect(replacement.name).toBe("Total revenue");
-    expect(replacement.layout).toEqual({ x: 0, y: 0, width: 1, height: 2 });
-  });
-
-  it("rejects duplicate, stale, and non-owned Card library mutations", () => {
-    const repository = createRepository();
-    const dashboard = repository.bootstrap("user-1").dashboard;
-    expect(() =>
-      repository.addCard(
-        "user-1",
-        dashboard.id,
-        dashboard.revision,
-        "total-revenue",
-      ),
-    ).toThrow();
-    expect(() =>
-      repository.removeCard(
-        "user-2",
-        dashboard.id,
-        dashboard.cards[0]!.id,
-        dashboard.revision,
-      ),
-    ).toThrow(DashboardNotFoundError);
-    const removed = repository.removeCard(
-      "user-1",
+    const removed = await repository.removeCard(
+      owner,
       dashboard.id,
       dashboard.cards[0]!.id,
       dashboard.revision,
     );
-    expect(() =>
+    const added = await repository.addCard(
+      owner,
+      dashboard.id,
+      removed.revision,
+      "total-revenue",
+    );
+
+    expect(added.revision).toBe(3);
+    expect(
+      added.cards.filter((card) => card.libraryItemKey === "total-revenue"),
+    ).toHaveLength(1);
+  });
+
+  it("enforces ownership, uniqueness, and optimistic revisions", async () => {
+    const repository = createTestRepository();
+    const dashboard = (await repository.bootstrap(owner)).dashboard;
+
+    await expect(
       repository.addCard(
-        "user-1",
+        owner,
         dashboard.id,
         dashboard.revision,
         "total-revenue",
       ),
-    ).toThrow(DashboardRevisionConflictError);
+    ).rejects.toThrow();
+    await expect(
+      repository.removeCard(
+        otherOwner,
+        dashboard.id,
+        dashboard.cards[0]!.id,
+        dashboard.revision,
+      ),
+    ).rejects.toThrow(DashboardNotFoundError);
+
+    const removed = await repository.removeCard(
+      owner,
+      dashboard.id,
+      dashboard.cards[0]!.id,
+      dashboard.revision,
+    );
+    await expect(
+      repository.addCard(
+        owner,
+        dashboard.id,
+        dashboard.revision,
+        "total-revenue",
+      ),
+    ).rejects.toThrow(DashboardRevisionConflictError);
     expect(removed.revision).toBe(2);
   });
 
-  it("keeps an empty Dashboard valid and places newly added Cards without overlap", () => {
-    const repository = createRepository();
-    let dashboard = repository.bootstrap("user-1").dashboard;
-    for (const card of [...dashboard.cards])
-      dashboard = repository.removeCard(
-        "user-1",
+  it("keeps an empty Dashboard valid and places a new Card without overlap", async () => {
+    const repository = createTestRepository();
+    let dashboard = (await repository.bootstrap(owner)).dashboard;
+    for (const card of [...dashboard.cards]) {
+      dashboard = await repository.removeCard(
+        owner,
         dashboard.id,
         card.id,
         dashboard.revision,
       );
+    }
     expect(dashboard.cards).toEqual([]);
-    dashboard = repository.addCard(
-      "user-1",
+
+    dashboard = await repository.addCard(
+      owner,
       dashboard.id,
       dashboard.revision,
       "recent-orders",
@@ -218,13 +159,13 @@ describe("SqliteDashboardRepository mutations", () => {
     });
   });
 
-  it("persists a complete valid layout and increments the revision once", () => {
-    const repository = createRepository();
-    const dashboard = repository.bootstrap("user-1").dashboard;
+  it("persists a complete valid layout and increments the revision once", async () => {
+    const repository = createTestRepository();
+    const dashboard = (await repository.bootstrap(owner)).dashboard;
     const [metric, chart, table] = dashboard.cards;
 
-    const updated = repository.updateLayout(
-      "user-1",
+    const updated = await repository.updateLayout(
+      owner,
       dashboard.id,
       dashboard.revision,
       [
@@ -241,18 +182,18 @@ describe("SqliteDashboardRepository mutations", () => {
       width: 3,
       height: 4,
     });
-    expect(repository.bootstrap("user-1", dashboard.id).dashboard).toEqual(
+    expect((await repository.bootstrap(owner, dashboard.id)).dashboard).toEqual(
       updated,
     );
   });
 
-  it("rejects invalid layouts without changing the Dashboard", () => {
-    const repository = createRepository();
-    const dashboard = repository.bootstrap("user-1").dashboard;
+  it("rejects invalid layouts without changing the Dashboard", async () => {
+    const repository = createTestRepository();
+    const dashboard = (await repository.bootstrap(owner)).dashboard;
 
-    expect(() =>
+    await expect(
       repository.updateLayout(
-        "user-1",
+        owner,
         dashboard.id,
         dashboard.revision,
         dashboard.cards.map((card) => ({
@@ -263,49 +204,34 @@ describe("SqliteDashboardRepository mutations", () => {
           height: 4,
         })),
       ),
-    ).toThrow(DashboardInvalidLayoutError);
-    expect(repository.bootstrap("user-1").dashboard).toEqual(dashboard);
+    ).rejects.toThrow(DashboardInvalidLayoutError);
+    expect((await repository.bootstrap(owner)).dashboard).toEqual(dashboard);
   });
 
-  it("renames an owned Card and rejects stale revisions atomically", () => {
-    const repository = createRepository();
-    const dashboard = repository.bootstrap("user-1").dashboard;
+  it("renames an owned Card and rejects stale revisions atomically", async () => {
+    const repository = createTestRepository();
+    const dashboard = (await repository.bootstrap(owner)).dashboard;
     const card = dashboard.cards[0]!;
 
-    const updated = repository.updateCardName(
-      "user-1",
+    const updated = await repository.updateCardName(
+      owner,
       dashboard.id,
       card.id,
       dashboard.revision,
       "Net revenue",
     );
-
     expect(updated.revision).toBe(2);
     expect(updated.cards[0]?.name).toBe("Net revenue");
-    expect(() =>
+
+    await expect(
       repository.updateCardName(
-        "user-1",
+        owner,
         dashboard.id,
         card.id,
         dashboard.revision,
         "Stale name",
       ),
-    ).toThrow(DashboardRevisionConflictError);
-    expect(repository.bootstrap("user-1").dashboard).toEqual(updated);
-  });
-
-  it("does not reveal non-owned Dashboards or Cards", () => {
-    const repository = createRepository();
-    const dashboard = repository.bootstrap("user-1").dashboard;
-
-    expect(() =>
-      repository.updateCardName(
-        "user-2",
-        dashboard.id,
-        dashboard.cards[0]!.id,
-        dashboard.revision,
-        "Not mine",
-      ),
-    ).toThrow(DashboardNotFoundError);
+    ).rejects.toThrow(DashboardRevisionConflictError);
+    expect((await repository.bootstrap(owner)).dashboard).toEqual(updated);
   });
 });

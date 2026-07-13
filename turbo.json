@@ -4,7 +4,8 @@
   "globalEnv": [
     "NODE_ENV",
     "GRIDFRAME_CONSUMER_API_BASE_URL",
-    "GRIDFRAME_DATABASE_PATH"
+    "DATABASE_URL",
+    "TEST_DATABASE_URL"
   ],
   "tasks": {
     "build": {

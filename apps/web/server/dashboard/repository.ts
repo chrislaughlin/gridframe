@@ -18,15 +18,15 @@ import {
   type CardLibraryTemplate,
   type DashboardBootstrap,
   type DashboardRepository as GridframeDashboardRepository,
+  type DashboardSeed,
   type PersistedDashboard,
   type PersistedDashboardCard,
-  type DashboardSeed,
 } from "@gridframe/server";
 import { randomUUID } from "node:crypto";
-import { type Database } from "better-sqlite3";
 
-import { defaultDashboardSeed } from "./seed";
 import { cardDefinitions, getCardDefinition } from "./card-definitions";
+import { type DashboardDatabase } from "./database";
+import { defaultDashboardSeed } from "./seed";
 
 type DashboardCardCreate = {
   libraryItemKey?: string;
@@ -42,189 +42,274 @@ interface DashboardRepository {
     dashboardId?: string,
     seed?: DashboardSeed,
     cardLibrary?: readonly CardLibraryTemplate[],
-  ): DashboardBootstrap;
-  loadDashboard(ownerUserId: string, dashboardId: string): PersistedDashboard;
+  ): Promise<DashboardBootstrap>;
+  loadDashboard(
+    ownerUserId: string,
+    dashboardId: string,
+  ): Promise<PersistedDashboard>;
   findOwnedCard(
     ownerUserId: string,
     dashboardId: string,
     cardId: string,
-  ): PersistedDashboardCard | undefined;
+  ): Promise<PersistedDashboardCardWithQuery | undefined>;
   updateLayout(
     ownerUserId: string,
     dashboardId: string,
     revision: number,
     cards: DashboardLayoutItem[],
-  ): PersistedDashboard;
+  ): Promise<PersistedDashboard>;
   updateCardName(
     ownerUserId: string,
     dashboardId: string,
     cardId: string,
     revision: number,
     name: string,
-  ): PersistedDashboard;
-  listCardLibrary(ownerUserId: string, dashboardId: string): CardLibraryItem[];
+  ): Promise<PersistedDashboard>;
+  listCardLibrary(
+    ownerUserId: string,
+    dashboardId: string,
+  ): Promise<CardLibraryItem[]>;
   addCard(
     ownerUserId: string,
     dashboardId: string,
     revision: number,
     libraryItemKey: string,
-  ): PersistedDashboard;
+  ): Promise<PersistedDashboard>;
   addCard(
     ownerUserId: string,
     dashboardId: string,
     revision: number,
     card: DashboardCardCreate,
-  ): PersistedDashboard;
+  ): Promise<PersistedDashboard>;
   removeCard(
     ownerUserId: string,
     dashboardId: string,
     cardId: string,
     revision: number,
-  ): PersistedDashboard;
+  ): Promise<PersistedDashboard>;
 }
 
-class SqliteDashboardRepository
+class NeonDashboardRepository
   implements DashboardRepository, GridframeDashboardRepository
 {
-  constructor(private readonly database: Database) {}
+  constructor(private readonly database: DashboardDatabase) {}
 
-  bootstrap(
+  async bootstrap(
     ownerUserId: string,
     dashboardId?: string,
     seed: DashboardSeed = defaultDashboardSeed,
     cardLibrary: readonly CardLibraryTemplate[] = Object.values(
       cardDefinitions,
     ),
-  ): DashboardBootstrap {
-    return this.database
-      .transaction(() => {
-        let defaultDashboard = this.findDefault(ownerUserId);
+  ): Promise<DashboardBootstrap> {
+    const timestamp = new Date().toISOString();
+    const seededCards = seed.cards.map((card, index) => {
+      const template = cardLibrary.find(
+        (item) => item.key === card.libraryItemKey,
+      );
+      if (!template) throw new DashboardInvalidLibraryItemError();
+      const layout = card.layout ?? {
+        x: 0,
+        y: index * template.defaultLayout.height,
+        ...template.defaultLayout,
+      };
 
-        if (!defaultDashboard) {
-          this.seedDefault(ownerUserId, seed, cardLibrary);
-          defaultDashboard = this.findDefault(ownerUserId);
-        }
+      return {
+        id: randomUUID(),
+        library_item_key: template.key,
+        name: template.name,
+        visualization: template.visualization,
+        source_query: `/api/consumer/cards/${template.key}`,
+        deeplink_json: template.deeplinkLabel
+          ? { label: template.deeplinkLabel }
+          : null,
+        grid_x: layout.x,
+        grid_y: layout.y,
+        grid_width: layout.width,
+        grid_height: layout.height,
+        sort_order: index,
+      };
+    });
 
-        if (!defaultDashboard) {
-          throw new Error("Default Dashboard could not be created");
-        }
-
-        const dashboard = dashboardId
-          ? this.findOwnedDashboard(ownerUserId, dashboardId)
-          : defaultDashboard;
-
-        if (!dashboard) {
-          throw new DashboardNotFoundError();
-        }
-
-        return {
-          dashboards: this.listOwnedDashboards(ownerUserId),
-          dashboard: this.loadDashboardRow(dashboard),
-        };
-      })
-      .immediate();
-  }
-
-  loadDashboard(ownerUserId: string, dashboardId: string): PersistedDashboard {
-    return this.loadDashboardRow(
-      this.requireOwnedDashboard(ownerUserId, dashboardId),
+    await this.database.query(
+      `WITH inserted_dashboard AS (
+         INSERT INTO dashboards (
+           id, owner_user_id, title, description, footer_json,
+           is_default, revision, created_at, updated_at
+         ) VALUES ($1, $2, $3, $4, $5::jsonb, TRUE, 1, $6, $6)
+         ON CONFLICT (owner_user_id) WHERE is_default DO NOTHING
+         RETURNING id
+       )
+       INSERT INTO dashboard_cards (
+         id, dashboard_id, library_item_key, name, visualization,
+         source_query, deeplink_json, grid_x, grid_y, grid_width,
+         grid_height, sort_order, created_at, updated_at
+       )
+       SELECT card.id, dashboard.id, card.library_item_key, card.name,
+         card.visualization, card.source_query, card.deeplink_json,
+         card.grid_x, card.grid_y, card.grid_width, card.grid_height,
+         card.sort_order, $6, $6
+       FROM inserted_dashboard dashboard
+       CROSS JOIN jsonb_to_recordset($7::jsonb) AS card(
+         id UUID, library_item_key TEXT, name TEXT, visualization TEXT,
+         source_query TEXT, deeplink_json JSONB, grid_x INTEGER,
+         grid_y INTEGER, grid_width INTEGER, grid_height INTEGER,
+         sort_order INTEGER
+       )`,
+      [
+        randomUUID(),
+        ownerUserId,
+        seed.title,
+        seed.description ?? null,
+        JSON.stringify(seed.footer ?? null),
+        timestamp,
+        JSON.stringify(seededCards),
+      ],
     );
+
+    const defaultDashboard = await this.findDefault(ownerUserId);
+    if (!defaultDashboard) {
+      throw new Error("Default Dashboard could not be created");
+    }
+
+    const dashboard = dashboardId
+      ? await this.findOwnedDashboard(ownerUserId, dashboardId)
+      : defaultDashboard;
+    if (!dashboard) throw new DashboardNotFoundError();
+
+    const [dashboards, loadedDashboard] = await Promise.all([
+      this.listOwnedDashboards(ownerUserId),
+      this.loadDashboardRow(dashboard),
+    ]);
+    return { dashboards, dashboard: loadedDashboard };
   }
 
-  findOwnedCard(
+  async loadDashboard(
+    ownerUserId: string,
+    dashboardId: string,
+  ): Promise<PersistedDashboard> {
+    const { rows } = await this.database.query<DashboardWithCardsRow>(
+      `SELECT dashboard.*,
+         COALESCE(
+           jsonb_agg(to_jsonb(card) ORDER BY card.sort_order)
+             FILTER (WHERE card.id IS NOT NULL),
+           '[]'::jsonb
+         ) AS cards
+       FROM dashboards dashboard
+       LEFT JOIN dashboard_cards card ON card.dashboard_id = dashboard.id
+       WHERE dashboard.id = $1 AND dashboard.owner_user_id = $2
+       GROUP BY dashboard.id`,
+      [dashboardId, ownerUserId],
+    );
+    const row = rows[0];
+    if (!row) throw new DashboardNotFoundError();
+    return mapDashboard(row, row.cards);
+  }
+
+  async findOwnedCard(
     ownerUserId: string,
     dashboardId: string,
     cardId: string,
-  ): PersistedDashboardCardWithQuery | undefined {
-    const row = this.database
-      .prepare(
-        `SELECT c.*
-         FROM dashboard_cards c
-         JOIN dashboards d ON d.id = c.dashboard_id
-         WHERE c.id = ? AND c.dashboard_id = ? AND d.owner_user_id = ?`,
-      )
-      .get(cardId, dashboardId, ownerUserId) as CardRow | undefined;
-
-    return row ? mapCard(row) : undefined;
+  ): Promise<PersistedDashboardCardWithQuery | undefined> {
+    const { rows } = await this.database.query<CardRow>(
+      `SELECT c.*
+       FROM dashboard_cards c
+       JOIN dashboards d ON d.id = c.dashboard_id
+       WHERE c.id = $1 AND c.dashboard_id = $2 AND d.owner_user_id = $3`,
+      [cardId, dashboardId, ownerUserId],
+    );
+    return rows[0] ? mapCard(rows[0]) : undefined;
   }
 
-  updateLayout(
+  async updateLayout(
     ownerUserId: string,
     dashboardId: string,
     revision: number,
     cards: DashboardLayoutItem[],
-  ): PersistedDashboard {
-    return this.database.transaction(() => {
-      const dashboard = this.requireOwnedDashboard(ownerUserId, dashboardId);
-      const currentCards = this.loadDashboardRow(dashboard).cards;
-      const validation = validateDashboardLayout(
-        cards,
-        currentCards.map((card) => card.id),
-      );
+  ): Promise<PersistedDashboard> {
+    const dashboard = await this.loadDashboard(ownerUserId, dashboardId);
+    const validation = validateDashboardLayout(
+      cards,
+      dashboard.cards.map((card) => card.id),
+    );
+    if (!validation.valid) {
+      throw new DashboardInvalidLayoutError(validation.errors);
+    }
 
-      if (!validation.valid) {
-        throw new DashboardInvalidLayoutError(validation.errors);
-      }
-
-      this.incrementRevision(dashboardId, revision);
-      const updateCard = this.database.prepare(
-        `UPDATE dashboard_cards
-         SET grid_x = ?, grid_y = ?, grid_width = ?, grid_height = ?, updated_at = ?
-         WHERE id = ? AND dashboard_id = ?`,
-      );
-      const timestamp = new Date().toISOString();
-
-      for (const card of cards) {
-        updateCard.run(
-          card.x,
-          card.y,
-          card.width,
-          card.height,
-          timestamp,
-          card.id,
-          dashboardId,
-        );
-      }
-
-      return this.loadDashboardRow(
-        this.requireOwnedDashboard(ownerUserId, dashboardId),
-      );
-    })();
+    const timestamp = new Date().toISOString();
+    const { rows } = await this.database.query<{ revised: boolean }>(
+      `WITH revised AS (
+         UPDATE dashboards
+         SET revision = revision + 1, updated_at = $4
+         WHERE id = $1 AND owner_user_id = $2 AND revision = $3
+         RETURNING id
+       ), updated_cards AS (
+         UPDATE dashboard_cards card
+         SET grid_x = layout.x, grid_y = layout.y,
+           grid_width = layout.width, grid_height = layout.height,
+           updated_at = $4
+         FROM revised,
+           jsonb_to_recordset($5::jsonb) AS layout(
+             id UUID, x INTEGER, y INTEGER, width INTEGER, height INTEGER
+           )
+         WHERE card.id = layout.id AND card.dashboard_id = revised.id
+         RETURNING card.id
+       )
+       SELECT EXISTS(SELECT 1 FROM revised) AS revised`,
+      [dashboardId, ownerUserId, revision, timestamp, JSON.stringify(cards)],
+    );
+    if (!rows[0]?.revised) throw new DashboardRevisionConflictError();
+    return this.loadDashboard(ownerUserId, dashboardId);
   }
 
-  updateCardName(
+  async updateCardName(
     ownerUserId: string,
     dashboardId: string,
     cardId: string,
     revision: number,
     name: string,
-  ): PersistedDashboard {
-    return this.database.transaction(() => {
-      this.requireOwnedDashboard(ownerUserId, dashboardId);
-      const card = this.findOwnedCard(ownerUserId, dashboardId, cardId);
+  ): Promise<PersistedDashboard> {
+    await this.requireOwnedDashboard(ownerUserId, dashboardId);
+    if (!(await this.findOwnedCard(ownerUserId, dashboardId, cardId))) {
+      throw new DashboardNotFoundError();
+    }
 
-      if (!card) {
-        throw new DashboardNotFoundError();
-      }
-
-      this.incrementRevision(dashboardId, revision);
-      this.database
-        .prepare(
-          `UPDATE dashboard_cards SET name = ?, updated_at = ?
-           WHERE id = ? AND dashboard_id = ?`,
-        )
-        .run(name, new Date().toISOString(), cardId, dashboardId);
-
-      return this.loadDashboardRow(
-        this.requireOwnedDashboard(ownerUserId, dashboardId),
-      );
-    })();
+    const { rows } = await this.database.query<{ revised: boolean }>(
+      `WITH revised AS (
+         UPDATE dashboards dashboard
+         SET revision = revision + 1, updated_at = $5
+         WHERE id = $1 AND owner_user_id = $2 AND revision = $4
+           AND EXISTS (
+             SELECT 1 FROM dashboard_cards
+             WHERE id = $3 AND dashboard_id = dashboard.id
+           )
+         RETURNING id
+       ), updated_card AS (
+         UPDATE dashboard_cards card
+         SET name = $6, updated_at = $5
+         FROM revised
+         WHERE card.id = $3 AND card.dashboard_id = revised.id
+         RETURNING card.id
+       )
+       SELECT EXISTS(SELECT 1 FROM revised) AS revised`,
+      [
+        dashboardId,
+        ownerUserId,
+        cardId,
+        revision,
+        new Date().toISOString(),
+        name,
+      ],
+    );
+    if (!rows[0]?.revised) throw new DashboardRevisionConflictError();
+    return this.loadDashboard(ownerUserId, dashboardId);
   }
 
-  listCardLibrary(ownerUserId: string, dashboardId: string): CardLibraryItem[] {
-    const dashboard = this.loadDashboardRow(
-      this.requireOwnedDashboard(ownerUserId, dashboardId),
-    );
+  async listCardLibrary(
+    ownerUserId: string,
+    dashboardId: string,
+  ): Promise<CardLibraryItem[]> {
+    const dashboard = await this.loadDashboard(ownerUserId, dashboardId);
     const installed = new Map(
       dashboard.cards.map((card) => [card.libraryItemKey, card.id]),
     );
@@ -243,231 +328,167 @@ class SqliteDashboardRepository
     dashboardId: string,
     revision: number,
     libraryItemKey: string,
-  ): PersistedDashboard;
+  ): Promise<PersistedDashboard>;
   addCard(
     ownerUserId: string,
     dashboardId: string,
     revision: number,
     card: DashboardCardCreate,
-  ): PersistedDashboard;
-  addCard(
+  ): Promise<PersistedDashboard>;
+  async addCard(
     ownerUserId: string,
     dashboardId: string,
     revision: number,
     cardOrLibraryItemKey: string | DashboardCardCreate,
-  ): PersistedDashboard {
-    return this.database.transaction(() => {
-      const dashboard = this.loadDashboardRow(
-        this.requireOwnedDashboard(ownerUserId, dashboardId),
-      );
-      const card =
-        typeof cardOrLibraryItemKey === "string"
-          ? this.cardFromExampleDefinition(dashboard, cardOrLibraryItemKey)
-          : cardOrLibraryItemKey;
-      if (card.libraryItemKey) {
-        if (
-          dashboard.cards.some(
-            (dashboardCard) =>
-              dashboardCard.libraryItemKey === card.libraryItemKey,
-          )
-        ) {
-          throw new DashboardCardAlreadyAddedError();
-        }
-      }
-      this.incrementRevision(dashboardId, revision);
-      const timestamp = new Date().toISOString();
-      this.database
-        .prepare(
-          `INSERT INTO dashboard_cards (
-        id, dashboard_id, library_item_key, name, visualization, source_query,
-        deeplink_json, grid_x, grid_y, grid_width, grid_height, sort_order,
-        created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        )
-        .run(
-          randomUUID(),
+  ): Promise<PersistedDashboard> {
+    const dashboard = await this.loadDashboard(ownerUserId, dashboardId);
+    const card =
+      typeof cardOrLibraryItemKey === "string"
+        ? this.cardFromExampleDefinition(dashboard, cardOrLibraryItemKey)
+        : cardOrLibraryItemKey;
+    if (
+      card.libraryItemKey &&
+      dashboard.cards.some(
+        (dashboardCard) => dashboardCard.libraryItemKey === card.libraryItemKey,
+      )
+    ) {
+      throw new DashboardCardAlreadyAddedError();
+    }
+
+    const timestamp = new Date().toISOString();
+    try {
+      const { rows } = await this.database.query<{ revised: boolean }>(
+        `WITH revised AS (
+           UPDATE dashboards
+           SET revision = revision + 1, updated_at = $4
+           WHERE id = $1 AND owner_user_id = $2 AND revision = $3
+           RETURNING id
+         ), inserted_card AS (
+           INSERT INTO dashboard_cards (
+             id, dashboard_id, library_item_key, name, visualization,
+             source_query, deeplink_json, grid_x, grid_y, grid_width,
+             grid_height, sort_order, created_at, updated_at
+           )
+           SELECT $5, revised.id, $6, $7, $8, $9, $10::jsonb,
+             $11, $12, $13, $14, $15, $4, $4
+           FROM revised
+           RETURNING id
+         )
+         SELECT EXISTS(SELECT 1 FROM revised) AS revised`,
+        [
           dashboardId,
-          card.libraryItemKey,
+          ownerUserId,
+          revision,
+          timestamp,
+          randomUUID(),
+          card.libraryItemKey ?? null,
           card.name,
           card.visualization,
-          card.libraryItemKey ? `/api/consumer/cards/${card.libraryItemKey}` : "",
-          card.deeplink ? JSON.stringify(card.deeplink) : null,
+          card.libraryItemKey
+            ? `/api/consumer/cards/${card.libraryItemKey}`
+            : "",
+          JSON.stringify(card.deeplink ?? null),
           card.layout.x,
           card.layout.y,
           card.layout.width,
           card.layout.height,
           dashboard.cards.reduce(
-            (max, card) => Math.max(max, card.sortOrder),
+            (max, dashboardCard) => Math.max(max, dashboardCard.sortOrder),
             -1,
           ) + 1,
-          timestamp,
-          timestamp,
-        );
-      return this.loadDashboardRow(
-        this.requireOwnedDashboard(ownerUserId, dashboardId),
+        ],
       );
-    })();
+      if (!rows[0]?.revised) throw new DashboardRevisionConflictError();
+    } catch (error) {
+      if (isUniqueViolation(error)) throw new DashboardCardAlreadyAddedError();
+      throw error;
+    }
+
+    return this.loadDashboard(ownerUserId, dashboardId);
   }
 
-  removeCard(
+  async removeCard(
     ownerUserId: string,
     dashboardId: string,
     cardId: string,
     revision: number,
-  ) {
-    return this.database.transaction(() => {
-      this.requireOwnedDashboard(ownerUserId, dashboardId);
-      if (!this.findOwnedCard(ownerUserId, dashboardId, cardId))
-        throw new DashboardNotFoundError();
-      this.incrementRevision(dashboardId, revision);
-      this.database
-        .prepare(
-          "DELETE FROM dashboard_cards WHERE id = ? AND dashboard_id = ?",
-        )
-        .run(cardId, dashboardId);
-      return this.loadDashboardRow(
-        this.requireOwnedDashboard(ownerUserId, dashboardId),
-      );
-    })();
-  }
-
-  private requireOwnedDashboard(ownerUserId: string, dashboardId: string) {
-    const dashboard = this.findOwnedDashboard(ownerUserId, dashboardId);
-    if (!dashboard) {
+  ): Promise<PersistedDashboard> {
+    await this.requireOwnedDashboard(ownerUserId, dashboardId);
+    if (!(await this.findOwnedCard(ownerUserId, dashboardId, cardId))) {
       throw new DashboardNotFoundError();
     }
+
+    const { rows } = await this.database.query<{ revised: boolean }>(
+      `WITH revised AS (
+         UPDATE dashboards dashboard
+         SET revision = revision + 1, updated_at = $5
+         WHERE id = $1 AND owner_user_id = $2 AND revision = $4
+           AND EXISTS (
+             SELECT 1 FROM dashboard_cards
+             WHERE id = $3 AND dashboard_id = dashboard.id
+           )
+         RETURNING id
+       ), deleted_card AS (
+         DELETE FROM dashboard_cards card
+         USING revised
+         WHERE card.id = $3 AND card.dashboard_id = revised.id
+         RETURNING card.id
+       )
+       SELECT EXISTS(SELECT 1 FROM revised) AS revised`,
+      [dashboardId, ownerUserId, cardId, revision, new Date().toISOString()],
+    );
+    if (!rows[0]?.revised) throw new DashboardRevisionConflictError();
+    return this.loadDashboard(ownerUserId, dashboardId);
+  }
+
+  private async requireOwnedDashboard(
+    ownerUserId: string,
+    dashboardId: string,
+  ) {
+    const dashboard = await this.findOwnedDashboard(ownerUserId, dashboardId);
+    if (!dashboard) throw new DashboardNotFoundError();
     return dashboard;
   }
 
-  private incrementRevision(dashboardId: string, revision: number) {
-    const result = this.database
-      .prepare(
-        `UPDATE dashboards
-         SET revision = revision + 1, updated_at = ?
-         WHERE id = ? AND revision = ?`,
-      )
-      .run(new Date().toISOString(), dashboardId, revision);
-
-    if (result.changes !== 1) {
-      throw new DashboardRevisionConflictError();
-    }
+  private async findDefault(ownerUserId: string) {
+    const { rows } = await this.database.query<DashboardRow>(
+      "SELECT * FROM dashboards WHERE owner_user_id = $1 AND is_default",
+      [ownerUserId],
+    );
+    return rows[0];
   }
 
-  private findDefault(ownerUserId: string) {
-    return this.database
-      .prepare(
-        "SELECT * FROM dashboards WHERE owner_user_id = ? AND is_default = 1",
-      )
-      .get(ownerUserId) as DashboardRow | undefined;
+  private async findOwnedDashboard(ownerUserId: string, dashboardId: string) {
+    const { rows } = await this.database.query<DashboardRow>(
+      "SELECT * FROM dashboards WHERE id = $1 AND owner_user_id = $2",
+      [dashboardId, ownerUserId],
+    );
+    return rows[0];
   }
 
-  private findOwnedDashboard(ownerUserId: string, dashboardId: string) {
-    return this.database
-      .prepare("SELECT * FROM dashboards WHERE id = ? AND owner_user_id = ?")
-      .get(dashboardId, ownerUserId) as DashboardRow | undefined;
-  }
-
-  private listOwnedDashboards(ownerUserId: string): DashboardSummary[] {
-    const rows = this.database
-      .prepare(
-        `SELECT id, title, is_default
-         FROM dashboards
-         WHERE owner_user_id = ?
-         ORDER BY is_default DESC, created_at ASC`,
-      )
-      .all(ownerUserId) as Array<
+  private async listOwnedDashboards(
+    ownerUserId: string,
+  ): Promise<DashboardSummary[]> {
+    const { rows } = await this.database.query<
       Pick<DashboardRow, "id" | "title" | "is_default">
-    >;
-
+    >(
+      `SELECT id, title, is_default
+       FROM dashboards
+       WHERE owner_user_id = $1
+       ORDER BY is_default DESC, created_at ASC`,
+      [ownerUserId],
+    );
     return rows.map((row) => ({
       id: row.id,
       title: row.title,
-      isDefault: Boolean(row.is_default),
+      isDefault: row.is_default,
     }));
   }
 
-  private loadDashboardRow(row: DashboardRow): PersistedDashboard {
-    const cards = this.database
-      .prepare(
-        "SELECT * FROM dashboard_cards WHERE dashboard_id = ? ORDER BY sort_order ASC",
-      )
-      .all(row.id) as CardRow[];
-
-    return {
-      id: row.id,
-      ownerUserId: row.owner_user_id,
-      title: row.title,
-      description: row.description ?? undefined,
-      footer: parseJson<DashboardFooterConfig>(row.footer_json),
-      isDefault: Boolean(row.is_default),
-      revision: row.revision,
-      cards: cards.map(mapCard),
-    };
-  }
-
-  private seedDefault(
-    ownerUserId: string,
-    seed: DashboardSeed,
-    cardLibrary: readonly CardLibraryTemplate[],
-  ) {
-    const dashboardId = randomUUID();
-    const timestamp = new Date().toISOString();
-
-    this.database
-      .prepare(
-        `INSERT INTO dashboards (
-          id, owner_user_id, title, description, footer_json,
-          is_default, revision, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, 1, 1, ?, ?)`,
-      )
-      .run(
-        dashboardId,
-        ownerUserId,
-        seed.title,
-        seed.description,
-        JSON.stringify(seed.footer),
-        timestamp,
-        timestamp,
-      );
-
-    const insertCard = this.database.prepare(
-      `INSERT INTO dashboard_cards (
-        id, dashboard_id, library_item_key, name, visualization,
-        source_query, deeplink_json, grid_x, grid_y, grid_width,
-        grid_height, sort_order, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    );
-
-    seed.cards.forEach((card, index) => {
-      const template = cardLibrary.find(
-        (item) => item.key === card.libraryItemKey,
-      );
-      if (!template) throw new DashboardInvalidLibraryItemError();
-      const layout = card.layout ?? {
-        x: 0,
-        y: index * template.defaultLayout.height,
-        ...template.defaultLayout,
-      };
-
-      insertCard.run(
-        randomUUID(),
-        dashboardId,
-        template.key,
-        template.name,
-        template.visualization,
-        `/api/consumer/cards/${template.key}`,
-        template.deeplinkLabel
-          ? JSON.stringify({ label: template.deeplinkLabel })
-          : null,
-        layout.x,
-        layout.y,
-        layout.width,
-        layout.height,
-        index,
-        timestamp,
-        timestamp,
-      );
-    });
+  private async loadDashboardRow(
+    row: DashboardRow,
+  ): Promise<PersistedDashboard> {
+    return this.loadDashboard(row.owner_user_id, row.id);
   }
 
   private cardFromExampleDefinition(
@@ -490,30 +511,47 @@ type PersistedDashboardCardWithQuery = PersistedDashboardCard & {
   sourceQuery: string;
 };
 
-type DashboardRow = {
+type DashboardRow = Record<string, unknown> & {
   id: string;
   owner_user_id: string;
   title: string;
   description: string | null;
-  footer_json: string | null;
-  is_default: number;
+  footer_json: unknown | null;
+  is_default: boolean;
   revision: number;
 };
 
-type CardRow = {
+type CardRow = Record<string, unknown> & {
   id: string;
   dashboard_id: string;
   library_item_key: string | null;
   name: string;
   visualization: VisualizationType;
   source_query: string;
-  deeplink_json: string | null;
+  deeplink_json: unknown | null;
   grid_x: number;
   grid_y: number;
   grid_width: number;
   grid_height: number;
   sort_order: number;
 };
+
+type DashboardWithCardsRow = DashboardRow & {
+  cards: CardRow[];
+};
+
+function mapDashboard(row: DashboardRow, cards: CardRow[]): PersistedDashboard {
+  return {
+    id: row.id,
+    ownerUserId: row.owner_user_id,
+    title: row.title,
+    description: row.description ?? undefined,
+    footer: parseJson<DashboardFooterConfig>(row.footer_json),
+    isDefault: row.is_default,
+    revision: row.revision,
+    cards: cards.map(mapCard),
+  };
+}
 
 function mapCard(row: CardRow): PersistedDashboardCardWithQuery {
   return {
@@ -534,8 +572,18 @@ function mapCard(row: CardRow): PersistedDashboardCardWithQuery {
   };
 }
 
-function parseJson<T>(value: string | null): T | undefined {
-  return value ? (JSON.parse(value) as T) : undefined;
+function parseJson<T>(value: unknown | null): T | undefined {
+  if (value === null || value === undefined) return undefined;
+  return (typeof value === "string" ? JSON.parse(value) : value) as T;
+}
+
+function isUniqueViolation(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "23505"
+  );
 }
 
 function firstAvailableLayout(
@@ -550,8 +598,9 @@ function firstAvailableLayout(
   for (let y = 0; ; y += 1) {
     for (let x = 0; x + size.width <= DASHBOARD_GRID_COLUMNS; x += 1) {
       const candidate = { x, y, ...size };
-      if (!cards.some((card) => layoutsOverlap(candidate, card.layout)))
+      if (!cards.some((card) => layoutsOverlap(candidate, card.layout))) {
         return candidate;
+      }
     }
   }
 }
@@ -571,7 +620,7 @@ export {
   DashboardInvalidLibraryItemError,
   DashboardNotFoundError,
   DashboardRevisionConflictError,
-  SqliteDashboardRepository,
+  NeonDashboardRepository,
 };
 export type {
   DashboardBootstrap,

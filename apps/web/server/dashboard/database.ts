@@ -1,59 +1,54 @@
-import Database from "better-sqlite3";
-import { mkdirSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { neon, neonConfig } from "@neondatabase/serverless";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
-const migrations = [
-  {
-    version: 1,
-    sql: readFileSync(
-      join(process.cwd(), "server/dashboard/migrations/0001-initial.sql"),
-      "utf8",
-    ),
-  },
-] as const;
+type QueryResult<Row> = {
+  rows: Row[];
+  rowCount: number;
+};
 
-function openDashboardDatabase(filename: string): Database.Database {
-  if (filename !== ":memory:") {
-    mkdirSync(dirname(filename), { recursive: true });
-  }
+type DashboardDatabase = {
+  query<Row extends Record<string, unknown>>(
+    text: string,
+    parameters?: unknown[],
+  ): Promise<QueryResult<Row>>;
+};
 
-  const database = new Database(filename);
-  database.pragma("busy_timeout = 5000");
-  database.pragma("foreign_keys = ON");
-
-  if (filename !== ":memory:") {
-    database.pragma("journal_mode = WAL");
-  }
-
-  migrate(database);
-  return database;
-}
-
-function migrate(database: Database.Database) {
-  database.exec(`
-    CREATE TABLE IF NOT EXISTS schema_migrations (
-      version INTEGER PRIMARY KEY,
-      applied_at TEXT NOT NULL
-    );
-  `);
-
-  const hasMigration = database.prepare(
-    "SELECT 1 FROM schema_migrations WHERE version = ?",
+function openDashboardDatabase(connectionString: string): DashboardDatabase {
+  const fetchFunction = globalThis.fetch;
+  neonConfig.fetchFunction = (...arguments_: Parameters<typeof fetch>) =>
+    fetchFunction(...arguments_);
+  const sql = neon(connectionString, {
+    fullResults: true,
+    disableWarningInBrowsers: true,
+  });
+  const execute = async <Row extends Record<string, unknown>>(
+    text: string,
+    parameters: unknown[] = [],
+  ) => {
+    const result = await sql.query(text, parameters);
+    return result as QueryResult<Row>;
+  };
+  const schema = readFileSync(
+    join(process.cwd(), "server/dashboard/schema.sql"),
+    "utf8",
   );
-  const recordMigration = database.prepare(
-    "INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?)",
-  );
+  const statements = schema
+    .split(";")
+    .map((statement) => statement.trim())
+    .filter(Boolean);
+  const ready = sql.transaction((transaction) => [
+    transaction.query("SELECT pg_advisory_xact_lock($1)", [1_146_495_778]),
+    ...statements.map((statement) => transaction.query(statement)),
+  ]);
 
-  for (const migration of migrations) {
-    if (hasMigration.get(migration.version)) {
-      continue;
-    }
-
-    database.transaction(() => {
-      database.exec(migration.sql);
-      recordMigration.run(migration.version, new Date().toISOString());
-    })();
-  }
+  return {
+    async query(text, parameters) {
+      await ready;
+      return execute(text, parameters);
+    },
+  };
 }
 
 export { openDashboardDatabase };
+export type { DashboardDatabase, QueryResult };

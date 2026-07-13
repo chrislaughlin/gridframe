@@ -1,17 +1,17 @@
-import { join } from "node:path";
-
 import { openDashboardDatabase } from "./database";
-import { SqliteDashboardRepository } from "./repository";
+import { NeonDashboardRepository } from "./repository";
 
-let dashboardRepository: SqliteDashboardRepository | undefined;
+let dashboardRepository: NeonDashboardRepository | undefined;
 
 function getDashboardRepository() {
   if (!dashboardRepository) {
-    const filename =
-      process.env.GRIDFRAME_DATABASE_PATH ??
-      join(process.cwd(), ".data", "gridframe.sqlite");
-    dashboardRepository = new SqliteDashboardRepository(
-      openDashboardDatabase(filename),
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error("DATABASE_URL is required to connect to Neon");
+    }
+
+    dashboardRepository = new NeonDashboardRepository(
+      openDashboardDatabase(connectionString),
     );
   }
 

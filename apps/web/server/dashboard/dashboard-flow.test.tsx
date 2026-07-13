@@ -11,10 +11,13 @@ import { createDashboardHandlers } from "@gridframe/server";
 
 import { cardLibrary, resolveExampleCardData } from "./card-definitions";
 import { defaultDashboardSeed } from "./seed";
-import { openDashboardDatabase } from "./database";
-import { SqliteDashboardRepository } from "./repository";
+import {
+  createTestRepository,
+  deleteTestDashboards,
+  hasTestDatabase,
+} from "./test-database";
 
-let database: ReturnType<typeof openDashboardDatabase>;
+const owner = "dashboard-flow-test-user";
 
 class ResizeObserverMock implements ResizeObserver {
   constructor(private readonly callback: ResizeObserverCallback) {}
@@ -47,8 +50,7 @@ class ResizeObserverMock implements ResizeObserver {
 }
 
 beforeEach(() => {
-  database = openDashboardDatabase(":memory:");
-  const repository = new SqliteDashboardRepository(database);
+  const repository = createTestRepository();
   const handlers = createDashboardHandlers({
     repository,
     cardLibrary,
@@ -87,18 +89,22 @@ beforeEach(() => {
   );
 });
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
   vi.unstubAllGlobals();
-  database.close();
+  await deleteTestDashboards([owner]);
 });
 
-describe("API-backed Dashboard flow", () => {
+describe.skipIf(!hasTestDatabase)("API-backed Dashboard flow", () => {
   it("bootstraps a user and renders every seeded Card through the Dashboard API", async () => {
-    render(createElement(PanelDashboard, { dashboard: { userId: "user-1" } }));
+    render(createElement(PanelDashboard, { dashboard: { userId: owner } }));
 
     expect(
-      await screen.findByRole("heading", { name: "Operations overview" }),
+      await screen.findByRole(
+        "heading",
+        { name: "Operations overview" },
+        { timeout: 5_000 },
+      ),
     ).toBeInTheDocument();
     expect(await screen.findByText("Total revenue")).toBeInTheDocument();
     expect(await screen.findByText("Revenue by region")).toBeInTheDocument();
@@ -109,13 +115,17 @@ describe("API-backed Dashboard flow", () => {
     expect(await screen.findByText("Order Id")).toBeInTheDocument();
     expect(await screen.findByText("North")).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledTimes(5);
-  });
+  }, 20_000);
 
   it("opens a Card Deeplink with the same Visualization and its source data", async () => {
-    render(createElement(PanelDashboard, { dashboard: { userId: "user-1" } }));
-    const link = await screen.findByRole("link", {
-      name: "View revenue source data",
-    });
+    render(createElement(PanelDashboard, { dashboard: { userId: owner } }));
+    const link = await screen.findByRole(
+      "link",
+      {
+        name: "View revenue source data",
+      },
+      { timeout: 10_000 },
+    );
     const href = link.getAttribute("href")!;
     const [, userId, dashboardId, cardId] =
       href.match(/users\/([^/]+)\/dashboards\/([^/]+)\/cards\/([^/]+)/) ?? [];
@@ -147,5 +157,5 @@ describe("API-backed Dashboard flow", () => {
       "href",
       `/gridframe/users/${userId}/dashboards/${dashboardId}`,
     );
-  });
+  }, 20_000);
 });

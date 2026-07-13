@@ -1,25 +1,26 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createCardDataHandler } from "./card-data-handler";
-import { openDashboardDatabase } from "./database";
 import {
-  SqliteDashboardRepository,
   type DashboardRepository,
   type PersistedDashboardCardWithQuery,
 } from "./repository";
+import {
+  createTestRepository,
+  deleteTestDashboards,
+  hasTestDatabase,
+} from "./test-database";
 
-const databases: ReturnType<typeof openDashboardDatabase>[] = [];
+const owner = "card-data-handler-test-user-1";
+const otherOwner = "card-data-handler-test-user-2";
+const dbIt = hasTestDatabase ? it : it.skip;
 
-afterEach(() => {
-  for (const database of databases.splice(0)) {
-    database.close();
-  }
+afterEach(async () => {
+  await deleteTestDashboards([owner, otherOwner]);
 });
 
 function createRepository() {
-  const database = openDashboardDatabase(":memory:");
-  databases.push(database);
-  return new SqliteDashboardRepository(database);
+  return createTestRepository();
 }
 
 describe("Card data HTTP handler", () => {
@@ -38,89 +39,95 @@ describe("Card data HTTP handler", () => {
     expect(repository.findOwnedCard).not.toHaveBeenCalled();
   });
 
-  it("forwards the persisted Query once and returns adapted Visualization data", async () => {
-    const repository = createRepository();
-    const dashboard = repository.bootstrap("user-1").dashboard;
-    const card = dashboard.cards.find(
-      (candidate) => candidate.libraryItemKey === "revenue-by-region",
-    );
-    if (!card) throw new Error("Expected seeded chart Card");
-    const fetchSource = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          records: [
+  dbIt(
+    "forwards the persisted Query once and returns adapted Visualization data",
+    async () => {
+      const repository = createRepository();
+      const dashboard = (await repository.bootstrap(owner)).dashboard;
+      const card = dashboard.cards.find(
+        (candidate) => candidate.libraryItemKey === "revenue-by-region",
+      );
+      if (!card) throw new Error("Expected seeded chart Card");
+      const fetchSource = vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            records: [
+              { region: "North", revenue: 1200 },
+              { region: "South", revenue: 900 },
+            ],
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const response = await createCardDataHandler(repository, fetchSource)(
+        new Request("http://localhost/api/gridframe/card-data"),
+        { userId: owner, dashboardId: dashboard.id, cardId: card.id },
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        status: "success",
+        data: {
+          visualization: "bar",
+          indexKey: "region",
+          data: [
             { region: "North", revenue: 1200 },
             { region: "South", revenue: 900 },
           ],
+        },
+      });
+      expect(fetchSource).toHaveBeenCalledTimes(1);
+      expect(fetchSource).toHaveBeenCalledWith(
+        "http://localhost:3000/api/consumer/cards/revenue-by-region",
+        expect.objectContaining({
+          method: "GET",
+          signal: expect.any(AbortSignal),
         }),
-        { status: 200 },
-      ),
-    );
+      );
+    },
+  );
 
-    const response = await createCardDataHandler(repository, fetchSource)(
-      new Request("http://localhost/api/gridframe/card-data"),
-      { userId: "user-1", dashboardId: dashboard.id, cardId: card.id },
-    );
+  dbIt(
+    "derives source data from the same forwarded result when requested",
+    async () => {
+      const repository = createRepository();
+      const dashboard = (await repository.bootstrap(owner)).dashboard;
+      const card = dashboard.cards[0]!;
+      const fetchSource = vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            records: [{ amount: 25 }, { amount: 75, region: "North" }],
+          }),
+          { status: 200 },
+        ),
+      );
+      const response = await createCardDataHandler(repository, fetchSource)(
+        new Request("http://localhost/card-data?includeSource=true"),
+        { userId: owner, dashboardId: dashboard.id, cardId: card.id },
+      );
+      await expect(response.json()).resolves.toMatchObject({
+        status: "success",
+        data: { visualization: "metric", value: 100 },
+        sourceData: {
+          columns: [
+            { key: "amount", label: "Amount", align: "right" },
+            { key: "region", label: "Region", align: "left" },
+          ],
+          rows: [{ amount: 25 }, { amount: 75, region: "North" }],
+        },
+      });
+      expect(fetchSource).toHaveBeenCalledTimes(1);
+    },
+  );
 
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      status: "success",
-      data: {
-        visualization: "bar",
-        indexKey: "region",
-        data: [
-          { region: "North", revenue: 1200 },
-          { region: "South", revenue: 900 },
-        ],
-      },
-    });
-    expect(fetchSource).toHaveBeenCalledTimes(1);
-    expect(fetchSource).toHaveBeenCalledWith(
-      "http://localhost:3000/api/consumer/cards/revenue-by-region",
-      expect.objectContaining({
-        method: "GET",
-        signal: expect.any(AbortSignal),
-      }),
-    );
-  });
-
-  it("derives source data from the same forwarded result when requested", async () => {
+  dbIt("returns the same 404 for a missing or non-owned Card", async () => {
     const repository = createRepository();
-    const dashboard = repository.bootstrap("user-1").dashboard;
-    const card = dashboard.cards[0]!;
-    const fetchSource = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          records: [{ amount: 25 }, { amount: 75, region: "North" }],
-        }),
-        { status: 200 },
-      ),
-    );
-    const response = await createCardDataHandler(repository, fetchSource)(
-      new Request("http://localhost/card-data?includeSource=true"),
-      { userId: "user-1", dashboardId: dashboard.id, cardId: card.id },
-    );
-    await expect(response.json()).resolves.toMatchObject({
-      status: "success",
-      data: { visualization: "metric", value: 100 },
-      sourceData: {
-        columns: [
-          { key: "amount", label: "Amount", align: "right" },
-          { key: "region", label: "Region", align: "left" },
-        ],
-        rows: [{ amount: 25 }, { amount: 75, region: "North" }],
-      },
-    });
-    expect(fetchSource).toHaveBeenCalledTimes(1);
-  });
-
-  it("returns the same 404 for a missing or non-owned Card", async () => {
-    const repository = createRepository();
-    const dashboard = repository.bootstrap("user-1").dashboard;
+    const dashboard = (await repository.bootstrap(owner)).dashboard;
     const response = await createCardDataHandler(repository, vi.fn())(
       new Request("http://localhost/card-data"),
       {
-        userId: "user-2",
+        userId: otherOwner,
         dashboardId: dashboard.id,
         cardId: dashboard.cards[0]?.id ?? "missing",
       },
@@ -144,22 +151,22 @@ describe("Card data HTTP handler", () => {
     } satisfies PersistedDashboardCardWithQuery;
     const repository = {
       bootstrap: vi.fn(),
-      findOwnedCard: vi.fn(() => card),
+      findOwnedCard: vi.fn(async () => card),
     } satisfies Pick<DashboardRepository, "bootstrap" | "findOwnedCard">;
     const fetchSource = vi.fn();
 
     const response = await createCardDataHandler(repository, fetchSource)(
       new Request("http://localhost/card-data"),
-      { userId: "user-1", dashboardId: "dashboard-1", cardId: "card-1" },
+      { userId: owner, dashboardId: "dashboard-1", cardId: "card-1" },
     );
 
     expect(response.status).toBe(502);
     expect(fetchSource).not.toHaveBeenCalled();
   });
 
-  it("maps upstream failures to a safe Card Query error", async () => {
+  dbIt("maps upstream failures to a safe Card Query error", async () => {
     const repository = createRepository();
-    const dashboard = repository.bootstrap("user-1").dashboard;
+    const dashboard = (await repository.bootstrap(owner)).dashboard;
     const card = dashboard.cards[0];
     if (!card) throw new Error("Expected seeded Card");
 
@@ -167,7 +174,7 @@ describe("Card data HTTP handler", () => {
       repository,
       vi.fn().mockResolvedValue(new Response("sensitive", { status: 500 })),
     )(new Request("http://localhost/card-data"), {
-      userId: "user-1",
+      userId: owner,
       dashboardId: dashboard.id,
       cardId: card.id,
     });
