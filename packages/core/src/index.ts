@@ -115,6 +115,7 @@ export const BarChartCardDataSchema = z.object({
   customLabels: z.boolean().optional(),
   mixed: z.boolean().optional(),
   activeIndex: z.number().int().optional(),
+  interactive: z.boolean().optional(),
   tooltip: ChartTooltipOptionsSchema.optional(),
 });
 export type BarChartCardData = z.infer<typeof BarChartCardDataSchema>;

@@ -1,6 +1,6 @@
 {
   "name": "@gridframe/react",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -43,8 +43,8 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@gridframe/client": "workspace:*",
-    "@gridframe/core": "workspace:*",
+    "@gridframe/client": "1.0.1",
+    "@gridframe/core": "1.0.2",
     "@radix-ui/react-dialog": "^1.1.19",
     "@tanstack/react-query": "^5.90.12",
     "class-variance-authority": "^0.7.1",

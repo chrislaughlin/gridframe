@@ -29,6 +29,8 @@ function RadarChartVisualization({ data }: RadarChartVisualizationProps) {
           {data.gridLines === false ? null : (
             <PolarGrid
               gridType={data.gridType ?? "circle"}
+              fill={data.gridFill ? "var(--color-desktop)" : undefined}
+              fillOpacity={data.gridFill ? 0.08 : undefined}
               radialLines={data.radialLines ?? true}
               stroke={data.gridFill ? "var(--muted-foreground)" : undefined}
               strokeOpacity={data.gridFill ? 0.25 : undefined}

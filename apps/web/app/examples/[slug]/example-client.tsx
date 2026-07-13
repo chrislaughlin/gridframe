@@ -47,7 +47,7 @@ function ExampleClient({ example }: { example: ExampleDefinition }) {
               {example.visualization}
             </span>
           </div>
-          <div className="flex min-h-72 flex-col overflow-hidden p-6">
+          <div className="flex h-72 flex-col overflow-hidden p-6">
             <CardVisualization data={example.data} />
           </div>
         </div>

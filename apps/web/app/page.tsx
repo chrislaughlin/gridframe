@@ -114,10 +114,10 @@ function Feature({
 
 function VisualizationShowcase() {
   const featured = [
-    examples.find((e) => e.slug === "bar")!,
-    examples.find((e) => e.slug === "area")!,
-    examples.find((e) => e.slug === "line")!,
-    examples.find((e) => e.slug === "pie")!,
+    examples.find((e) => e.slug === "chart-bar-default")!,
+    examples.find((e) => e.slug === "chart-area-default")!,
+    examples.find((e) => e.slug === "chart-line-default")!,
+    examples.find((e) => e.slug === "chart-pie-donut")!,
   ];
 
   return (

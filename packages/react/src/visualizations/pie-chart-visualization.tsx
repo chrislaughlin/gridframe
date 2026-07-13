@@ -62,7 +62,7 @@ function PieChartVisualization({ data }: PieChartVisualizationProps) {
             outerRadius={data.stacked ? 72 : 84}
             paddingAngle={data.separator ? 3 : 0}
             stroke="var(--background)"
-            strokeWidth={data.separator ? 4 : 2}
+            strokeWidth={data.separator === false ? 0 : data.separator ? 4 : 2}
           >
             {data.data.map((datum) => {
               const series = getDatumSeries(datum, data.nameKey, seriesByKey);

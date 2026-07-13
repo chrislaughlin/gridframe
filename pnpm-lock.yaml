@@ -217,11 +217,11 @@ importers:
   packages/react:
     dependencies:
       '@gridframe/client':
-        specifier: workspace:*
-        version: link:../client
+        specifier: 1.0.1
+        version: 1.0.1
       '@gridframe/core':
-        specifier: workspace:*
-        version: link:../core
+        specifier: 1.0.2
+        version: 1.0.2
       '@radix-ui/react-dialog':
         specifier: ^1.1.19
         version: 1.1.19(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -645,6 +645,15 @@ packages:
   '@faker-js/faker@10.5.0':
     resolution: {integrity: sha512-bsxD8WLS5lIj7aaoCx1YJkktqYj5vlBUE6HWzu2Q51ksrGJ0H737ECCKlFU7Yf8Br45z9t99frBp/J7kzbMPAg==}
     engines: {node: ^20.19.0 || ^22.13.0 || ^23.5.0 || >=24.0.0, npm: '>=10'}
+
+  '@gridframe/client@1.0.1':
+    resolution: {integrity: sha512-kheN+/LtIqxb8O7sqeEqIrH+FeRqZXU2X9B0717vt9RAUKpKiHTmxwhXIWsxXo+7f8ciuqEGzvZ4EgqfU/TNbg==}
+
+  '@gridframe/core@1.0.1':
+    resolution: {integrity: sha512-FVz7HJFc/1nQe0nvEXmYfd/BUEps7faSy+/pm3hWNsqX/i3+z6KMGQUCbbGTsJZD9RPpvFS4wy1WWZ7jVQrVzQ==}
+
+  '@gridframe/core@1.0.2':
+    resolution: {integrity: sha512-hUZ4GHfyfTc1XGtNC29IvH091JYUN7fscOKvhANYevWQGa7gmYjY822pS3EuuYYz8IfHg8gufs34D8ep8dpE9A==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -3512,6 +3521,18 @@ snapshots:
   '@exodus/bytes@1.15.1': {}
 
   '@faker-js/faker@10.5.0': {}
+
+  '@gridframe/client@1.0.1':
+    dependencies:
+      '@gridframe/core': 1.0.1
+
+  '@gridframe/core@1.0.1':
+    dependencies:
+      zod: 4.4.3
+
+  '@gridframe/core@1.0.2':
+    dependencies:
+      zod: 4.4.3
 
   '@humanfs/core@0.19.1': {}
 

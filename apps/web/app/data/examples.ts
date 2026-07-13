@@ -1,4 +1,5 @@
 import type { PanelCardPayload } from "@gridframe/core";
+import { chartVariantExamples } from "./chart-variant-examples";
 
 export type ExampleDefinition = {
   slug: string;
@@ -32,8 +33,8 @@ export const examples: ExampleDefinition[] = [
 }`,
   },
   {
-    slug: "bar",
-    title: "Bar",
+    slug: "chart-bar-default",
+    title: "Bar Chart — Default",
     description:
       "Vertical or horizontal bars for comparing categories. Supports stacked, mixed, and labelled variants.",
     visualization: "bar",
@@ -46,9 +47,7 @@ export const examples: ExampleDefinition[] = [
         { region: "Asia Pacific", revenue: 55_000 },
         { region: "Latin America", revenue: 28_000 },
       ],
-      series: [
-        { key: "revenue", label: "Revenue", color: "var(--chart-1)" },
-      ],
+      series: [{ key: "revenue", label: "Revenue", color: "var(--chart-1)" }],
       tooltip: { valueFormatter: "currency" },
     },
     code: `{
@@ -66,8 +65,8 @@ export const examples: ExampleDefinition[] = [
 }`,
   },
   {
-    slug: "area",
-    title: "Area",
+    slug: "chart-area-default",
+    title: "Area Chart — Default",
     description:
       "Filled area charts for showing volume over time. Supports stacking, gradients, and multiple series.",
     visualization: "area",
@@ -106,8 +105,8 @@ export const examples: ExampleDefinition[] = [
 }`,
   },
   {
-    slug: "line",
-    title: "Line",
+    slug: "chart-line-default",
+    title: "Line Chart — Default",
     description:
       "Line charts for trends and progressions. Supports dots, labels, and multiple series with different curve types.",
     visualization: "line",
@@ -144,8 +143,8 @@ export const examples: ExampleDefinition[] = [
 }`,
   },
   {
-    slug: "pie",
-    title: "Pie",
+    slug: "chart-pie-donut",
+    title: "Pie Chart — Donut",
     description:
       "Pie and donut charts for showing proportions. Supports legends, labels, active states, and center text.",
     visualization: "pie",
@@ -194,8 +193,8 @@ export const examples: ExampleDefinition[] = [
 }`,
   },
   {
-    slug: "radar",
-    title: "Radar",
+    slug: "chart-radar-dots",
+    title: "Radar Chart — Dots",
     description:
       "Radar charts for comparing multiple dimensions. Supports polygon and circle grids with dot and line variants.",
     visualization: "radar",
@@ -210,9 +209,7 @@ export const examples: ExampleDefinition[] = [
         { dimension: "Scalability", score: 75 },
         { dimension: "Support", score: 90 },
       ],
-      series: [
-        { key: "score", label: "Score", color: "var(--chart-1)" },
-      ],
+      series: [{ key: "score", label: "Score", color: "var(--chart-1)" }],
       showDots: true,
       gridType: "polygon",
     },
@@ -232,8 +229,8 @@ export const examples: ExampleDefinition[] = [
 }`,
   },
   {
-    slug: "radial",
-    title: "Radial",
+    slug: "chart-radial-label",
+    title: "Radial Chart — Label",
     description:
       "Radial bar charts for goal progress and comparisons. Supports stacked, labelled, and rounded shapes.",
     visualization: "radial",
@@ -324,11 +321,22 @@ export const examples: ExampleDefinition[] = [
   ],
 }`,
   },
+  ...chartVariantExamples,
 ];
 
 export function getExample(slug: string): ExampleDefinition | undefined {
-  return examples.find((e) => e.slug === slug);
+  const resolvedSlug = legacyExampleAliases[slug] ?? slug;
+  return examples.find((example) => example.slug === resolvedSlug);
 }
+
+const legacyExampleAliases: Record<string, string> = {
+  area: "chart-area-default",
+  bar: "chart-bar-default",
+  line: "chart-line-default",
+  pie: "chart-pie-donut",
+  radar: "chart-radar-dots",
+  radial: "chart-radial-label",
+};
 
 export const heroCards: PanelCardPayload[] = [
   {
@@ -359,9 +367,7 @@ export const heroCards: PanelCardPayload[] = [
       { region: "Asia Pacific", revenue: 55_000 },
       { region: "Latin America", revenue: 28_000 },
     ],
-    series: [
-      { key: "revenue", label: "Revenue", color: "var(--chart-1)" },
-    ],
+    series: [{ key: "revenue", label: "Revenue", color: "var(--chart-1)" }],
     tooltip: { valueFormatter: "currency" },
   },
   {
@@ -410,10 +416,30 @@ export const heroCards: PanelCardPayload[] = [
       { key: "status", label: "Status", align: "left" },
     ],
     rows: [
-      { order: "ORD-7291", customer: "Acme Corp", amount: 2_400, status: "Delivered" },
-      { order: "ORD-7292", customer: "Globex Inc", amount: 890, status: "Processing" },
-      { order: "ORD-7293", customer: "Initech", amount: 3_100, status: "Shipped" },
-      { order: "ORD-7294", customer: "Umbrella Co", amount: 1_650, status: "Delivered" },
+      {
+        order: "ORD-7291",
+        customer: "Acme Corp",
+        amount: 2_400,
+        status: "Delivered",
+      },
+      {
+        order: "ORD-7292",
+        customer: "Globex Inc",
+        amount: 890,
+        status: "Processing",
+      },
+      {
+        order: "ORD-7293",
+        customer: "Initech",
+        amount: 3_100,
+        status: "Shipped",
+      },
+      {
+        order: "ORD-7294",
+        customer: "Umbrella Co",
+        amount: 1_650,
+        status: "Delivered",
+      },
     ],
   },
 ];
