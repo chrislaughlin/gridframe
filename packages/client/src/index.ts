@@ -1,22 +1,32 @@
 import {
   CardLibraryResponseSchema,
+  ApplyDashboardProposalResponseSchema,
+  CreateDashboardProposalResponseSchema,
   DashboardApiErrorSchema,
   DashboardBootstrapResponseSchema,
   DashboardCardMutationResponseSchema,
   DashboardDocumentSchema,
+  DashboardProposalValidationResultSchema,
   PanelCardDataResponseSchema,
   PanelCardDataWithSourceResponseSchema,
   type AddDashboardCardRequest,
+  type ApplyDashboardProposalRequest,
+  type ApplyDashboardProposalResponse,
   type CardLibraryResponse,
+  type CreateDashboardProposalRequest,
+  type CreateDashboardProposalResponse,
   type DashboardApiErrorCode,
   type DashboardBootstrapResponse,
   type DashboardCardMutationResponse,
   type DashboardDocument,
+  type DashboardProposalValidationResult,
   type PanelCardDataResponse,
   type PanelCardDataWithSourceResponse,
   type RemoveDashboardCardRequest,
   type UpdateDashboardCardRequest,
+  type UpdateDashboardGlobalFilterRequest,
   type UpdateDashboardLayoutRequest,
+  type ValidateDashboardProposalRequest,
 } from "@gridframe/core";
 
 const DEFAULT_API_BASE_URL = "/api/gridframe";
@@ -24,11 +34,17 @@ const DEFAULT_API_BASE_URL = "/api/gridframe";
 type RequestOptions = {
   apiBaseUrl?: string;
   signal?: AbortSignal;
+  headers?: HeadersInit;
+  credentials?: RequestCredentials;
 };
 
 type DashboardIdentity = RequestOptions & {
   userId: string;
   dashboardId: string;
+};
+
+type DashboardAIIdentity = RequestOptions & {
+  userId: string;
 };
 
 type CardIdentity = DashboardIdentity & {
@@ -84,7 +100,8 @@ async function fetchDashboardCardData(
     url: `${dashboardCardUrl(options)}/data${query}`,
     init: {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: mergeHeaders(options.headers, { Accept: "application/json" }),
+      credentials: options.credentials,
       signal: options.signal,
     },
     schema: options.includeSource
@@ -121,6 +138,21 @@ async function updateDashboardCard(
   });
 }
 
+async function updateDashboardGlobalFilter(
+  options: DashboardIdentity &
+    UpdateDashboardGlobalFilterRequest & { filterId: string },
+): Promise<DashboardDocument> {
+  return requestJson({
+    url: `${dashboardUrl(options)}/global-filters/${encodeURIComponent(options.filterId)}`,
+    init: jsonRequest(
+      "PATCH",
+      { revision: options.revision, value: options.value },
+      options,
+    ),
+    schema: DashboardDocumentSchema,
+  });
+}
+
 async function listCardLibrary(
   options: DashboardIdentity,
 ): Promise<CardLibraryResponse> {
@@ -128,7 +160,8 @@ async function listCardLibrary(
     url: `${dashboardUrl(options)}/card-library`,
     init: {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: mergeHeaders(options.headers, { Accept: "application/json" }),
+      credentials: options.credentials,
       signal: options.signal,
     },
     schema: CardLibraryResponseSchema,
@@ -162,6 +195,63 @@ async function removeDashboardCard(
   });
 }
 
+async function proposeDashboard(
+  options: DashboardAIIdentity & CreateDashboardProposalRequest,
+): Promise<CreateDashboardProposalResponse> {
+  return requestJson({
+    url: `${userAIUrl(options)}/dashboard-proposals`,
+    init: jsonRequest(
+      "POST",
+      {
+        prompt: options.prompt,
+        dashboardId: options.dashboardId,
+        revision: options.revision,
+        dataSourceId: options.dataSourceId,
+      },
+      options,
+    ),
+    schema: CreateDashboardProposalResponseSchema,
+  });
+}
+
+async function validateDashboardProposal(
+  options: DashboardAIIdentity & ValidateDashboardProposalRequest,
+): Promise<DashboardProposalValidationResult> {
+  return requestJson({
+    url: `${userAIUrl(options)}/dashboard-proposals/validate`,
+    init: jsonRequest(
+      "POST",
+      {
+        proposal: options.proposal,
+        dashboardId: options.dashboardId,
+        revision: options.revision,
+        dataSourceId: options.dataSourceId,
+      },
+      options,
+    ),
+    schema: DashboardProposalValidationResultSchema,
+  });
+}
+
+async function applyDashboardProposal(
+  options: DashboardAIIdentity & ApplyDashboardProposalRequest,
+): Promise<ApplyDashboardProposalResponse> {
+  return requestJson({
+    url: `${userAIUrl(options)}/dashboard-proposals/apply`,
+    init: jsonRequest(
+      "POST",
+      {
+        proposal: options.proposal,
+        dashboardId: options.dashboardId,
+        revision: options.revision,
+        dataSourceId: options.dataSourceId,
+      },
+      options,
+    ),
+    schema: ApplyDashboardProposalResponseSchema,
+  });
+}
+
 function jsonRequest(
   method: "POST" | "PATCH" | "DELETE",
   body: unknown,
@@ -169,13 +259,20 @@ function jsonRequest(
 ): RequestInit {
   return {
     method,
-    headers: {
+    headers: mergeHeaders(options.headers, {
       Accept: "application/json",
       "Content-Type": "application/json",
-    },
+    }),
+    credentials: options.credentials,
     body: JSON.stringify(body),
     signal: options.signal,
   };
+}
+
+function mergeHeaders(base: HeadersInit | undefined, required: HeadersInit) {
+  const headers = new Headers(base);
+  new Headers(required).forEach((value, key) => headers.set(key, value));
+  return headers;
 }
 
 async function requestJson<T>({
@@ -233,6 +330,10 @@ function userDashboardsUrl(options: RequestOptions & { userId: string }) {
   return `${apiBaseUrl(options.apiBaseUrl)}/users/${encodeURIComponent(options.userId)}/dashboards`;
 }
 
+function userAIUrl(options: DashboardAIIdentity) {
+  return `${apiBaseUrl(options.apiBaseUrl)}/users/${encodeURIComponent(options.userId)}/ai`;
+}
+
 function apiBaseUrl(value = DEFAULT_API_BASE_URL) {
   return value.replace(/\/+$/, "");
 }
@@ -240,11 +341,25 @@ function apiBaseUrl(value = DEFAULT_API_BASE_URL) {
 export {
   DashboardClientError,
   addDashboardCard,
+  applyDashboardProposal,
   bootstrapDashboard,
   fetchDashboardCardData,
   listCardLibrary,
+  proposeDashboard,
   removeDashboardCard,
   updateDashboardCard,
+  updateDashboardGlobalFilter,
   updateDashboardLayout,
+  validateDashboardProposal,
 };
-export type { CardIdentity, DashboardIdentity, RequestOptions };
+export const ai = {
+  proposeDashboard,
+  validateDashboardProposal,
+  applyDashboardProposal,
+};
+export type {
+  CardIdentity,
+  DashboardAIIdentity,
+  DashboardIdentity,
+  RequestOptions,
+};

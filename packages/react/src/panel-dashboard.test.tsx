@@ -149,6 +149,128 @@ describe("PanelDashboard static mode", () => {
 });
 
 describe("PanelDashboard API-managed mode", () => {
+  it("round-trips a string filter that resembles a JSON scalar", async () => {
+    const base = apiBootstrap();
+    const bootstrap = {
+      ...base,
+      dashboard: {
+        ...base.dashboard,
+        config: {
+          ...base.dashboard.config,
+          globalFilters: [
+            {
+              id: "order-id",
+              label: "Order ID",
+              field: "order_id",
+              operator: "equals" as const,
+              value: "123",
+            },
+          ],
+        },
+      },
+    };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/dashboards/bootstrap")) {
+        return new Response(JSON.stringify(bootstrap));
+      }
+      if (url.endsWith("/global-filters/order-id")) {
+        return new Response(JSON.stringify(bootstrap.dashboard));
+      }
+      return new Response(JSON.stringify(responseFor("metric")));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
+    expect(await screen.findByLabelText("Order ID filter")).toHaveValue(
+      '"123"',
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringMatching(/global-filters\/order-id$/),
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify({ revision: "1", value: "123" }),
+        }),
+      ),
+    );
+  });
+
+  it("lets the user bind an AI-created global filter", async () => {
+    const base = apiBootstrap();
+    const bootstrap = {
+      ...base,
+      dashboard: {
+        ...base.dashboard,
+        config: {
+          ...base.dashboard.config,
+          globalFilters: [
+            {
+              id: "region",
+              label: "Region",
+              field: "region",
+              operator: "in" as const,
+              value: ["East", "West"],
+            },
+          ],
+        },
+      },
+    };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/dashboards/bootstrap")) {
+        return new Response(JSON.stringify(bootstrap));
+      }
+      if (url.endsWith("/global-filters/region")) {
+        return new Response(
+          JSON.stringify({
+            ...bootstrap.dashboard,
+            revision: "2",
+            config: {
+              ...bootstrap.dashboard.config,
+              globalFilters: [
+                {
+                  ...bootstrap.dashboard.config.globalFilters[0],
+                  value: ["North", "South"],
+                },
+              ],
+            },
+          }),
+        );
+      }
+      return new Response(JSON.stringify(responseFor("metric")));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
+    const input = await screen.findByLabelText("Region filter");
+    expect(input).toHaveValue('["East","West"]');
+    fireEvent.change(input, { target: { value: '["North","South"]' } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringMatching(/global-filters\/region$/),
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify({
+            revision: "1",
+            value: ["North", "South"],
+          }),
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.filter(([input]) =>
+          String(input).endsWith("/cards/metric/data"),
+        ),
+      ).toHaveLength(2),
+    );
+  });
+
   it("adds an available Card from the Card library", async () => {
     const bootstrap = apiBootstrap();
     let resolveAdd!: (response: Response) => void;

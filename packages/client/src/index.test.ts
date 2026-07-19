@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DashboardClientError,
   bootstrapDashboard,
+  applyDashboardProposal,
   fetchDashboardCardData,
+  proposeDashboard,
+  updateDashboardGlobalFilter,
   updateDashboardLayout,
 } from "./index";
 
@@ -163,13 +166,11 @@ describe("fetchDashboardCardData", () => {
 
 describe("updateDashboardLayout", () => {
   it("submits the complete owner-scoped layout and validates the Dashboard", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(JSON.stringify(bootstrapResponse.dashboard), {
-          status: 200,
-        }),
-      );
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(bootstrapResponse.dashboard), {
+        status: 200,
+      }),
+    );
     vi.stubGlobal("fetch", fetchMock);
     const cards = [{ id: "card-1", x: 0, y: 0, width: 1, height: 2 }];
 
@@ -186,6 +187,130 @@ describe("updateDashboardLayout", () => {
       expect.objectContaining({
         method: "PATCH",
         body: JSON.stringify({ revision: "1", cards }),
+      }),
+    );
+  });
+});
+
+describe("updateDashboardGlobalFilter", () => {
+  it("updates a user-selected global filter value", async () => {
+    const updated = {
+      ...bootstrapResponse.dashboard,
+      revision: "2",
+      config: {
+        ...bootstrapResponse.dashboard.config,
+        globalFilters: [
+          {
+            id: "region",
+            field: "region",
+            operator: "equals" as const,
+            value: "North",
+          },
+        ],
+      },
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(updated)));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      updateDashboardGlobalFilter({
+        userId: "user-1",
+        dashboardId: "dashboard-1",
+        filterId: "region",
+        revision: "1",
+        value: "North",
+      }),
+    ).resolves.toEqual(updated);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/gridframe/users/user-1/dashboards/dashboard-1/global-filters/region",
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ revision: "1", value: "North" }),
+      }),
+    );
+  });
+});
+
+describe("Dashboard AI", () => {
+  it("requests a proposal without including provider credentials", async () => {
+    const proposalResponse = {
+      proposal: {
+        version: 1,
+        title: "Sales",
+        intent: { objective: "Track sales" },
+        actions: [],
+        assumptions: [],
+        missingInformation: [],
+      },
+      validation: { valid: true, canApply: true, errors: [], warnings: [] },
+      preview: { title: "Sales", cards: [] },
+      dashboardId: "dashboard-1",
+      revision: "1",
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(proposalResponse)));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      proposeDashboard({
+        userId: "user/1",
+        prompt: "Create a sales dashboard",
+        dashboardId: "dashboard-1",
+        revision: "1",
+      }),
+    ).resolves.toEqual(proposalResponse);
+
+    const [, init] = fetchMock.mock.calls[0]!;
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/gridframe/users/user%2F1/ai/dashboard-proposals",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(JSON.parse(String(init.body))).toEqual({
+      prompt: "Create a sales dashboard",
+      dashboardId: "dashboard-1",
+      revision: "1",
+    });
+    expect(String(init.body)).not.toMatch(/apiKey|OPENROUTER|server-secret/i);
+  });
+
+  it("applies a reviewed proposal through the same typed client", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "dashboard-1",
+          revision: "2",
+          config: { title: "Sales", cards: [] },
+        }),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const proposal = {
+      version: 1 as const,
+      title: "Sales",
+      intent: { objective: "Track sales" },
+      actions: [],
+      assumptions: [],
+      missingInformation: [],
+    };
+
+    await applyDashboardProposal({
+      userId: "user-1",
+      dashboardId: "dashboard-1",
+      revision: "1",
+      proposal,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/gridframe/users/user-1/ai/dashboard-proposals/apply",
+      expect.objectContaining({
+        body: JSON.stringify({
+          proposal,
+          dashboardId: "dashboard-1",
+          revision: "1",
+        }),
       }),
     );
   });

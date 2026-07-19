@@ -1,5 +1,6 @@
 import {
   AddDashboardCardRequestSchema,
+  AICardDefinitionSchema,
   CardLibraryResponseSchema,
   DashboardApiErrorSchema,
   DashboardBootstrapRequestSchema,
@@ -8,9 +9,11 @@ import {
   PanelCardDataResponseSchema,
   RemoveDashboardCardRequestSchema,
   UpdateDashboardCardRequestSchema,
+  UpdateDashboardGlobalFilterRequestSchema,
   UpdateDashboardLayoutRequestSchema,
   VisualizationTypeSchema,
   type CardDeeplinkConfig,
+  type AICardDefinition,
   type CardLibraryItem,
   type DashboardApiError,
   type DashboardBootstrapResponse,
@@ -22,6 +25,8 @@ import {
   type VisualizationType,
 } from "@gridframe/core";
 import { validateDashboardLayout } from "@gridframe/core";
+
+import { findFirstAvailableDashboardLayout } from "./dashboard-layout";
 
 type MaybePromise<T> = T | Promise<T>;
 
@@ -41,7 +46,13 @@ type CardDefinitionResolver = (
   input: CardDataResolverInput,
 ) => MaybePromise<PanelCardDataResponse>;
 
+type CardAIMetadata = Omit<
+  AICardDefinition,
+  "key" | "name" | "description" | "visualization" | "defaultLayout"
+>;
+
 type CardDefinition = Omit<CardLibraryTemplate, "key"> & {
+  ai?: CardAIMetadata;
   resolve: CardDefinitionResolver;
 };
 
@@ -54,6 +65,7 @@ type DefinedCardMap<T extends CardDefinitionMap> = {
 type DefinedCards<T extends CardDefinitionMap> = {
   readonly definitions: DefinedCardMap<T>;
   readonly cardLibrary: readonly CardLibraryTemplate[];
+  readonly aiCardLibrary: readonly AICardDefinition[];
   resolveCardData(input: CardDataResolverInput): Promise<PanelCardDataResponse>;
 };
 
@@ -74,7 +86,10 @@ type PersistedDashboardCard = {
   dashboardId: string;
   libraryItemKey?: string;
   name: string;
+  description?: string;
   visualization: VisualizationType;
+  data?: import("@gridframe/core").DashboardCardDataConfig;
+  sourceQuery?: string;
   deeplink?: Omit<CardDeeplinkConfig, "href">;
   layout: DashboardCardLayout;
   sortOrder: number;
@@ -86,6 +101,7 @@ type PersistedDashboard = {
   title: string;
   description?: string;
   footer?: DashboardFooterConfig;
+  globalFilters?: import("@gridframe/core").DashboardGlobalFilter[];
   isDefault: boolean;
   revision: number;
   cards: PersistedDashboardCard[];
@@ -124,6 +140,13 @@ interface DashboardRepository {
     cardId: string,
     revision: number,
     name: string,
+  ): MaybePromise<PersistedDashboard>;
+  updateGlobalFilterValue(
+    ownerUserId: string,
+    dashboardId: string,
+    filterId: string,
+    revision: number,
+    value: unknown | undefined,
   ): MaybePromise<PersistedDashboard>;
   addCard(
     ownerUserId: string,
@@ -177,6 +200,7 @@ type CardIdentity = DashboardIdentity & {
 
 type CardDataResolverInput = CardIdentity & {
   card: PersistedDashboardCard;
+  globalFilters?: readonly import("@gridframe/core").DashboardGlobalFilter[];
   request: Request;
 };
 
@@ -235,10 +259,37 @@ function defineCards<const T extends CardDefinitionMap>(
     defaultLayout: definition.defaultLayout,
     deeplinkLabel: definition.deeplinkLabel,
   }));
+  const aiCardLibrary = entries.flatMap(([key, definition]) => {
+    if (!definition.ai) return [];
+    if (!definition.description) {
+      throw new Error(
+        `Card definition ${key} needs a description for AI planning`,
+      );
+    }
+
+    const visualization = aiVisualization(definition.visualization);
+    if (!visualization) {
+      throw new Error(
+        `Card definition ${key} uses an unsupported AI Visualization`,
+      );
+    }
+
+    return [
+      AICardDefinitionSchema.parse({
+        key,
+        name: definition.name,
+        description: definition.description,
+        visualization,
+        defaultLayout: definition.defaultLayout,
+        ...definition.ai,
+      }),
+    ];
+  });
 
   return {
     definitions,
     cardLibrary,
+    aiCardLibrary,
     async resolveCardData(input) {
       const key = input.card.libraryItemKey;
       const definition = key ? definitions[key] : undefined;
@@ -265,6 +316,21 @@ function defineCards<const T extends CardDefinitionMap>(
       return response;
     },
   };
+}
+
+function aiVisualization(visualization: VisualizationType) {
+  const visualizations = {
+    metric: "metric",
+    area: "area-chart",
+    bar: "bar-chart",
+    line: "line-chart",
+    pie: "pie-chart",
+    table: "table",
+  } as const;
+
+  return visualization in visualizations
+    ? visualizations[visualization as keyof typeof visualizations]
+    : undefined;
 }
 
 function validateCardDefinition(key: string, definition: CardDefinition) {
@@ -434,6 +500,44 @@ function createDashboardHandlers(options: DashboardHandlerOptions) {
       }
     },
 
+    updateGlobalFilter: async (
+      request: Request,
+      identity: DashboardIdentity & { filterId: string },
+    ) => {
+      const parsed = UpdateDashboardGlobalFilterRequestSchema.safeParse(
+        await readJson(request),
+      );
+      const revision = parsed.success
+        ? parseRevision(parsed.data.revision)
+        : undefined;
+
+      if (
+        !parsed.success ||
+        revision === undefined ||
+        !isDashboard(identity) ||
+        !isIdentitySegment(identity.filterId)
+      ) {
+        return errorResponse(
+          400,
+          "INVALID_REQUEST",
+          "Invalid global filter update request",
+        );
+      }
+
+      try {
+        const updated = await options.repository.updateGlobalFilterValue(
+          identity.userId,
+          identity.dashboardId,
+          identity.filterId,
+          revision,
+          parsed.data.value,
+        );
+        return Response.json(serializeDashboardDocument(updated, urls));
+      } catch (error) {
+        return mutationError(error, "Invalid global filter update request");
+      }
+    },
+
     listCardLibrary: async (_request: Request, identity: DashboardIdentity) => {
       if (!isDashboard(identity)) {
         return errorResponse(
@@ -585,9 +689,15 @@ function createDashboardHandlers(options: DashboardHandlerOptions) {
           );
         }
 
+        const dashboard = await options.repository.loadDashboard(
+          identity.userId,
+          identity.dashboardId,
+        );
+
         const result = await options.resolveCardData({
           ...identity,
           card,
+          globalFilters: dashboard.globalFilters ?? [],
           request,
         });
         const parsed = PanelCardDataResponseSchema.safeParse(result);
@@ -628,13 +738,16 @@ function serializeDashboardDocument(
       title: dashboard.title,
       description: dashboard.description,
       footer: dashboard.footer,
+      globalFilters: dashboard.globalFilters,
       cards: dashboard.cards.map((card) => {
         const cardId = encodeURIComponent(card.id);
 
         return {
           id: card.id,
           name: card.name,
+          description: card.description,
           visualization: card.visualization,
+          data: card.data,
           query:
             `${urls.apiBasePath}/users/${ownerId}` +
             `/dashboards/${dashboardId}/cards/${cardId}/data`,
@@ -679,28 +792,13 @@ function firstAvailableLayout(
   cards: readonly PersistedDashboardCard[],
   size: { width: number; height: number },
 ): DashboardCardLayout {
-  if (size.width > DASHBOARD_GRID_COLUMNS) {
+  const layout = findFirstAvailableDashboardLayout(cards, size);
+  if (!layout) {
     throw new DashboardInvalidLayoutError([
       `Card width ${size.width} exceeds the ${DASHBOARD_GRID_COLUMNS}-column grid`,
     ]);
   }
-  for (let y = 0; ; y += 1) {
-    for (let x = 0; x + size.width <= DASHBOARD_GRID_COLUMNS; x += 1) {
-      const candidate = { x, y, ...size };
-      if (!cards.some((card) => layoutsOverlap(candidate, card.layout))) {
-        return candidate;
-      }
-    }
-  }
-}
-
-function layoutsOverlap(a: DashboardCardLayout, b: DashboardCardLayout) {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
+  return layout;
 }
 
 async function resolveCardLibrary(
@@ -817,20 +915,50 @@ export {
   DashboardRevisionConflictError,
   createDashboardHandlers,
   defineCards,
+  serializeDashboardDocument,
+  findFirstAvailableDashboardLayout,
 };
 export type {
   CardDefinition,
+  CardAIMetadata,
   CardDefinitionMap,
   CardDefinitionResolver,
   CardDataResolverInput,
   CardLibraryTemplate,
   DashboardBootstrap,
+  DashboardContext,
   DashboardHandlerOptions,
   DashboardRepository,
   DashboardSeed,
   DashboardSeedCard,
+  DashboardUrlOptions,
   DefinedCardMap,
   DefinedCards,
   PersistedDashboard,
   PersistedDashboardCard,
+  MaybePromise,
 };
+
+export { defineAIDataFields } from "./ai-catalogue";
+export type * from "./ai-provider";
+export {
+  DashboardAIError,
+  createDashboardAIService,
+} from "./dashboard-ai-service";
+export type {
+  DashboardAIService,
+  DashboardAIServiceOptions,
+} from "./dashboard-ai-service";
+export { createDashboardAIHandlers } from "./dashboard-ai-handlers";
+export type {
+  DashboardAIHandlerContext,
+  DashboardAIHandlerOptions,
+} from "./dashboard-ai-handlers";
+export { validateDashboardProposal } from "./dashboard-proposal-validation";
+export {
+  DEFAULT_OPENROUTER_MODEL,
+  OpenRouterDashboardAIProvider,
+  OpenRouterProviderError,
+} from "./openrouter-provider";
+export type { OpenRouterProviderOptions } from "./openrouter-provider";
+export type * from "./dashboard-ai-types";

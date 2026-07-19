@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS dashboards (
   title TEXT NOT NULL,
   description TEXT,
   footer_json JSONB,
+  global_filters_json JSONB,
   is_default BOOLEAN NOT NULL DEFAULT FALSE,
   revision INTEGER NOT NULL DEFAULT 1 CHECK (revision >= 1),
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -22,7 +23,9 @@ CREATE TABLE IF NOT EXISTS dashboard_cards (
   dashboard_id UUID NOT NULL REFERENCES dashboards(id) ON DELETE CASCADE,
   library_item_key TEXT,
   name TEXT NOT NULL,
+  description TEXT,
   visualization TEXT NOT NULL,
+  data_config_json JSONB,
   source_query TEXT NOT NULL,
   deeplink_json JSONB,
   grid_x INTEGER NOT NULL CHECK (grid_x >= 0),
@@ -37,3 +40,12 @@ CREATE TABLE IF NOT EXISTS dashboard_cards (
 
 CREATE INDEX IF NOT EXISTS dashboard_cards_dashboard_id_idx
   ON dashboard_cards(dashboard_id, sort_order);
+
+ALTER TABLE dashboards
+  ADD COLUMN IF NOT EXISTS global_filters_json JSONB;
+
+ALTER TABLE dashboard_cards
+  ADD COLUMN IF NOT EXISTS description TEXT;
+
+ALTER TABLE dashboard_cards
+  ADD COLUMN IF NOT EXISTS data_config_json JSONB;

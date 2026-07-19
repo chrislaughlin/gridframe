@@ -1,5 +1,4 @@
-import { createCardDataHandler } from "~/server/dashboard/card-data-handler";
-import { getDashboardRepository } from "~/server/dashboard/service";
+import { getDashboardHandlers } from "~/server/dashboard/handlers";
 
 export const runtime = "nodejs";
 
@@ -14,12 +13,7 @@ async function GET(
   },
 ) {
   const params = await context.params;
-  return createCardDataHandler(
-    getDashboardRepository(),
-    fetch,
-    process.env.GRIDFRAME_CONSUMER_API_BASE_URL ??
-      "http://localhost:3000/api/consumer/",
-  )(request, params);
+  return getDashboardHandlers().fetchCardData(request, params);
 }
 
 export { GET };

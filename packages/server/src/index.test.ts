@@ -69,10 +69,9 @@ describe("createDashboardHandlers", () => {
   }
 
   it("bootstraps a default Dashboard when the user has none", async () => {
-    const response = await handlers().bootstrap(
-      jsonRequest({}),
-      { userId: "user-1" },
-    );
+    const response = await handlers().bootstrap(jsonRequest({}), {
+      userId: "user-1",
+    });
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
@@ -88,8 +87,7 @@ describe("createDashboardHandlers", () => {
               query:
                 "/api/gridframe/users/user-1/dashboards/dashboard-1/cards/card-1/data",
               deeplink: {
-                href:
-                  "/gridframe/users/user-1/dashboards/dashboard-1/cards/card-1",
+                href: "/gridframe/users/user-1/dashboards/dashboard-1/cards/card-1",
                 label: "View revenue",
               },
             },
@@ -293,10 +291,9 @@ describe("createDashboardHandlers", () => {
   });
 
   async function seedDashboard() {
-    const response = await handlers().bootstrap(
-      jsonRequest({}),
-      { userId: "user-1" },
-    );
+    const response = await handlers().bootstrap(jsonRequest({}), {
+      userId: "user-1",
+    });
     expect(response.status).toBe(200);
     return repository.loadDashboard("user-1", "dashboard-1");
   }
@@ -384,6 +381,27 @@ class MemoryDashboardRepository implements DashboardRepository {
     return dashboard;
   }
 
+  async updateGlobalFilterValue(
+    ownerUserId: string,
+    dashboardId: string,
+    filterId: string,
+    revision: number,
+    value: unknown | undefined,
+  ) {
+    const dashboard = await this.loadDashboard(ownerUserId, dashboardId);
+    if (dashboard.revision !== revision) {
+      throw new DashboardRevisionConflictError();
+    }
+    if (!dashboard.globalFilters?.some((filter) => filter.id === filterId)) {
+      throw new DashboardNotFoundError();
+    }
+    dashboard.globalFilters = dashboard.globalFilters.map((filter) =>
+      filter.id === filterId ? { ...filter, value } : filter,
+    );
+    dashboard.revision += 1;
+    return structuredClone(dashboard);
+  }
+
   async addCard(
     ownerUserId: string,
     dashboardId: string,
@@ -457,7 +475,11 @@ class MemoryDashboardRepository implements DashboardRepository {
           deeplink: template.deeplinkLabel
             ? { label: template.deeplinkLabel }
             : undefined,
-          layout: seedCard.layout ?? { x: 0, y: index * 4, ...template.defaultLayout },
+          layout: seedCard.layout ?? {
+            x: 0,
+            y: index * 4,
+            ...template.defaultLayout,
+          },
           sortOrder: index,
         };
       }),

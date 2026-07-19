@@ -6,7 +6,10 @@ import ReactGridLayout, {
   type LayoutItem,
   useContainerWidth,
 } from "react-grid-layout";
-import { DASHBOARD_GRID_COLUMNS } from "@gridframe/core";
+import {
+  DASHBOARD_GRID_COLUMNS,
+  type DashboardGlobalFilter,
+} from "@gridframe/core";
 import { type DashboardCardConfig, type PanelDashboardConfig } from "./types";
 import { Badge, cn } from "./internal/ui";
 
@@ -14,6 +17,10 @@ import { DashboardCard } from "./dashboard-card";
 
 const DASHBOARD_ROW_HEIGHT = 96;
 const DASHBOARD_GRID_GAP: [number, number] = [16, 16];
+type BoundGlobalFilterValue = Exclude<
+  DashboardGlobalFilter["value"],
+  undefined
+>;
 
 type DashboardShellProps = {
   config: PanelDashboardConfig;
@@ -22,6 +29,10 @@ type DashboardShellProps = {
   editDisabled?: boolean;
   mutationNotice?: React.ReactNode;
   onLayoutCommit?: (layout: Layout) => void;
+  onGlobalFilterChange?: (
+    filterId: string,
+    value: DashboardGlobalFilter["value"],
+  ) => void;
   onRenameCard?: (cardId: string, name: string) => void;
   onRemoveCard?: (cardId: string) => void;
 };
@@ -33,6 +44,7 @@ function DashboardShell({
   editDisabled = false,
   mutationNotice,
   onLayoutCommit,
+  onGlobalFilterChange,
   onRenameCard,
   onRemoveCard,
 }: DashboardShellProps) {
@@ -113,6 +125,25 @@ function DashboardShell({
 
         {mutationNotice}
 
+        {config.globalFilters?.length ? (
+          <div
+            aria-label="Global filters"
+            className="flex flex-wrap items-center gap-2"
+          >
+            <span className="text-xs font-medium text-muted-foreground">
+              Filters
+            </span>
+            {config.globalFilters.map((filter) => (
+              <GlobalFilterControl
+                disabled={editDisabled}
+                filter={filter}
+                key={filter.id}
+                onChange={onGlobalFilterChange}
+              />
+            ))}
+          </div>
+        ) : null}
+
         <div className="panel-dashboard-grid" ref={containerRef}>
           {mounted ? (
             <ReactGridLayout
@@ -184,6 +215,108 @@ function DashboardShell({
       </div>
     </section>
   );
+}
+
+function GlobalFilterControl({
+  filter,
+  disabled,
+  onChange,
+}: {
+  filter: NonNullable<PanelDashboardConfig["globalFilters"]>[number];
+  disabled: boolean;
+  onChange?: (filterId: string, value: DashboardGlobalFilter["value"]) => void;
+}) {
+  const persistedValue = filterValue(filter.value);
+  const [value, setValue] = React.useState(persistedValue);
+  const label = filter.label ?? filter.field;
+  const acceptsMultipleValues = ["in", "notIn", "between"].includes(
+    filter.operator,
+  );
+
+  React.useEffect(() => setValue(persistedValue), [persistedValue]);
+
+  return (
+    <form
+      className="flex items-center gap-1 rounded-md border border-border bg-card p-1"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const nextValue = value.trim();
+        onChange?.(
+          filter.id,
+          nextValue
+            ? parseFilterValue(nextValue, acceptsMultipleValues)
+            : undefined,
+        );
+      }}
+    >
+      <label className="flex items-center gap-2 pl-2 text-xs font-medium">
+        <span>{label}</span>
+        <input
+          aria-label={`${label} filter`}
+          className="w-28 rounded border border-input bg-background px-2 py-1 font-normal text-foreground"
+          disabled={disabled || !onChange}
+          onChange={(event) => setValue(event.target.value)}
+          placeholder={
+            filter.operator === "between"
+              ? '["start", "end"]'
+              : acceptsMultipleValues
+                ? '["A", "B"]'
+                : "Any"
+          }
+          value={value}
+        />
+      </label>
+      <button
+        className="rounded px-2 py-1 text-xs font-medium text-primary disabled:text-muted-foreground"
+        disabled={disabled || !onChange}
+        type="submit"
+      >
+        Apply
+      </button>
+    </form>
+  );
+}
+
+function filterValue(value: unknown) {
+  if (Array.isArray(value)) return JSON.stringify(value);
+  return value === undefined ? "" : filterScalarValue(value);
+}
+
+function filterScalarValue(value: unknown) {
+  if (typeof value !== "string") return JSON.stringify(value) ?? "";
+  if (value !== value.trim()) return JSON.stringify(value);
+  try {
+    JSON.parse(value);
+    return JSON.stringify(value);
+  } catch {
+    return value;
+  }
+}
+
+function parseFilterValue(
+  value: string,
+  multiple: boolean,
+): BoundGlobalFilterValue {
+  if (!multiple) return parseFilterScalar(value);
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (Array.isArray(parsed)) return parsed as BoundGlobalFilterValue;
+  } catch {
+    // Fall through to the friendly comma-separated shorthand.
+  }
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map(parseFilterScalar);
+}
+
+function parseFilterScalar(value: string): BoundGlobalFilterValue {
+  try {
+    return JSON.parse(value) as BoundGlobalFilterValue;
+  } catch {
+    return value;
+  }
 }
 
 function getInitialLayout(cards: DashboardCardConfig[]): Layout {

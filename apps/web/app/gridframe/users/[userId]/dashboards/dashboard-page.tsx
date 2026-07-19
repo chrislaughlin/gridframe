@@ -3,6 +3,8 @@
 import { PanelDashboard } from "@gridframe/react";
 import { useRouter } from "next/navigation";
 
+import { DashboardAISessionControl } from "./ai-session-control";
+
 type DashboardPageProps = {
   userId: string;
   dashboardId?: string;
@@ -12,17 +14,20 @@ function DashboardPage({ userId, dashboardId }: DashboardPageProps) {
   const router = useRouter();
 
   return (
-    <PanelDashboard
-      dashboard={{
-        userId,
-        dashboardId,
-        onDashboardChange: (nextDashboardId) => {
-          router.push(
-            `/gridframe/users/${encodeURIComponent(userId)}/dashboards/${encodeURIComponent(nextDashboardId)}`,
-          );
-        },
-      }}
-    />
+    <>
+      <DashboardAISessionControl userId={userId} />
+      <PanelDashboard
+        dashboard={{
+          userId,
+          dashboardId,
+          onDashboardChange: (nextDashboardId) => {
+            router.push(
+              `/gridframe/users/${encodeURIComponent(userId)}/dashboards/${encodeURIComponent(nextDashboardId)}`,
+            );
+          },
+        }}
+      />
+    </>
   );
 }
 
