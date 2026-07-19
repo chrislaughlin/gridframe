@@ -118,12 +118,14 @@ function DashboardDrillDownContent({
         </p>
         <h1 className="text-3xl font-semibold">{query.data.card.name}</h1>
       </header>
-      <section
-        className="h-96 rounded-lg border border-border p-6"
-        data-slot="drill-down-visualization"
-      >
-        <CardVisualization data={query.data.data.data} />
-      </section>
+      {query.data.card.visualization !== "table" ? (
+        <section
+          className="h-96 rounded-lg border border-border p-6"
+          data-slot="drill-down-visualization"
+        >
+          <CardVisualization data={query.data.data.data} />
+        </section>
+      ) : null}
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Source data</h2>
         <SourceDataTable data={query.data.data.sourceData} />
