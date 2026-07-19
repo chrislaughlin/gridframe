@@ -3,6 +3,12 @@ import type {
   DashboardAIProviderRequest,
   DashboardAIProviderResponse,
 } from "./ai-provider";
+import {
+  providerFirstChoiceContent,
+  providerNestedNumber,
+  providerString,
+  readProviderResponseBody,
+} from "./provider-http";
 
 const DEFAULT_OPENROUTER_MODEL = "openai/gpt-oss-20b";
 const DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
@@ -35,12 +41,15 @@ class OpenRouterDashboardAIProvider implements DashboardAIProvider {
     if (!options.apiKey.trim()) {
       throw new Error("An OpenRouter API key is required");
     }
+    const model = options.model ?? DEFAULT_OPENROUTER_MODEL;
+    const baseUrl = options.baseUrl ?? DEFAULT_OPENROUTER_BASE_URL;
+    if (!model.trim()) throw new Error("An OpenRouter model is required");
+    if (!baseUrl.trim()) {
+      throw new Error("An OpenRouter base URL is required");
+    }
     this.apiKey = options.apiKey;
-    this.model = options.model ?? DEFAULT_OPENROUTER_MODEL;
-    this.baseUrl = (options.baseUrl ?? DEFAULT_OPENROUTER_BASE_URL).replace(
-      /\/+$/,
-      "",
-    );
+    this.model = model;
+    this.baseUrl = baseUrl.replace(/\/+$/, "");
     this.appName = options.appName;
     this.appUrl = options.appUrl;
     this.fetchImplementation = options.fetch ?? fetch;
@@ -82,13 +91,13 @@ class OpenRouterDashboardAIProvider implements DashboardAIProvider {
       },
     );
 
-    const body = await readResponseBody(response);
+    const body = await readProviderResponseBody(response);
     if (!response.ok) {
       throw new OpenRouterProviderError(
         `OpenRouter request failed with ${response.status}`,
       );
     }
-    const content = firstChoiceContent(body);
+    const content = providerFirstChoiceContent(body);
     if (content === undefined) {
       throw new OpenRouterProviderError(
         "OpenRouter returned an invalid response",
@@ -97,45 +106,12 @@ class OpenRouterDashboardAIProvider implements DashboardAIProvider {
 
     return {
       content,
-      model: stringProperty(body, "model") ?? this.model,
-      inputTokens: nestedNumber(body, "usage", "prompt_tokens"),
-      outputTokens: nestedNumber(body, "usage", "completion_tokens"),
-      cost: nestedNumber(body, "usage", "cost"),
+      model: providerString(body, "model") ?? this.model,
+      inputTokens: providerNestedNumber(body, "usage", "prompt_tokens"),
+      outputTokens: providerNestedNumber(body, "usage", "completion_tokens"),
+      cost: providerNestedNumber(body, "usage", "cost"),
     };
   }
-}
-
-async function readResponseBody(response: Response): Promise<unknown> {
-  try {
-    return await response.json();
-  } catch {
-    return undefined;
-  }
-}
-
-function firstChoiceContent(value: unknown) {
-  if (!isRecord(value) || !Array.isArray(value.choices)) return undefined;
-  const choice = value.choices[0];
-  if (!isRecord(choice) || !isRecord(choice.message)) return undefined;
-  return typeof choice.message.content === "string"
-    ? choice.message.content
-    : undefined;
-}
-
-function stringProperty(value: unknown, key: string) {
-  return isRecord(value) && typeof value[key] === "string"
-    ? value[key]
-    : undefined;
-}
-
-function nestedNumber(value: unknown, parent: string, key: string) {
-  if (!isRecord(value) || !isRecord(value[parent])) return undefined;
-  const nested = value[parent][key];
-  return typeof nested === "number" ? nested : undefined;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 export {

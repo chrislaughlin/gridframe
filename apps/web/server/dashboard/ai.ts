@@ -1,9 +1,9 @@
 import {
-  DEFAULT_OPENROUTER_MODEL,
-  OpenRouterDashboardAIProvider,
+  createDashboardAIProvider,
   createDashboardAIHandlers,
   createDashboardAIService,
 } from "@gridframe/server";
+import type { DashboardAIProvider } from "@gridframe/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { aiDataFields } from "./ai-data-fields";
@@ -21,8 +21,8 @@ let dashboardAIHandlers:
 function getDashboardAIHandlers() {
   if (dashboardAIHandlers) return dashboardAIHandlers;
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
+  const provider = createDashboardAIProviderFromEnvironment(process.env);
+  if (!provider) {
     const unavailable = async () =>
       Response.json(
         {
@@ -43,11 +43,7 @@ function getDashboardAIHandlers() {
 
   const service = createDashboardAIService({
     repository: getDashboardRepository(),
-    provider: new OpenRouterDashboardAIProvider({
-      apiKey,
-      model: process.env.GRIDFRAME_AI_MODEL ?? DEFAULT_OPENROUTER_MODEL,
-      appName: "Gridframe",
-    }),
+    provider,
     aiCardLibrary: aiCardLibrary,
     cardLibrary,
     dataCatalogue: aiDataFields,
@@ -60,6 +56,77 @@ function getDashboardAIHandlers() {
   });
   dashboardAIHandlers = createDashboardAIHandlers({ service });
   return dashboardAIHandlers;
+}
+
+function createDashboardAIProviderFromEnvironment(
+  environment: Record<string, string | undefined>,
+): DashboardAIProvider | undefined {
+  const provider = environment.GRIDFRAME_AI_PROVIDER ?? "openrouter";
+  const model = environment.GRIDFRAME_AI_MODEL;
+  const baseUrl = environment.GRIDFRAME_AI_BASE_URL;
+  const genericApiKey = environment.GRIDFRAME_AI_API_KEY;
+
+  switch (provider) {
+    case "openrouter": {
+      const apiKey = environment.OPENROUTER_API_KEY ?? genericApiKey;
+      return apiKey
+        ? createDashboardAIProvider({
+            provider,
+            apiKey,
+            ...(model ? { model } : {}),
+            ...(baseUrl ? { baseUrl } : {}),
+            appName: "Gridframe",
+          })
+        : undefined;
+    }
+    case "openai": {
+      const apiKey = environment.OPENAI_API_KEY ?? genericApiKey;
+      return apiKey
+        ? createDashboardAIProvider({
+            provider,
+            apiKey,
+            ...(model ? { model } : {}),
+            ...(baseUrl ? { baseUrl } : {}),
+          })
+        : undefined;
+    }
+    case "anthropic": {
+      const apiKey = environment.ANTHROPIC_API_KEY ?? genericApiKey;
+      return apiKey
+        ? createDashboardAIProvider({
+            provider,
+            apiKey,
+            ...(model ? { model } : {}),
+            ...(baseUrl ? { baseUrl } : {}),
+          })
+        : undefined;
+    }
+    case "google": {
+      const apiKey =
+        environment.GEMINI_API_KEY ??
+        environment.GOOGLE_AI_API_KEY ??
+        genericApiKey;
+      return apiKey
+        ? createDashboardAIProvider({
+            provider,
+            apiKey,
+            ...(model ? { model } : {}),
+            ...(baseUrl ? { baseUrl } : {}),
+          })
+        : undefined;
+    }
+    case "openai-compatible":
+      return baseUrl && model
+        ? createDashboardAIProvider({
+            provider,
+            baseUrl,
+            model,
+            ...(genericApiKey ? { apiKey: genericApiKey } : {}),
+          })
+        : undefined;
+    default:
+      return undefined;
+  }
 }
 
 type DashboardAIOperation =
@@ -228,6 +295,7 @@ function secureTokenEquals(left: string, right: string) {
 
 export {
   authenticateDashboardAIRequest,
+  createDashboardAIProviderFromEnvironment,
   createDashboardAISession,
   getDashboardAIHandlers,
   handleDashboardAIRequest,

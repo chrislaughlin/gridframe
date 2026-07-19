@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   authenticateDashboardAIRequest,
   createDashboardAISession,
+  createDashboardAIProviderFromEnvironment,
   handleDashboardAIRequest,
 } from "./ai";
 
@@ -16,6 +17,31 @@ afterEach(() => {
 });
 
 describe("Dashboard AI example authentication", () => {
+  it.each([
+    ["openrouter", { OPENROUTER_API_KEY: "key" }, "openai/gpt-oss-20b"],
+    ["openai", { OPENAI_API_KEY: "key" }, "gpt-4o-mini"],
+    ["anthropic", { ANTHROPIC_API_KEY: "key" }, "claude-sonnet-5"],
+    ["google", { GEMINI_API_KEY: "key" }, "gemini-3.5-flash"],
+    [
+      "openai-compatible",
+      {
+        GRIDFRAME_AI_BASE_URL: "http://localhost:11434/v1",
+        GRIDFRAME_AI_MODEL: "local-model",
+      },
+      "local-model",
+    ],
+  ] as const)(
+    "configures the %s provider from server environment",
+    (provider, providerEnvironment, expectedModel) => {
+      const configured = createDashboardAIProviderFromEnvironment({
+        GRIDFRAME_AI_PROVIDER: provider,
+        ...providerEnvironment,
+      });
+
+      expect(configured?.model).toBe(expectedModel);
+    },
+  );
+
   it("fails closed before provider or repository initialization", async () => {
     delete process.env.GRIDFRAME_AI_USER_ID;
     delete process.env.GRIDFRAME_AI_ACCESS_TOKEN;

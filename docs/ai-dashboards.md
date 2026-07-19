@@ -35,9 +35,10 @@ Install the packages used by your server and React app:
 pnpm add @gridframe/core @gridframe/server @gridframe/client @gridframe/react
 ```
 
-Create an OpenRouter API key, then set server environment variables:
+Choose a provider and set its server environment variables. The bundled example defaults to OpenRouter when `GRIDFRAME_AI_PROVIDER` is absent.
 
 ```env
+GRIDFRAME_AI_PROVIDER=openrouter
 OPENROUTER_API_KEY=your-server-key
 GRIDFRAME_AI_MODEL=openai/gpt-oss-20b
 
@@ -46,7 +47,19 @@ GRIDFRAME_AI_USER_ID=demo-user
 GRIDFRAME_AI_ACCESS_TOKEN=choose-a-long-random-value
 ```
 
-`GRIDFRAME_AI_MODEL` is optional. `openai/gpt-oss-20b` is the default. Keep both variables out of browser-prefixed environment files and client bundles.
+Each built-in provider has a model default, so `GRIDFRAME_AI_MODEL` is optional:
+
+| `GRIDFRAME_AI_PROVIDER` | Provider credential     | Default model        |
+| ----------------------- | ----------------------- | -------------------- |
+| `openrouter`            | `OPENROUTER_API_KEY`    | `openai/gpt-oss-20b` |
+| `openai`                | `OPENAI_API_KEY`        | `gpt-4o-mini`        |
+| `anthropic`             | `ANTHROPIC_API_KEY`     | `claude-sonnet-5`    |
+| `google`                | `GEMINI_API_KEY`        | `gemini-3.5-flash`   |
+| `openai-compatible`     | `GRIDFRAME_AI_API_KEY`¹ | `GRIDFRAME_AI_MODEL` |
+
+¹ The custom provider accepts an empty API key for local endpoints. It requires `GRIDFRAME_AI_BASE_URL` and `GRIDFRAME_AI_MODEL`.
+
+`GRIDFRAME_AI_API_KEY` can replace a provider-specific credential. `GRIDFRAME_AI_BASE_URL` overrides the selected provider endpoint. Keep provider credentials out of browser-prefixed environment files and client bundles.
 
 ## Register AI-capable Cards
 
@@ -135,17 +148,17 @@ Your Dashboard repository must implement `DashboardAIRepository`. `createDashboa
 
 ```ts
 import {
-  DEFAULT_OPENROUTER_MODEL,
-  OpenRouterDashboardAIProvider,
+  createDashboardAIProvider,
   createDashboardAIHandlers,
   createDashboardAIService,
 } from "@gridframe/server";
 import { cards } from "./cards";
 import { fields } from "./fields";
 
-const provider = new OpenRouterDashboardAIProvider({
+const provider = createDashboardAIProvider({
+  provider: "openrouter",
   apiKey: process.env.OPENROUTER_API_KEY!,
-  model: process.env.GRIDFRAME_AI_MODEL ?? DEFAULT_OPENROUTER_MODEL,
+  model: process.env.GRIDFRAME_AI_MODEL,
   appName: "Acme analytics",
 });
 
@@ -224,19 +237,46 @@ An `addGlobalFilter` action may omit `value`. The Dashboard then renders a user 
 
 ## Run the bundled example
 
-The repository's `apps/web` application wires the real OpenRouter provider, Neon Dashboard repository, authenticated routes, React dialog, ecommerce Card library, safe fields, and data-config-aware resolvers together.
+The repository's `apps/web` application wires the selected provider, Neon Dashboard repository, authenticated routes, React dialog, ecommerce Card library, safe fields, and data-config-aware resolvers together.
 
 1. Complete the existing `DATABASE_URL` and schema setup described in the root README.
-2. Set the four environment values shown above in `apps/web/.env.local`.
+2. Set the host authentication values and one provider configuration in `apps/web/.env.local`.
 3. Run `pnpm --filter web dev` and open `/gridframe/users/demo-user/dashboards`.
 4. Enter `GRIDFRAME_AI_ACCESS_TOKEN` in the example sign-in form, then open **Create with AI**.
 5. Choose **Create new Dashboard**, enter the ecommerce-manager scenario, review the exact layout, and select **Apply proposal**.
 
 The generated Cards use their persisted data config. The example resolver honours the 12-month range, count/average/sum aggregation, dimensions, filters, sort, top-10 limit, recent-record limit, and the selected global region filter.
 
-## Custom providers
+## Provider API
 
-Implement `DashboardAIProvider` to connect OpenAI, Anthropic, Google, or an OpenAI-compatible endpoint:
+Use the factory when configuration determines the provider:
+
+```ts
+import { createDashboardAIProvider } from "@gridframe/server";
+
+const provider = createDashboardAIProvider({
+  provider: "anthropic",
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+  model: "claude-sonnet-5",
+});
+```
+
+The provider configs form a discriminated union. Every provider accepts a custom `baseUrl`, `model`, and `fetch` implementation. OpenAI, Anthropic, Google, and OpenAI-compatible providers also accept custom headers. OpenRouter accepts `appName` and `appUrl`; Anthropic accepts `apiVersion`, `maxTokens`, and `temperature`. Claude Sonnet 5 uses its required default sampling behavior, while older or custom Anthropic models default to `temperature: 0.1`. OpenAI-compatible providers use the portable JSON envelope by default; set `schemaMode: "direct"` only when an endpoint accepts the full Gridframe proposal schema.
+
+OpenRouter receives the Dashboard proposal schema directly. The OpenAI-compatible, first-party OpenAI, Anthropic, and Google transports use a small strict JSON envelope because structured-output implementations impose different schema-subset and complexity limits. They include the full proposal schema in the model prompt, unwrap the result on the server, and pass it through the same canonical Gridframe validation and one-repair flow before a proposal can be previewed or applied.
+
+Point the OpenAI-compatible transport at Ollama, vLLM, an internal gateway, or another Chat Completions server:
+
+```ts
+const provider = createDashboardAIProvider({
+  provider: "openai-compatible",
+  baseUrl: "http://localhost:11434/v1",
+  model: "company/dashboard-planner",
+  apiKey: process.env.GRIDFRAME_AI_API_KEY,
+});
+```
+
+Implement `DashboardAIProvider` when an endpoint uses another protocol:
 
 ```ts
 import type { DashboardAIProvider } from "@gridframe/server";
@@ -275,9 +315,8 @@ Return the JSON object as a string in `content`. Gridframe owns parsing, validat
 
 ## Current limitations
 
-- OpenRouter is the only bundled provider transport.
 - Generation uses request and response rather than streaming progress events.
 - New Dashboard proposals are supported, but deleting whole Dashboards is outside the proposal action set.
-- Global filters persist and have a user-editable string value in the first UI. The bundled ecommerce resolver applies them; consumers that need enumerated, date, or multi-select controls can provide richer filter UI over the same repository operation.
+- Global filters use a compact JSON input. Consumers can provide enumerated, date, or multi-select controls over the same repository operation.
 - Gridframe validates semantic Card data config, but each consumer resolver decides how to translate approved fields, aggregations, filters, time ranges, sort, and limits into its data system.
 - Repair covers malformed JSON, schema errors, unknown Cards, and unknown fields. Other validation failures return to the preview for user review.

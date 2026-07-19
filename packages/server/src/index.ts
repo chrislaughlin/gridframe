@@ -941,6 +941,11 @@ export type {
 
 export { defineAIDataFields } from "./ai-catalogue";
 export type * from "./ai-provider";
+export { createDashboardAIProvider } from "./dashboard-ai-provider";
+export type {
+  DashboardAIProviderConfig,
+  DashboardAIProviderName,
+} from "./dashboard-ai-provider";
 export {
   DashboardAIError,
   createDashboardAIService,
@@ -961,4 +966,27 @@ export {
   OpenRouterProviderError,
 } from "./openrouter-provider";
 export type { OpenRouterProviderOptions } from "./openrouter-provider";
+export {
+  DEFAULT_OPENAI_MODEL,
+  OpenAIDashboardAIProvider,
+  OpenAICompatibleDashboardAIProvider,
+  OpenAICompatibleProviderError,
+} from "./openai-compatible-provider";
+export type {
+  OpenAICompatibleProviderOptions,
+  OpenAIProviderOptions,
+  OpenAIReasoningEffort,
+} from "./openai-compatible-provider";
+export {
+  AnthropicDashboardAIProvider,
+  AnthropicProviderError,
+  DEFAULT_ANTHROPIC_MODEL,
+} from "./anthropic-provider";
+export type { AnthropicProviderOptions } from "./anthropic-provider";
+export {
+  DEFAULT_GOOGLE_MODEL,
+  GoogleDashboardAIProvider,
+  GoogleProviderError,
+} from "./google-provider";
+export type { GoogleProviderOptions } from "./google-provider";
 export type * from "./dashboard-ai-types";
