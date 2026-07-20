@@ -291,9 +291,7 @@ function shouldRepair(result: {
   validation: DashboardProposalValidationResult;
 }) {
   if (!result.proposal) return true;
-  return result.validation.errors.some((error) =>
-    ["UNKNOWN_CARD_KEY", "UNKNOWN_FIELD"].includes(error.code),
-  );
+  return !result.validation.valid;
 }
 
 function assertRevision(

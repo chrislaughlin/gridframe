@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import type { DashboardProposal } from "@gridframe/core";
+import type {
+  DashboardProposal,
+  DashboardProposalValidationIssueCode,
+} from "@gridframe/core";
 
 import type { DashboardAIProvider } from "./ai-provider";
 import {
@@ -167,6 +170,29 @@ function service(
   });
 }
 
+async function expectProposalRepair(
+  invalid: DashboardProposal,
+  validationCode: DashboardProposalValidationIssueCode,
+) {
+  const model = provider([
+    JSON.stringify(invalid),
+    JSON.stringify(validProposal()),
+  ]);
+
+  await expect(
+    service(model).proposeDashboard({
+      userId: "user-1",
+      principalId: "user-1",
+      dashboardId: "dashboard-1",
+      prompt: "Add revenue",
+    }),
+  ).resolves.toMatchObject({ validation: { valid: true } });
+  expect(model.generate).toHaveBeenCalledTimes(2);
+  expect(model.generate.mock.calls[1]?.[0].userPrompt).toContain(
+    validationCode,
+  );
+}
+
 describe("DashboardAIService proposal generation", () => {
   it("accepts a valid structured proposal", async () => {
     const model = provider([JSON.stringify(validProposal())]);
@@ -192,23 +218,19 @@ describe("DashboardAIService proposal generation", () => {
     const invalid = validProposal();
     const action = invalid.actions[0];
     if (action?.type === "addCard") action.card.cardKey = "invented";
-    const model = provider([
-      JSON.stringify(invalid),
-      JSON.stringify(validProposal()),
-    ]);
 
-    await expect(
-      service(model).proposeDashboard({
-        userId: "user-1",
-        principalId: "user-1",
-        dashboardId: "dashboard-1",
-        prompt: "Add revenue",
-      }),
-    ).resolves.toMatchObject({ validation: { valid: true } });
-    expect(model.generate).toHaveBeenCalledTimes(2);
-    expect(model.generate.mock.calls[1]?.[0].userPrompt).toContain(
-      "UNKNOWN_CARD_KEY",
-    );
+    await expectProposalRepair(invalid, "UNKNOWN_CARD_KEY");
+  });
+
+  it("repairs a proposal that fails capability validation once", async () => {
+    const invalid = validProposal();
+    const action = invalid.actions[0];
+    if (action?.type === "addCard") {
+      const metric = action.card.data.metrics?.[0];
+      if (metric) metric.aggregation = "count";
+    }
+
+    await expectProposalRepair(invalid, "UNSUPPORTED_AGGREGATION");
   });
 
   it("rejects malformed JSON after at most one repair attempt", async () => {
