@@ -33,6 +33,12 @@ type DashboardAIDialogProps = {
   onDashboardChange: (dashboard: DashboardDocument) => void;
 };
 
+const dashboardPromptExamples = [
+  "Add total revenue, total orders, and average order value KPI Cards.",
+  "Show monthly revenue for the last 12 months and top products by revenue.",
+  "Move the KPI Cards to the top and replace the pie chart with a bar chart.",
+] as const;
+
 function DashboardAIDialog({
   userId,
   apiBaseUrl,
@@ -40,6 +46,7 @@ function DashboardAIDialog({
   disabled,
   onDashboardChange,
 }: DashboardAIDialogProps) {
+  const promptId = React.useId();
   const [open, setOpen] = React.useState(false);
   const [prompt, setPrompt] = React.useState("");
   const [target, setTarget] = React.useState<"edit" | "create">("edit");
@@ -142,16 +149,39 @@ function DashboardAIDialog({
             }
           }}
         >
-          <label className="grid gap-2 text-sm font-medium">
-            <span>Describe your dashboard changes</span>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium" htmlFor={promptId}>
+              Describe your dashboard changes
+            </label>
             <textarea
               className="min-h-28 resize-y rounded-md border border-input bg-background px-3 py-2 font-normal text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
               disabled={pending}
+              id={promptId}
               onChange={(event) => setPrompt(event.target.value)}
               placeholder="Add revenue KPIs, a monthly trend, and recent orders..."
               value={prompt}
             />
-          </label>
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">
+                Try an example
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {dashboardPromptExamples.map((example) => (
+                  <Button
+                    className="h-auto max-w-full justify-start whitespace-normal py-2 text-left"
+                    disabled={pending}
+                    key={example}
+                    onClick={() => setPrompt(example)}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    {example}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
           <Button disabled={pending || !prompt.trim()} type="submit">
             {generate.isPending ? "Generating..." : "Generate preview"}
           </Button>
