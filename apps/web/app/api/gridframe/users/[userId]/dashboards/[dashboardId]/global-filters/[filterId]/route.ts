@@ -1,5 +1,5 @@
 import { getDashboardHandlers } from "~/server/dashboard/handlers";
-import { authenticateDashboardAIRequest } from "~/server/dashboard/ai";
+import { authorizePublicDashboardExampleRequest } from "~/server/dashboard/ai";
 
 export const runtime = "nodejs";
 
@@ -14,11 +14,11 @@ async function PATCH(
   },
 ) {
   const identity = await context.params;
-  const authentication = authenticateDashboardAIRequest(
+  const authorization = authorizePublicDashboardExampleRequest(
     request,
     identity.userId,
   );
-  if (authentication instanceof Response) return authentication;
+  if (authorization instanceof Response) return authorization;
   return getDashboardHandlers().updateGlobalFilter(request, identity);
 }
 

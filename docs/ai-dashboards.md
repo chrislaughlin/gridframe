@@ -41,10 +41,6 @@ Choose a provider and set its server environment variables. The bundled example 
 GRIDFRAME_AI_PROVIDER=openrouter
 OPENROUTER_API_KEY=your-server-key
 GRIDFRAME_AI_MODEL=openai/gpt-oss-20b
-
-# Bundled example host authentication (not provider credentials)
-GRIDFRAME_AI_USER_ID=demo-user
-GRIDFRAME_AI_ACCESS_TOKEN=choose-a-long-random-value
 ```
 
 Each built-in provider has a model default, so `GRIDFRAME_AI_MODEL` is optional:
@@ -202,7 +198,7 @@ export async function POST(request: Request, context: RouteContext) {
 }
 ```
 
-The bundled Next.js example fails closed unless `GRIDFRAME_AI_USER_ID` and `GRIDFRAME_AI_ACCESS_TOKEN` are configured. Its small example sign-in form exchanges that host credential for a signed, `HttpOnly`, `SameSite=Strict` cookie; the credential and provider key are not stored in browser code. The AI routes also accept `Authorization: Bearer <token>` for server-to-server examples. Production applications should replace this demonstration boundary with their existing server session.
+The bundled Next.js example exposes Dashboard AI to same-origin requests for its fixed, public `example-user` identity so it works as soon as a provider is configured. The server supplies that principal; callers cannot select another route identity. This policy is only for the public example application, and it means visitors can consume the configured provider quota. Protect or rate-limit a deployed example as appropriate. Production applications must instead derive `principalId` from their authenticated server session and verify it against the route `userId`. Provider credentials remain server-only and must never be sent to the browser.
 
 ## Generate, preview, and apply
 
@@ -237,12 +233,12 @@ An `addGlobalFilter` action may omit `value`. The Dashboard then renders a user 
 
 ## Run the bundled example
 
-The repository's `apps/web` application wires the selected provider, Neon Dashboard repository, authenticated routes, React dialog, ecommerce Card library, safe fields, and data-config-aware resolvers together.
+The repository's `apps/web` application wires the selected provider, Neon Dashboard repository, example routes, React dialog, ecommerce Card library, safe fields, and data-config-aware resolvers together.
 
 1. Complete the existing `DATABASE_URL` and schema setup described in the root README.
-2. Set the host authentication values and one provider configuration in `apps/web/.env.local`.
-3. Run `pnpm --filter web dev` and open `/gridframe/users/demo-user/dashboards`.
-4. Enter `GRIDFRAME_AI_ACCESS_TOKEN` in the example sign-in form, then open **Create with AI**.
+2. Set one provider configuration in the repository-root `.env.local`.
+3. Run `pnpm --filter web dev` and open `/gridframe/users/example-user/dashboards`.
+4. Open **Create with AI**.
 5. Choose **Create new Dashboard**, enter the ecommerce-manager scenario, review the exact layout, and select **Apply proposal**.
 
 The generated Cards use their persisted data config. The example resolver honours the 12-month range, count/average/sum aggregation, dimensions, filters, sort, top-10 limit, recent-record limit, and the selected global region filter.

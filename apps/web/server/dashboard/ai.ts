@@ -4,15 +4,13 @@ import {
   createDashboardAIService,
 } from "@gridframe/server";
 import type { DashboardAIProvider } from "@gridframe/server";
-import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { aiDataFields } from "./ai-data-fields";
 import { aiCardLibrary, cardLibrary } from "./card-definitions";
 import { getDashboardRepository } from "./service";
 
 const dashboardAIPermissions = ["dashboard:read", "dashboard:write"] as const;
-const dashboardAISessionCookie = "gridframe-ai-session";
-const dashboardAISessionLifetimeSeconds = 8 * 60 * 60;
+const publicDashboardExampleUserId = "example-user";
 
 let dashboardAIHandlers:
   | ReturnType<typeof createDashboardAIHandlers>
@@ -139,164 +137,42 @@ async function handleDashboardAIRequest(
   userId: string,
   operation: DashboardAIOperation,
 ) {
-  const authentication = authenticateDashboardAIRequest(request, userId);
-  if (authentication instanceof Response) return authentication;
+  const authorization = authorizePublicDashboardExampleRequest(request, userId);
+  if (authorization instanceof Response) return authorization;
 
   return getDashboardAIHandlers()[operation](request, {
     userId,
-    principalId: authentication.principalId,
+    principalId: authorization.principalId,
   });
 }
 
-function authenticateDashboardAIRequest(request: Request, userId: string) {
-  const principalId = process.env.GRIDFRAME_AI_USER_ID;
-  const accessToken = process.env.GRIDFRAME_AI_ACCESS_TOKEN;
-  if (!principalId || !accessToken) {
-    return Response.json(
-      {
-        error: {
-          code: "AI_NOT_CONFIGURED",
-          message: "Dashboard AI authentication is not configured",
-        },
-      },
-      { status: 503 },
-    );
-  }
-
-  const authorization = request.headers.get("authorization");
-  const providedToken = authorization?.startsWith("Bearer ")
-    ? authorization.slice("Bearer ".length)
-    : "";
-  const bearerAuthenticated = secureTokenEquals(providedToken, accessToken);
-  const cookieAuthenticated =
-    isSameOriginMutation(request) &&
-    verifyDashboardAISession(
-      request.headers.get("cookie"),
-      principalId,
-      accessToken,
-    );
-  if (
-    userId !== principalId ||
-    (!bearerAuthenticated && !cookieAuthenticated)
-  ) {
-    return Response.json(
-      {
-        error: {
-          code: "AI_PERMISSION_DENIED",
-          message: "Dashboard AI authentication failed",
-        },
-      },
-      { status: 403 },
-    );
-  }
-
-  return { principalId };
-}
-
-function createDashboardAISession(
+function authorizePublicDashboardExampleRequest(
   request: Request,
-  input: { userId: string; accessToken: string },
+  userId: string,
 ) {
-  const principalId = process.env.GRIDFRAME_AI_USER_ID;
-  const accessToken = process.env.GRIDFRAME_AI_ACCESS_TOKEN;
-  if (!principalId || !accessToken) {
-    return Response.json(
-      {
-        error: {
-          code: "AI_NOT_CONFIGURED",
-          message: "Dashboard AI authentication is not configured",
-        },
-      },
-      { status: 503 },
-    );
-  }
+  const origin = request.headers.get("origin");
   if (
-    !isSameOriginMutation(request) ||
-    input.userId !== principalId ||
-    !secureTokenEquals(input.accessToken, accessToken)
+    userId !== publicDashboardExampleUserId ||
+    origin === null ||
+    origin !== new URL(request.url).origin
   ) {
     return Response.json(
       {
         error: {
           code: "AI_PERMISSION_DENIED",
-          message: "Dashboard AI authentication failed",
+          message: "Dashboard example access denied",
         },
       },
       { status: 403 },
     );
   }
 
-  const value = signDashboardAISession(principalId, accessToken);
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-  return new Response(null, {
-    status: 204,
-    headers: {
-      "Set-Cookie": `${dashboardAISessionCookie}=${value}; HttpOnly; SameSite=Strict; Path=/api/gridframe; Max-Age=28800${secure}`,
-    },
-  });
-}
-
-function signDashboardAISession(userId: string, accessToken: string) {
-  const subject = Buffer.from(userId).toString("base64url");
-  const expiresAt =
-    Math.floor(Date.now() / 1_000) + dashboardAISessionLifetimeSeconds;
-  const payload = `${subject}.${expiresAt}`;
-  const signature = createHmac("sha256", accessToken)
-    .update(payload)
-    .digest("base64url");
-  return `${payload}.${signature}`;
-}
-
-function verifyDashboardAISession(
-  cookieHeader: string | null,
-  userId: string,
-  accessToken: string,
-) {
-  const cookie = cookieHeader
-    ?.split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(`${dashboardAISessionCookie}=`));
-  const provided = cookie?.slice(dashboardAISessionCookie.length + 1) ?? "";
-  const [subject, expiresAtText, signature, ...extra] = provided.split(".");
-  const expiresAt = Number(expiresAtText);
-  if (
-    extra.length > 0 ||
-    !subject ||
-    !signature ||
-    !Number.isSafeInteger(expiresAt) ||
-    expiresAt <= Math.floor(Date.now() / 1_000)
-  ) {
-    return false;
-  }
-  const expectedSubject = Buffer.from(userId).toString("base64url");
-  const payload = `${subject}.${expiresAt}`;
-  const expectedSignature = createHmac("sha256", accessToken)
-    .update(payload)
-    .digest("base64url");
-  return (
-    secureTokenEquals(subject, expectedSubject) &&
-    secureTokenEquals(signature, expectedSignature)
-  );
-}
-
-function isSameOriginMutation(request: Request) {
-  const origin = request.headers.get("origin");
-  return origin !== null && origin === new URL(request.url).origin;
-}
-
-function secureTokenEquals(left: string, right: string) {
-  const leftBytes = Buffer.from(left);
-  const rightBytes = Buffer.from(right);
-  return (
-    leftBytes.length === rightBytes.length &&
-    timingSafeEqual(leftBytes, rightBytes)
-  );
+  return { principalId: publicDashboardExampleUserId };
 }
 
 export {
-  authenticateDashboardAIRequest,
+  authorizePublicDashboardExampleRequest,
   createDashboardAIProviderFromEnvironment,
-  createDashboardAISession,
   getDashboardAIHandlers,
   handleDashboardAIRequest,
 };
