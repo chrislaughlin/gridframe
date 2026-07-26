@@ -426,6 +426,15 @@ describe("PanelDashboard API-managed mode", () => {
     expect(await screen.findByText("Total revenue")).toBeInTheDocument();
     expect(await screen.findByText("Revenue by region")).toBeInTheDocument();
     expect(await screen.findByText("Recent orders")).toBeInTheDocument();
+    const editButtons = screen.getAllByRole("button", {
+      name: "Edit card name",
+    });
+    expect(editButtons).toHaveLength(3);
+    for (const editButton of editButtons) {
+      expect(editButton).not.toHaveTextContent("Edit");
+      expect(editButton.querySelector("svg")).toHaveClass("lucide-pencil");
+      expect(editButton.nextElementSibling).toHaveAccessibleName("Drag card");
+    }
     expect(
       screen.queryByText(
         "/api/gridframe/users/user-1/dashboards/dashboard-1/cards/metric/data",

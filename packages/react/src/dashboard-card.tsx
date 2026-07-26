@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Pencil } from "lucide-react";
 import * as React from "react";
 import { type DashboardCardConfig, type PanelCardDataResponse } from "./types";
 import {
@@ -109,8 +109,8 @@ function DashboardCard({
             <button
               aria-label="Edit card name"
               className={cn(
-                buttonVariants({ variant: "ghost", size: "sm" }),
-                "panel-card-drag-cancel h-8 px-2 text-muted-foreground",
+                buttonVariants({ variant: "ghost", size: "icon" }),
+                "panel-card-drag-cancel size-8 text-muted-foreground",
               )}
               onClick={() => {
                 setIsEditingName(true);
@@ -118,7 +118,7 @@ function DashboardCard({
               disabled={editDisabled}
               type="button"
             >
-              Edit
+              <Pencil aria-hidden="true" className="size-4" />
             </button>
             <button
               aria-label="Drag card"
