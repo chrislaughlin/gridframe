@@ -21,6 +21,7 @@ type DashboardCardProps = {
   className?: string;
   displayName?: string;
   editDisabled?: boolean;
+  layoutEditingDisabled?: boolean;
   onRename?: (name: string) => void;
   onRemove?: () => void;
 };
@@ -30,6 +31,7 @@ function DashboardCard({
   className,
   displayName = card.name,
   editDisabled = false,
+  layoutEditingDisabled = false,
   onRename,
   onRemove,
 }: DashboardCardProps) {
@@ -69,7 +71,7 @@ function DashboardCard({
               <input
                 aria-label="Card name"
                 autoFocus
-                className="panel-card-drag-cancel h-8 w-full rounded-md border border-input bg-background px-2 text-sm font-semibold outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                className="panel-card-drag-cancel h-11 w-full rounded-md border border-input bg-background px-2 text-sm font-semibold outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:h-8"
                 onBlur={saveName}
                 onChange={(event) => {
                   setDraftName(event.target.value);
@@ -97,7 +99,7 @@ function DashboardCard({
                 aria-label="Remove card"
                 className={cn(
                   buttonVariants({ variant: "ghost", size: "sm" }),
-                  "panel-card-drag-cancel h-8 px-2 text-muted-foreground",
+                  "panel-card-drag-cancel h-11 px-2 text-muted-foreground sm:h-8",
                 )}
                 disabled={editDisabled}
                 onClick={onRemove}
@@ -110,7 +112,7 @@ function DashboardCard({
               aria-label="Edit card name"
               className={cn(
                 buttonVariants({ variant: "ghost", size: "icon" }),
-                "panel-card-drag-cancel size-8 text-muted-foreground",
+                "panel-card-drag-cancel size-11 text-muted-foreground sm:size-8",
               )}
               onClick={() => {
                 setIsEditingName(true);
@@ -124,9 +126,9 @@ function DashboardCard({
               aria-label="Drag card"
               className={cn(
                 buttonVariants({ variant: "ghost", size: "icon" }),
-                "panel-card-drag-handle size-8 cursor-grab text-muted-foreground active:cursor-grabbing",
+                "panel-card-drag-handle size-11 cursor-grab text-muted-foreground active:cursor-grabbing sm:size-8",
               )}
-              disabled={editDisabled}
+              disabled={editDisabled || layoutEditingDisabled}
               type="button"
             >
               <GripVertical aria-hidden="true" className="size-4" />
@@ -152,7 +154,7 @@ function DashboardCard({
           <a
             className={cn(
               buttonVariants({ variant: "link", size: "sm" }),
-              "h-auto px-0 text-xs",
+              "h-auto min-h-11 px-0 text-xs sm:min-h-0",
             )}
             href={card.deeplink.href}
             rel={isExternalLink(card.deeplink.href) ? "noreferrer" : undefined}

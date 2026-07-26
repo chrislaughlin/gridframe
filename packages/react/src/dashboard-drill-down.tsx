@@ -74,10 +74,14 @@ function DashboardDrillDownContent({
       query.error instanceof DashboardClientError && query.error.status === 404;
     return (
       <main className="mx-auto max-w-3xl space-y-4 p-8">
-        <a href={back}>Back to Dashboard</a>
+        <BackToDashboardLink href={back} />
         <h1>{missing ? "Card not found" : "Could not load Card"}</h1>
         {!missing ? (
-          <button onClick={() => void query.refetch()} type="button">
+          <button
+            className="min-h-11 rounded-md px-3"
+            onClick={() => void query.refetch()}
+            type="button"
+          >
             Try again
           </button>
         ) : null}
@@ -87,7 +91,7 @@ function DashboardDrillDownContent({
   if (query.data.data.status === "empty")
     return (
       <main className="mx-auto max-w-3xl space-y-4 p-8">
-        <a href={back}>Back to Dashboard</a>
+        <BackToDashboardLink href={back} />
         <p className="text-sm text-muted-foreground">
           {query.data.bootstrap.dashboard.config.title}
         </p>
@@ -98,20 +102,24 @@ function DashboardDrillDownContent({
   if (query.data.data.status === "error")
     return (
       <main className="mx-auto max-w-3xl space-y-4 p-8">
-        <a href={back}>Back to Dashboard</a>
+        <BackToDashboardLink href={back} />
         <p className="text-sm text-muted-foreground">
           {query.data.bootstrap.dashboard.config.title}
         </p>
         <h1>{query.data.card.name}</h1>
         <p>{query.data.data.message}</p>
-        <button onClick={() => void query.refetch()} type="button">
+        <button
+          className="min-h-11 rounded-md px-3"
+          onClick={() => void query.refetch()}
+          type="button"
+        >
           Try again
         </button>
       </main>
     );
   return (
     <main className="mx-auto flex max-w-7xl flex-col gap-8 p-8">
-      <a href={back}>Back to Dashboard</a>
+      <BackToDashboardLink href={back} />
       <header>
         <p className="text-sm text-muted-foreground">
           {query.data.bootstrap.dashboard.config.title}
@@ -131,6 +139,14 @@ function DashboardDrillDownContent({
         <SourceDataTable data={query.data.data.sourceData} />
       </section>
     </main>
+  );
+}
+
+function BackToDashboardLink({ href }: { href: string }) {
+  return (
+    <a className="inline-flex min-h-11 items-center" href={href}>
+      Back to Dashboard
+    </a>
   );
 }
 
