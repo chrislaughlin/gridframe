@@ -212,7 +212,7 @@ function ApiManagedDashboard({
       <DashboardLoadState
         action={
           <button
-            className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground"
+            className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground"
             onClick={() => void query.refetch()}
             type="button"
           >
@@ -228,11 +228,11 @@ function ApiManagedDashboard({
   const dashboard = displayDashboard ?? response.dashboard;
   const dashboardSelector =
     response.dashboards.length > 1 ? (
-      <label className="flex items-center gap-2 text-sm text-muted-foreground">
+      <label className="flex w-full flex-col items-stretch gap-2 text-sm text-muted-foreground sm:w-auto sm:flex-row sm:items-center">
         <span>Dashboard</span>
         <select
           aria-label="Dashboard"
-          className="rounded-md border border-input bg-background px-3 py-2 text-foreground"
+          className="min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-foreground sm:min-h-9 sm:w-auto"
           disabled={query.isFetching || mutation.isPending}
           onChange={(event) => {
             const dashboardId = event.target.value;
@@ -253,9 +253,9 @@ function ApiManagedDashboard({
       </label>
     ) : null;
   const toolbar = (
-    <div className="flex flex-col items-end gap-3">
+    <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:items-end">
       {dashboardSelector}
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
         <DashboardAIDialog
           apiBaseUrl={options.apiBaseUrl}
           dashboard={dashboard}
@@ -341,7 +341,7 @@ function ApiManagedDashboard({
             <span>{notice}</span>
             {retryAction ? (
               <button
-                className="font-medium text-primary"
+                className="min-h-11 min-w-11 px-2 font-medium text-primary sm:min-h-0 sm:min-w-0"
                 onClick={() => startMutation(retryAction)}
                 type="button"
               >

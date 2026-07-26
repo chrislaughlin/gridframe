@@ -1,0 +1,4610 @@
+{
+  "url": "http://localhost:3000/gridframe/users/example-user/dashboards/e6ef1cbb-07f2-4056-b754-14c1ab7d7cbd",
+  "date": "2026-07-26",
+  "browser": "Chromium via Playwright 1.58.2",
+  "widths": [
+    320,
+    375,
+    768,
+    1024,
+    1280,
+    1440,
+    1920,
+    2560
+  ],
+  "height": 900,
+  "results": [
+    {
+      "width": 320,
+      "aboveFoldPath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-320-above-fold.png",
+      "fullPagePath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-320-full-page.png",
+      "metrics": {
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "document": {
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "scrollHeight": 4324,
+          "horizontalOverflow": false
+        },
+        "overflowingElements": [
+          {
+            "element": "table.w-full.caption-bottom.text-sm \"Order_idOrder_statusProductRegionOrder_valueCreated_atFLR6BDUKShippedHeadphonesE\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "thead._trborder-b \"Order_idOrder_statusProductRegionOrder_valueCreated_at\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "tr.border-b.border-border.transition-colors \"Order_idOrder_statusProductRegionOrder_valueCreated_at\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "th.h-10.px-2.text-left \"Product\"",
+            "left": 253.1,
+            "right": 350.3,
+            "width": 97.2
+          },
+          {
+            "element": "th.h-10.px-2.text-left \"Region\"",
+            "left": 350.3,
+            "right": 412.1,
+            "width": 61.8
+          },
+          {
+            "element": "th.h-10.px-2.align-middle \"Order_value\"",
+            "left": 412.1,
+            "right": 509.3,
+            "width": 97.3
+          },
+          {
+            "element": "th.h-10.px-2.text-left \"Created_at\"",
+            "left": 509.3,
+            "right": 599.5,
+            "width": 90.2
+          },
+          {
+            "element": "tbody._trlast-childborder-0 \"FLR6BDUKShippedHeadphonesEast726.92026-06FYGU40BPShippedKeyboardSouth541.762026-\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "tr.border-b.border-border.transition-colors \"FLR6BDUKShippedHeadphonesEast726.92026-06\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "td.p-2.align-middle \"Headphones\"",
+            "left": 253.1,
+            "right": 350.3,
+            "width": 97.2
+          },
+          {
+            "element": "td.p-2.align-middle \"East\"",
+            "left": 350.3,
+            "right": 412.1,
+            "width": 61.8
+          },
+          {
+            "element": "td.p-2.align-middle.text-right \"726.9\"",
+            "left": 412.1,
+            "right": 509.3,
+            "width": 97.3
+          },
+          {
+            "element": "td.p-2.align-middle \"2026-06\"",
+            "left": 509.3,
+            "right": 599.5,
+            "width": 90.2
+          },
+          {
+            "element": "tr.border-b.border-border.transition-colors \"FYGU40BPShippedKeyboardSouth541.762026-05\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "td.p-2.align-middle \"Keyboard\"",
+            "left": 253.1,
+            "right": 350.3,
+            "width": 97.2
+          },
+          {
+            "element": "td.p-2.align-middle \"South\"",
+            "left": 350.3,
+            "right": 412.1,
+            "width": 61.8
+          },
+          {
+            "element": "td.p-2.align-middle.text-right \"541.76\"",
+            "left": 412.1,
+            "right": 509.3,
+            "width": 97.3
+          },
+          {
+            "element": "td.p-2.align-middle \"2026-05\"",
+            "left": 509.3,
+            "right": 599.5,
+            "width": 90.2
+          },
+          {
+            "element": "tr.border-b.border-border.transition-colors \"O32PR2GYShippedBackpackNorth154.562026-04\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "td.p-2.align-middle \"Backpack\"",
+            "left": 253.1,
+            "right": 350.3,
+            "width": 97.2
+          }
+        ],
+        "clippedText": [],
+        "tinyText": [],
+        "interactive": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 44,
+            "top": 6
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"Examples\"",
+            "width": 150,
+            "height": 44,
+            "top": 63
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"Dashboard\"",
+            "width": 150,
+            "height": 44,
+            "top": 107
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 150,
+            "height": 44,
+            "top": 151
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 288,
+            "height": 44,
+            "top": 489
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 140,
+            "height": 44,
+            "top": 545
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 140,
+            "height": 44,
+            "top": 545
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 679
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 679
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 44,
+            "top": 905
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 1015
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 1015
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 44,
+            "top": 1353
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 1463
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 1463
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 44,
+            "top": 1801
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 1911
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 1911
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 44,
+            "top": 2249
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 2359
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 2359
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 44,
+            "top": 2697
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 2807
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 2807
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 44,
+            "top": 3145
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 3255
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 3255
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 44,
+            "top": 3593
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 3703
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 3703
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 44,
+            "top": 4041
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 44,
+            "height": 44,
+            "top": 4248
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 44,
+            "top": 4248
+          }
+        ],
+        "undersizedTargets": [],
+        "mediaIssues": [],
+        "gridSignatures": [
+          {
+            "element": "div.grid.grid-cols-2.gap-2 \"Create with AICard library\"",
+            "columns": 2,
+            "template": "140px 140px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Total revenue\"",
+            "columns": 1,
+            "template": "206px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue by region\"",
+            "columns": 1,
+            "template": "238.516px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Recent orders\"",
+            "columns": 1,
+            "template": "207.328px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue trend\"",
+            "columns": 1,
+            "template": "210.734px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Orders trend\"",
+            "columns": 1,
+            "template": "206px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Channel share\"",
+            "columns": 1,
+            "template": "209.531px"
+          },
+          {
+            "element": "div.grid.shrink-0.grid-cols-2 \"DirectPartnerOrganic\"",
+            "columns": 2,
+            "template": "59.4219px 59.4219px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Team performance\"",
+            "columns": 1,
+            "template": "242.953px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Goal progress\"",
+            "columns": 1,
+            "template": "207.156px"
+          }
+        ],
+        "nav": {
+          "display": "none",
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "right": 0,
+            "width": 0,
+            "height": 0
+          }
+        },
+        "headerHeight": 57,
+        "ctas": [
+          {
+            "label": "View examples",
+            "visible": false
+          },
+          {
+            "label": "Try the dashboard",
+            "visible": false
+          },
+          {
+            "label": "Browse examples",
+            "visible": false
+          }
+        ],
+        "dashboardActions": [
+          {
+            "label": "Create with AI",
+            "visible": true,
+            "aboveFold": true,
+            "top": 545,
+            "width": 140,
+            "height": 44
+          },
+          {
+            "label": "Card library",
+            "visible": true,
+            "aboveFold": true,
+            "top": 545,
+            "width": 140,
+            "height": 44
+          }
+        ],
+        "cardRects": [
+          {
+            "id": "f9fc2d19-1460-467b-b147-d68e070bb69c",
+            "title": "Total revenue",
+            "left": 32,
+            "right": 288,
+            "top": 654,
+            "width": 256,
+            "height": 320
+          },
+          {
+            "id": "4c9e52b1-2a36-4328-b739-b8aa31a87f29",
+            "title": "Revenue by region",
+            "left": 32,
+            "right": 288,
+            "top": 990,
+            "width": 256,
+            "height": 432
+          },
+          {
+            "id": "bc418e29-1f83-4090-b1c1-2a84ed51737f",
+            "title": "Recent orders",
+            "left": 32,
+            "right": 288,
+            "top": 1438,
+            "width": 256,
+            "height": 432
+          },
+          {
+            "id": "9dfeb853-53eb-446a-8e31-abd12e220741",
+            "title": "Revenue trend",
+            "left": 32,
+            "right": 288,
+            "top": 1886,
+            "width": 256,
+            "height": 432
+          },
+          {
+            "id": "fbf5b9d4-8246-446d-abe6-606c3b8b8bca",
+            "title": "Orders trend",
+            "left": 32,
+            "right": 288,
+            "top": 2334,
+            "width": 256,
+            "height": 432
+          },
+          {
+            "id": "cfae22d2-2f0d-4563-87db-14cd08cd9d42",
+            "title": "Channel share",
+            "left": 32,
+            "right": 288,
+            "top": 2782,
+            "width": 256,
+            "height": 432
+          },
+          {
+            "id": "df449994-2a72-4dc7-8e40-8e39cbeb8d89",
+            "title": "Team performance",
+            "left": 32,
+            "right": 288,
+            "top": 3230,
+            "width": 256,
+            "height": 432
+          },
+          {
+            "id": "2e319dee-d4b9-40eb-878d-32512aff9828",
+            "title": "Goal progress",
+            "left": 32,
+            "right": 288,
+            "top": 3678,
+            "width": 256,
+            "height": 432
+          }
+        ],
+        "mainContainers": [
+          {
+            "width": 320,
+            "leftMargin": 0,
+            "rightMargin": 0
+          }
+        ]
+      }
+    },
+    {
+      "width": 375,
+      "aboveFoldPath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-375-above-fold.png",
+      "fullPagePath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-375-full-page.png",
+      "metrics": {
+        "viewport": {
+          "width": 375,
+          "height": 900
+        },
+        "document": {
+          "scrollWidth": 375,
+          "clientWidth": 375,
+          "scrollHeight": 4276,
+          "horizontalOverflow": false
+        },
+        "overflowingElements": [
+          {
+            "element": "table.w-full.caption-bottom.text-sm \"Order_idOrder_statusProductRegionOrder_valueCreated_atFLR6BDUKShippedHeadphonesE\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "thead._trborder-b \"Order_idOrder_statusProductRegionOrder_valueCreated_at\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "tr.border-b.border-border.transition-colors \"Order_idOrder_statusProductRegionOrder_valueCreated_at\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "th.h-10.px-2.text-left \"Region\"",
+            "left": 350.3,
+            "right": 412.1,
+            "width": 61.8
+          },
+          {
+            "element": "th.h-10.px-2.align-middle \"Order_value\"",
+            "left": 412.1,
+            "right": 509.3,
+            "width": 97.3
+          },
+          {
+            "element": "th.h-10.px-2.text-left \"Created_at\"",
+            "left": 509.3,
+            "right": 599.5,
+            "width": 90.2
+          },
+          {
+            "element": "tbody._trlast-childborder-0 \"FLR6BDUKShippedHeadphonesEast726.92026-06FYGU40BPShippedKeyboardSouth541.762026-\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "tr.border-b.border-border.transition-colors \"FLR6BDUKShippedHeadphonesEast726.92026-06\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "td.p-2.align-middle \"East\"",
+            "left": 350.3,
+            "right": 412.1,
+            "width": 61.8
+          },
+          {
+            "element": "td.p-2.align-middle.text-right \"726.9\"",
+            "left": 412.1,
+            "right": 509.3,
+            "width": 97.3
+          },
+          {
+            "element": "td.p-2.align-middle \"2026-06\"",
+            "left": 509.3,
+            "right": 599.5,
+            "width": 90.2
+          },
+          {
+            "element": "tr.border-b.border-border.transition-colors \"FYGU40BPShippedKeyboardSouth541.762026-05\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "td.p-2.align-middle \"South\"",
+            "left": 350.3,
+            "right": 412.1,
+            "width": 61.8
+          },
+          {
+            "element": "td.p-2.align-middle.text-right \"541.76\"",
+            "left": 412.1,
+            "right": 509.3,
+            "width": 97.3
+          },
+          {
+            "element": "td.p-2.align-middle \"2026-05\"",
+            "left": 509.3,
+            "right": 599.5,
+            "width": 90.2
+          },
+          {
+            "element": "tr.border-b.border-border.transition-colors \"O32PR2GYShippedBackpackNorth154.562026-04\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          },
+          {
+            "element": "td.p-2.align-middle \"North\"",
+            "left": 350.3,
+            "right": 412.1,
+            "width": 61.8
+          },
+          {
+            "element": "td.p-2.align-middle.text-right \"154.56\"",
+            "left": 412.1,
+            "right": 509.3,
+            "width": 97.3
+          },
+          {
+            "element": "td.p-2.align-middle \"2026-04\"",
+            "left": 509.3,
+            "right": 599.5,
+            "width": 90.2
+          },
+          {
+            "element": "tr.border-b.border-border.transition-colors \"BNVYO7JLDeliveredBackpackSouth690.592026-03\"",
+            "left": 57,
+            "right": 599.5,
+            "width": 542.5
+          }
+        ],
+        "clippedText": [],
+        "tinyText": [],
+        "interactive": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 44,
+            "top": 6
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"Examples\"",
+            "width": 150,
+            "height": 44,
+            "top": 63
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"Dashboard\"",
+            "width": 150,
+            "height": 44,
+            "top": 107
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 150,
+            "height": 44,
+            "top": 151
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 343,
+            "height": 44,
+            "top": 441
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 168,
+            "height": 44,
+            "top": 497
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 168,
+            "height": 44,
+            "top": 497
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 631
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 631
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 44,
+            "top": 857
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 967
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 967
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 44,
+            "top": 1305
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 1415
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 1415
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 44,
+            "top": 1753
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 1863
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 1863
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 44,
+            "top": 2201
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 2311
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 2311
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 44,
+            "top": 2649
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 2759
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 2759
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 44,
+            "top": 3097
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 3207
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 3207
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 44,
+            "top": 3545
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 3655
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 44,
+            "height": 44,
+            "top": 3655
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 44,
+            "top": 3993
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 44,
+            "height": 44,
+            "top": 4200
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 44,
+            "top": 4200
+          }
+        ],
+        "undersizedTargets": [],
+        "mediaIssues": [],
+        "gridSignatures": [
+          {
+            "element": "div.grid.grid-cols-2.gap-2 \"Create with AICard library\"",
+            "columns": 2,
+            "template": "167.5px 167.5px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Total revenue\"",
+            "columns": 1,
+            "template": "261px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue by region\"",
+            "columns": 1,
+            "template": "261px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Recent orders\"",
+            "columns": 1,
+            "template": "261px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue trend\"",
+            "columns": 1,
+            "template": "261px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Orders trend\"",
+            "columns": 1,
+            "template": "261px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Channel share\"",
+            "columns": 1,
+            "template": "261px"
+          },
+          {
+            "element": "div.grid.shrink-0.grid-cols-2 \"DirectPartnerOrganic\"",
+            "columns": 2,
+            "template": "59.4219px 59.4219px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Team performance\"",
+            "columns": 1,
+            "template": "261px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Goal progress\"",
+            "columns": 1,
+            "template": "261px"
+          }
+        ],
+        "nav": {
+          "display": "none",
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "right": 0,
+            "width": 0,
+            "height": 0
+          }
+        },
+        "headerHeight": 57,
+        "ctas": [
+          {
+            "label": "View examples",
+            "visible": false
+          },
+          {
+            "label": "Try the dashboard",
+            "visible": false
+          },
+          {
+            "label": "Browse examples",
+            "visible": false
+          }
+        ],
+        "dashboardActions": [
+          {
+            "label": "Create with AI",
+            "visible": true,
+            "aboveFold": true,
+            "top": 497,
+            "width": 168,
+            "height": 44
+          },
+          {
+            "label": "Card library",
+            "visible": true,
+            "aboveFold": true,
+            "top": 497,
+            "width": 168,
+            "height": 44
+          }
+        ],
+        "cardRects": [
+          {
+            "id": "f9fc2d19-1460-467b-b147-d68e070bb69c",
+            "title": "Total revenue",
+            "left": 32,
+            "right": 343,
+            "top": 606,
+            "width": 311,
+            "height": 320
+          },
+          {
+            "id": "4c9e52b1-2a36-4328-b739-b8aa31a87f29",
+            "title": "Revenue by region",
+            "left": 32,
+            "right": 343,
+            "top": 942,
+            "width": 311,
+            "height": 432
+          },
+          {
+            "id": "bc418e29-1f83-4090-b1c1-2a84ed51737f",
+            "title": "Recent orders",
+            "left": 32,
+            "right": 343,
+            "top": 1390,
+            "width": 311,
+            "height": 432
+          },
+          {
+            "id": "9dfeb853-53eb-446a-8e31-abd12e220741",
+            "title": "Revenue trend",
+            "left": 32,
+            "right": 343,
+            "top": 1838,
+            "width": 311,
+            "height": 432
+          },
+          {
+            "id": "fbf5b9d4-8246-446d-abe6-606c3b8b8bca",
+            "title": "Orders trend",
+            "left": 32,
+            "right": 343,
+            "top": 2286,
+            "width": 311,
+            "height": 432
+          },
+          {
+            "id": "cfae22d2-2f0d-4563-87db-14cd08cd9d42",
+            "title": "Channel share",
+            "left": 32,
+            "right": 343,
+            "top": 2734,
+            "width": 311,
+            "height": 432
+          },
+          {
+            "id": "df449994-2a72-4dc7-8e40-8e39cbeb8d89",
+            "title": "Team performance",
+            "left": 32,
+            "right": 343,
+            "top": 3182,
+            "width": 311,
+            "height": 432
+          },
+          {
+            "id": "2e319dee-d4b9-40eb-878d-32512aff9828",
+            "title": "Goal progress",
+            "left": 32,
+            "right": 343,
+            "top": 3630,
+            "width": 311,
+            "height": 432
+          }
+        ],
+        "mainContainers": [
+          {
+            "width": 375,
+            "leftMargin": 0,
+            "rightMargin": 0
+          }
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "aboveFoldPath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-768-above-fold.png",
+      "fullPagePath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-768-full-page.png",
+      "metrics": {
+        "viewport": {
+          "width": 768,
+          "height": 900
+        },
+        "document": {
+          "scrollWidth": 768,
+          "clientWidth": 768,
+          "scrollHeight": 3216,
+          "horizontalOverflow": false
+        },
+        "overflowingElements": [],
+        "clippedText": [],
+        "tinyText": [],
+        "interactive": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 317
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 365
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 365
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 491
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 491
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 729
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 827
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 827
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 1177
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1275
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1275
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1625
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1723
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1723
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2073
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1723
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1723
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 2073
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2171
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2171
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2521
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2171
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2171
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2521
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2619
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2619
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2969
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 3164
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 3164
+          }
+        ],
+        "undersizedTargets": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 317
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 365
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 365
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 491
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 491
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 729
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 827
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 827
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 1177
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1275
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1275
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1625
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1723
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1723
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2073
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1723
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1723
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 2073
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2171
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2171
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2521
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2171
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2171
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2521
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2619
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2619
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2969
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 3164
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 3164
+          }
+        ],
+        "mediaIssues": [],
+        "gridSignatures": [
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Total revenue\"",
+            "columns": 1,
+            "template": "286px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue by region\"",
+            "columns": 1,
+            "template": "638px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Recent orders\"",
+            "columns": 1,
+            "template": "638px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue trend\"",
+            "columns": 1,
+            "template": "286px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Orders trend\"",
+            "columns": 1,
+            "template": "286px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Channel share\"",
+            "columns": 1,
+            "template": "286px"
+          },
+          {
+            "element": "div.grid.shrink-0.grid-cols-2 \"DirectPartnerOrganic\"",
+            "columns": 4,
+            "template": "59.4219px 59.4219px 59.4219px 59.4219px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Team performance\"",
+            "columns": 1,
+            "template": "286px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Goal progress\"",
+            "columns": 1,
+            "template": "286px"
+          }
+        ],
+        "nav": {
+          "display": "flex",
+          "visible": true,
+          "rect": {
+            "left": 518,
+            "right": 744,
+            "width": 226,
+            "height": 20
+          }
+        },
+        "headerHeight": 57,
+        "ctas": [
+          {
+            "label": "View examples",
+            "visible": false
+          },
+          {
+            "label": "Try the dashboard",
+            "visible": false
+          },
+          {
+            "label": "Browse examples",
+            "visible": false
+          }
+        ],
+        "dashboardActions": [
+          {
+            "label": "Create with AI",
+            "visible": true,
+            "aboveFold": true,
+            "top": 365,
+            "width": 128,
+            "height": 36
+          },
+          {
+            "label": "Card library",
+            "visible": true,
+            "aboveFold": true,
+            "top": 365,
+            "width": 112,
+            "height": 36
+          }
+        ],
+        "cardRects": [
+          {
+            "id": "f9fc2d19-1460-467b-b147-d68e070bb69c",
+            "title": "Total revenue",
+            "left": 40,
+            "right": 376,
+            "top": 466,
+            "width": 336,
+            "height": 320
+          },
+          {
+            "id": "4c9e52b1-2a36-4328-b739-b8aa31a87f29",
+            "title": "Revenue by region",
+            "left": 40,
+            "right": 728,
+            "top": 802,
+            "width": 688,
+            "height": 432
+          },
+          {
+            "id": "bc418e29-1f83-4090-b1c1-2a84ed51737f",
+            "title": "Recent orders",
+            "left": 40,
+            "right": 728,
+            "top": 1250,
+            "width": 688,
+            "height": 432
+          },
+          {
+            "id": "9dfeb853-53eb-446a-8e31-abd12e220741",
+            "title": "Revenue trend",
+            "left": 40,
+            "right": 376,
+            "top": 1698,
+            "width": 336,
+            "height": 432
+          },
+          {
+            "id": "fbf5b9d4-8246-446d-abe6-606c3b8b8bca",
+            "title": "Orders trend",
+            "left": 392,
+            "right": 728,
+            "top": 1698,
+            "width": 336,
+            "height": 432
+          },
+          {
+            "id": "cfae22d2-2f0d-4563-87db-14cd08cd9d42",
+            "title": "Channel share",
+            "left": 40,
+            "right": 376,
+            "top": 2146,
+            "width": 336,
+            "height": 432
+          },
+          {
+            "id": "df449994-2a72-4dc7-8e40-8e39cbeb8d89",
+            "title": "Team performance",
+            "left": 392,
+            "right": 728,
+            "top": 2146,
+            "width": 336,
+            "height": 432
+          },
+          {
+            "id": "2e319dee-d4b9-40eb-878d-32512aff9828",
+            "title": "Goal progress",
+            "left": 40,
+            "right": 376,
+            "top": 2594,
+            "width": 336,
+            "height": 432
+          }
+        ],
+        "mainContainers": [
+          {
+            "width": 768,
+            "leftMargin": 0,
+            "rightMargin": 0
+          }
+        ]
+      }
+    },
+    {
+      "width": 1024,
+      "aboveFoldPath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-1024-above-fold.png",
+      "fullPagePath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-1024-full-page.png",
+      "metrics": {
+        "viewport": {
+          "width": 1024,
+          "height": 900
+        },
+        "document": {
+          "scrollWidth": 1024,
+          "clientWidth": 1024,
+          "scrollHeight": 2784,
+          "horizontalOverflow": false
+        },
+        "overflowingElements": [],
+        "clippedText": [],
+        "tinyText": [],
+        "interactive": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 221
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 269
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 269
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 395
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 395
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 633
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 395
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 395
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 745
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 843
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 843
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1193
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1291
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1291
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 1641
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1291
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1291
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 1641
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1739
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1739
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2089
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1739
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1739
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2089
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2187
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2187
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2537
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 2732
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 2732
+          }
+        ],
+        "undersizedTargets": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 221
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 269
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 269
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 395
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 395
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 633
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 395
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 395
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 745
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 843
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 843
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1193
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1291
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1291
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 1641
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1291
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1291
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 1641
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1739
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1739
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2089
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1739
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1739
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2089
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2187
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2187
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2537
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 2732
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 2732
+          }
+        ],
+        "mediaIssues": [],
+        "gridSignatures": [
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Total revenue\"",
+            "columns": 1,
+            "template": "179.531px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue by region\"",
+            "columns": 1,
+            "template": "642px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Recent orders\"",
+            "columns": 1,
+            "template": "878px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue trend\"",
+            "columns": 1,
+            "template": "406px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Orders trend\"",
+            "columns": 1,
+            "template": "406px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Channel share\"",
+            "columns": 1,
+            "template": "406px"
+          },
+          {
+            "element": "div.grid.shrink-0.grid-cols-2 \"DirectPartnerOrganic\"",
+            "columns": 4,
+            "template": "59.4219px 59.4219px 59.4219px 59.4219px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Team performance\"",
+            "columns": 1,
+            "template": "406px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Goal progress\"",
+            "columns": 1,
+            "template": "406px"
+          }
+        ],
+        "nav": {
+          "display": "flex",
+          "visible": true,
+          "rect": {
+            "left": 766,
+            "right": 992,
+            "width": 226,
+            "height": 20
+          }
+        },
+        "headerHeight": 57,
+        "ctas": [
+          {
+            "label": "View examples",
+            "visible": false
+          },
+          {
+            "label": "Try the dashboard",
+            "visible": false
+          },
+          {
+            "label": "Browse examples",
+            "visible": false
+          }
+        ],
+        "dashboardActions": [
+          {
+            "label": "Create with AI",
+            "visible": true,
+            "aboveFold": true,
+            "top": 269,
+            "width": 128,
+            "height": 36
+          },
+          {
+            "label": "Card library",
+            "visible": true,
+            "aboveFold": true,
+            "top": 269,
+            "width": 112,
+            "height": 36
+          }
+        ],
+        "cardRects": [
+          {
+            "id": "f9fc2d19-1460-467b-b147-d68e070bb69c",
+            "title": "Total revenue",
+            "left": 48,
+            "right": 268,
+            "top": 370,
+            "width": 220,
+            "height": 320
+          },
+          {
+            "id": "4c9e52b1-2a36-4328-b739-b8aa31a87f29",
+            "title": "Revenue by region",
+            "left": 284,
+            "right": 976,
+            "top": 370,
+            "width": 692,
+            "height": 432
+          },
+          {
+            "id": "bc418e29-1f83-4090-b1c1-2a84ed51737f",
+            "title": "Recent orders",
+            "left": 48,
+            "right": 976,
+            "top": 818,
+            "width": 928,
+            "height": 432
+          },
+          {
+            "id": "9dfeb853-53eb-446a-8e31-abd12e220741",
+            "title": "Revenue trend",
+            "left": 48,
+            "right": 504,
+            "top": 1266,
+            "width": 456,
+            "height": 432
+          },
+          {
+            "id": "fbf5b9d4-8246-446d-abe6-606c3b8b8bca",
+            "title": "Orders trend",
+            "left": 520,
+            "right": 976,
+            "top": 1266,
+            "width": 456,
+            "height": 432
+          },
+          {
+            "id": "cfae22d2-2f0d-4563-87db-14cd08cd9d42",
+            "title": "Channel share",
+            "left": 48,
+            "right": 504,
+            "top": 1714,
+            "width": 456,
+            "height": 432
+          },
+          {
+            "id": "df449994-2a72-4dc7-8e40-8e39cbeb8d89",
+            "title": "Team performance",
+            "left": 520,
+            "right": 976,
+            "top": 1714,
+            "width": 456,
+            "height": 432
+          },
+          {
+            "id": "2e319dee-d4b9-40eb-878d-32512aff9828",
+            "title": "Goal progress",
+            "left": 48,
+            "right": 504,
+            "top": 2162,
+            "width": 456,
+            "height": 432
+          }
+        ],
+        "mainContainers": [
+          {
+            "width": 1024,
+            "leftMargin": 0,
+            "rightMargin": 0
+          }
+        ]
+      }
+    },
+    {
+      "width": 1280,
+      "aboveFoldPath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-1280-above-fold.png",
+      "fullPagePath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-1280-full-page.png",
+      "metrics": {
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "document": {
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "scrollHeight": 2760,
+          "horizontalOverflow": false
+        },
+        "overflowingElements": [],
+        "clippedText": [],
+        "tinyText": [],
+        "interactive": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 197
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 609
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 721
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1169
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2513
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 2708
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 2708
+          }
+        ],
+        "undersizedTargets": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 197
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 609
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 721
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1169
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2513
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 2708
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 2708
+          }
+        ],
+        "mediaIssues": [],
+        "gridSignatures": [
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Total revenue\"",
+            "columns": 1,
+            "template": "234px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue by region\"",
+            "columns": 1,
+            "template": "834px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Recent orders\"",
+            "columns": 1,
+            "template": "1134px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue trend\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Orders trend\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Channel share\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.shrink-0.grid-cols-2 \"DirectPartnerOrganic\"",
+            "columns": 4,
+            "template": "59.4219px 59.4219px 59.4219px 59.4219px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Team performance\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Goal progress\"",
+            "columns": 1,
+            "template": "534px"
+          }
+        ],
+        "nav": {
+          "display": "flex",
+          "visible": true,
+          "rect": {
+            "left": 958,
+            "right": 1184,
+            "width": 226,
+            "height": 20
+          }
+        },
+        "headerHeight": 57,
+        "ctas": [
+          {
+            "label": "View examples",
+            "visible": false
+          },
+          {
+            "label": "Try the dashboard",
+            "visible": false
+          },
+          {
+            "label": "Browse examples",
+            "visible": false
+          }
+        ],
+        "dashboardActions": [
+          {
+            "label": "Create with AI",
+            "visible": true,
+            "aboveFold": true,
+            "top": 245,
+            "width": 128,
+            "height": 36
+          },
+          {
+            "label": "Card library",
+            "visible": true,
+            "aboveFold": true,
+            "top": 245,
+            "width": 112,
+            "height": 36
+          }
+        ],
+        "cardRects": [
+          {
+            "id": "f9fc2d19-1460-467b-b147-d68e070bb69c",
+            "title": "Total revenue",
+            "left": 48,
+            "right": 332,
+            "top": 346,
+            "width": 284,
+            "height": 320
+          },
+          {
+            "id": "4c9e52b1-2a36-4328-b739-b8aa31a87f29",
+            "title": "Revenue by region",
+            "left": 348,
+            "right": 1232,
+            "top": 346,
+            "width": 884,
+            "height": 432
+          },
+          {
+            "id": "bc418e29-1f83-4090-b1c1-2a84ed51737f",
+            "title": "Recent orders",
+            "left": 48,
+            "right": 1232,
+            "top": 794,
+            "width": 1184,
+            "height": 432
+          },
+          {
+            "id": "9dfeb853-53eb-446a-8e31-abd12e220741",
+            "title": "Revenue trend",
+            "left": 48,
+            "right": 632,
+            "top": 1242,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "fbf5b9d4-8246-446d-abe6-606c3b8b8bca",
+            "title": "Orders trend",
+            "left": 648,
+            "right": 1232,
+            "top": 1242,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "cfae22d2-2f0d-4563-87db-14cd08cd9d42",
+            "title": "Channel share",
+            "left": 48,
+            "right": 632,
+            "top": 1690,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "df449994-2a72-4dc7-8e40-8e39cbeb8d89",
+            "title": "Team performance",
+            "left": 648,
+            "right": 1232,
+            "top": 1690,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "2e319dee-d4b9-40eb-878d-32512aff9828",
+            "title": "Goal progress",
+            "left": 48,
+            "right": 632,
+            "top": 2138,
+            "width": 584,
+            "height": 432
+          }
+        ],
+        "mainContainers": [
+          {
+            "width": 1280,
+            "leftMargin": 0,
+            "rightMargin": 0
+          }
+        ]
+      }
+    },
+    {
+      "width": 1440,
+      "aboveFoldPath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-1440-above-fold.png",
+      "fullPagePath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-1440-full-page.png",
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "document": {
+          "scrollWidth": 1440,
+          "clientWidth": 1440,
+          "scrollHeight": 2760,
+          "horizontalOverflow": false
+        },
+        "overflowingElements": [],
+        "clippedText": [],
+        "tinyText": [],
+        "interactive": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 197
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 609
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 721
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1169
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2513
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 2708
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 2708
+          }
+        ],
+        "undersizedTargets": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 197
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 609
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 721
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1169
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2513
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 2708
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 2708
+          }
+        ],
+        "mediaIssues": [],
+        "gridSignatures": [
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Total revenue\"",
+            "columns": 1,
+            "template": "234px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue by region\"",
+            "columns": 1,
+            "template": "834px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Recent orders\"",
+            "columns": 1,
+            "template": "1134px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue trend\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Orders trend\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Channel share\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.shrink-0.grid-cols-2 \"DirectPartnerOrganic\"",
+            "columns": 4,
+            "template": "59.4219px 59.4219px 59.4219px 59.4219px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Team performance\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Goal progress\"",
+            "columns": 1,
+            "template": "534px"
+          }
+        ],
+        "nav": {
+          "display": "flex",
+          "visible": true,
+          "rect": {
+            "left": 1038,
+            "right": 1264,
+            "width": 226,
+            "height": 20
+          }
+        },
+        "headerHeight": 57,
+        "ctas": [
+          {
+            "label": "View examples",
+            "visible": false
+          },
+          {
+            "label": "Try the dashboard",
+            "visible": false
+          },
+          {
+            "label": "Browse examples",
+            "visible": false
+          }
+        ],
+        "dashboardActions": [
+          {
+            "label": "Create with AI",
+            "visible": true,
+            "aboveFold": true,
+            "top": 245,
+            "width": 128,
+            "height": 36
+          },
+          {
+            "label": "Card library",
+            "visible": true,
+            "aboveFold": true,
+            "top": 245,
+            "width": 112,
+            "height": 36
+          }
+        ],
+        "cardRects": [
+          {
+            "id": "f9fc2d19-1460-467b-b147-d68e070bb69c",
+            "title": "Total revenue",
+            "left": 128,
+            "right": 412,
+            "top": 346,
+            "width": 284,
+            "height": 320
+          },
+          {
+            "id": "4c9e52b1-2a36-4328-b739-b8aa31a87f29",
+            "title": "Revenue by region",
+            "left": 428,
+            "right": 1312,
+            "top": 346,
+            "width": 884,
+            "height": 432
+          },
+          {
+            "id": "bc418e29-1f83-4090-b1c1-2a84ed51737f",
+            "title": "Recent orders",
+            "left": 128,
+            "right": 1312,
+            "top": 794,
+            "width": 1184,
+            "height": 432
+          },
+          {
+            "id": "9dfeb853-53eb-446a-8e31-abd12e220741",
+            "title": "Revenue trend",
+            "left": 128,
+            "right": 712,
+            "top": 1242,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "fbf5b9d4-8246-446d-abe6-606c3b8b8bca",
+            "title": "Orders trend",
+            "left": 728,
+            "right": 1312,
+            "top": 1242,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "cfae22d2-2f0d-4563-87db-14cd08cd9d42",
+            "title": "Channel share",
+            "left": 128,
+            "right": 712,
+            "top": 1690,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "df449994-2a72-4dc7-8e40-8e39cbeb8d89",
+            "title": "Team performance",
+            "left": 728,
+            "right": 1312,
+            "top": 1690,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "2e319dee-d4b9-40eb-878d-32512aff9828",
+            "title": "Goal progress",
+            "left": 128,
+            "right": 712,
+            "top": 2138,
+            "width": 584,
+            "height": 432
+          }
+        ],
+        "mainContainers": [
+          {
+            "width": 1280,
+            "leftMargin": 80,
+            "rightMargin": 80
+          }
+        ]
+      }
+    },
+    {
+      "width": 1920,
+      "aboveFoldPath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-1920-above-fold.png",
+      "fullPagePath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-1920-full-page.png",
+      "metrics": {
+        "viewport": {
+          "width": 1920,
+          "height": 900
+        },
+        "document": {
+          "scrollWidth": 1920,
+          "clientWidth": 1920,
+          "scrollHeight": 2760,
+          "horizontalOverflow": false
+        },
+        "overflowingElements": [],
+        "clippedText": [],
+        "tinyText": [],
+        "interactive": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 197
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 609
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 721
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1169
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2513
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 2708
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 2708
+          }
+        ],
+        "undersizedTargets": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 197
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 609
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 721
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1169
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2513
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 2708
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 2708
+          }
+        ],
+        "mediaIssues": [],
+        "gridSignatures": [
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Total revenue\"",
+            "columns": 1,
+            "template": "234px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue by region\"",
+            "columns": 1,
+            "template": "834px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Recent orders\"",
+            "columns": 1,
+            "template": "1134px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue trend\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Orders trend\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Channel share\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.shrink-0.grid-cols-2 \"DirectPartnerOrganic\"",
+            "columns": 4,
+            "template": "59.4219px 59.4219px 59.4219px 59.4219px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Team performance\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Goal progress\"",
+            "columns": 1,
+            "template": "534px"
+          }
+        ],
+        "nav": {
+          "display": "flex",
+          "visible": true,
+          "rect": {
+            "left": 1278,
+            "right": 1504,
+            "width": 226,
+            "height": 20
+          }
+        },
+        "headerHeight": 57,
+        "ctas": [
+          {
+            "label": "View examples",
+            "visible": false
+          },
+          {
+            "label": "Try the dashboard",
+            "visible": false
+          },
+          {
+            "label": "Browse examples",
+            "visible": false
+          }
+        ],
+        "dashboardActions": [
+          {
+            "label": "Create with AI",
+            "visible": true,
+            "aboveFold": true,
+            "top": 245,
+            "width": 128,
+            "height": 36
+          },
+          {
+            "label": "Card library",
+            "visible": true,
+            "aboveFold": true,
+            "top": 245,
+            "width": 112,
+            "height": 36
+          }
+        ],
+        "cardRects": [
+          {
+            "id": "f9fc2d19-1460-467b-b147-d68e070bb69c",
+            "title": "Total revenue",
+            "left": 368,
+            "right": 652,
+            "top": 346,
+            "width": 284,
+            "height": 320
+          },
+          {
+            "id": "4c9e52b1-2a36-4328-b739-b8aa31a87f29",
+            "title": "Revenue by region",
+            "left": 668,
+            "right": 1552,
+            "top": 346,
+            "width": 884,
+            "height": 432
+          },
+          {
+            "id": "bc418e29-1f83-4090-b1c1-2a84ed51737f",
+            "title": "Recent orders",
+            "left": 368,
+            "right": 1552,
+            "top": 794,
+            "width": 1184,
+            "height": 432
+          },
+          {
+            "id": "9dfeb853-53eb-446a-8e31-abd12e220741",
+            "title": "Revenue trend",
+            "left": 368,
+            "right": 952,
+            "top": 1242,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "fbf5b9d4-8246-446d-abe6-606c3b8b8bca",
+            "title": "Orders trend",
+            "left": 968,
+            "right": 1552,
+            "top": 1242,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "cfae22d2-2f0d-4563-87db-14cd08cd9d42",
+            "title": "Channel share",
+            "left": 368,
+            "right": 952,
+            "top": 1690,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "df449994-2a72-4dc7-8e40-8e39cbeb8d89",
+            "title": "Team performance",
+            "left": 968,
+            "right": 1552,
+            "top": 1690,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "2e319dee-d4b9-40eb-878d-32512aff9828",
+            "title": "Goal progress",
+            "left": 368,
+            "right": 952,
+            "top": 2138,
+            "width": 584,
+            "height": 432
+          }
+        ],
+        "mainContainers": [
+          {
+            "width": 1280,
+            "leftMargin": 320,
+            "rightMargin": 320
+          }
+        ]
+      }
+    },
+    {
+      "width": 2560,
+      "aboveFoldPath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-2560-above-fold.png",
+      "fullPagePath": "/Users/chris/code/panel-kit/docs/responsiveness-screenshots/2026-07-26/example-dashboard-2560-full-page.png",
+      "metrics": {
+        "viewport": {
+          "width": 2560,
+          "height": 900
+        },
+        "document": {
+          "scrollWidth": 2560,
+          "clientWidth": 2560,
+          "scrollHeight": 2760,
+          "horizontalOverflow": false
+        },
+        "overflowingElements": [],
+        "clippedText": [],
+        "tinyText": [],
+        "interactive": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 197
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 609
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 721
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1169
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2513
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 2708
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 2708
+          }
+        ],
+        "undersizedTargets": [
+          {
+            "element": "a.flex.min-h-11.items-center \"Gridframe\"",
+            "width": 75,
+            "height": 24,
+            "top": 16
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Examples\"",
+            "width": 64,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"Dashboard\"",
+            "width": 71,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "a.text-muted-foreground.transition-colors.hovertext-foreground \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 18
+          },
+          {
+            "element": "select.min-h-11.w-full.rounded-md \"Operations overviewMonthly Sales DashboardRevenue PulseMonthly Revenue and Top P\"",
+            "width": 274,
+            "height": 36,
+            "top": 197
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Create with AI\"",
+            "width": 128,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center \"Card library\"",
+            "width": 112,
+            "height": 36,
+            "top": 245
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue source data\"",
+            "width": 146,
+            "height": 32,
+            "top": 609
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 371
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View regional revenue source data\"",
+            "width": 195,
+            "height": 32,
+            "top": 721
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 819
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View order source data\"",
+            "width": 131,
+            "height": 32,
+            "top": 1169
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View revenue trend source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1267
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View orders trend source data\"",
+            "width": 171,
+            "height": 32,
+            "top": 1617
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View channel share source data\"",
+            "width": 180,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 1715
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View team performance source data\"",
+            "width": 206,
+            "height": 32,
+            "top": 2065
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "button.inline-flex.shrink-0.items-center",
+            "width": 32,
+            "height": 32,
+            "top": 2163
+          },
+          {
+            "element": "a.inline-flex.shrink-0.items-center \"View goal progress source data\"",
+            "width": 179,
+            "height": 32,
+            "top": 2513
+          },
+          {
+            "element": "a.flex.min-h-11.min-w-11 \"npm\"",
+            "width": 28,
+            "height": 20,
+            "top": 2708
+          },
+          {
+            "element": "a.flex.min-h-11.items-center \"GitHub\"",
+            "width": 44,
+            "height": 20,
+            "top": 2708
+          }
+        ],
+        "mediaIssues": [],
+        "gridSignatures": [
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Total revenue\"",
+            "columns": 1,
+            "template": "234px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue by region\"",
+            "columns": 1,
+            "template": "834px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Recent orders\"",
+            "columns": 1,
+            "template": "1134px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Revenue trend\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Orders trend\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Channel share\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.shrink-0.grid-cols-2 \"DirectPartnerOrganic\"",
+            "columns": 4,
+            "template": "59.4219px 59.4219px 59.4219px 59.4219px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Team performance\"",
+            "columns": 1,
+            "template": "534px"
+          },
+          {
+            "element": "div.grid.auto-rows-min.px-6 \"Goal progress\"",
+            "columns": 1,
+            "template": "534px"
+          }
+        ],
+        "nav": {
+          "display": "flex",
+          "visible": true,
+          "rect": {
+            "left": 1598,
+            "right": 1824,
+            "width": 226,
+            "height": 20
+          }
+        },
+        "headerHeight": 57,
+        "ctas": [
+          {
+            "label": "View examples",
+            "visible": false
+          },
+          {
+            "label": "Try the dashboard",
+            "visible": false
+          },
+          {
+            "label": "Browse examples",
+            "visible": false
+          }
+        ],
+        "dashboardActions": [
+          {
+            "label": "Create with AI",
+            "visible": true,
+            "aboveFold": true,
+            "top": 245,
+            "width": 128,
+            "height": 36
+          },
+          {
+            "label": "Card library",
+            "visible": true,
+            "aboveFold": true,
+            "top": 245,
+            "width": 112,
+            "height": 36
+          }
+        ],
+        "cardRects": [
+          {
+            "id": "f9fc2d19-1460-467b-b147-d68e070bb69c",
+            "title": "Total revenue",
+            "left": 688,
+            "right": 972,
+            "top": 346,
+            "width": 284,
+            "height": 320
+          },
+          {
+            "id": "4c9e52b1-2a36-4328-b739-b8aa31a87f29",
+            "title": "Revenue by region",
+            "left": 988,
+            "right": 1872,
+            "top": 346,
+            "width": 884,
+            "height": 432
+          },
+          {
+            "id": "bc418e29-1f83-4090-b1c1-2a84ed51737f",
+            "title": "Recent orders",
+            "left": 688,
+            "right": 1872,
+            "top": 794,
+            "width": 1184,
+            "height": 432
+          },
+          {
+            "id": "9dfeb853-53eb-446a-8e31-abd12e220741",
+            "title": "Revenue trend",
+            "left": 688,
+            "right": 1272,
+            "top": 1242,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "fbf5b9d4-8246-446d-abe6-606c3b8b8bca",
+            "title": "Orders trend",
+            "left": 1288,
+            "right": 1872,
+            "top": 1242,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "cfae22d2-2f0d-4563-87db-14cd08cd9d42",
+            "title": "Channel share",
+            "left": 688,
+            "right": 1272,
+            "top": 1690,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "df449994-2a72-4dc7-8e40-8e39cbeb8d89",
+            "title": "Team performance",
+            "left": 1288,
+            "right": 1872,
+            "top": 1690,
+            "width": 584,
+            "height": 432
+          },
+          {
+            "id": "2e319dee-d4b9-40eb-878d-32512aff9828",
+            "title": "Goal progress",
+            "left": 688,
+            "right": 1272,
+            "top": 2138,
+            "width": 584,
+            "height": 432
+          }
+        ],
+        "mainContainers": [
+          {
+            "width": 1280,
+            "leftMargin": 640,
+            "rightMargin": 640
+          }
+        ]
+      }
+    }
+  ],
+  "consoleMessages": [],
+  "pageErrors": []
+}

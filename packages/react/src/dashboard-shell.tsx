@@ -17,6 +17,8 @@ import { DashboardCard } from "./dashboard-card";
 
 const DASHBOARD_ROW_HEIGHT = 96;
 const DASHBOARD_GRID_GAP: [number, number] = [16, 16];
+const DASHBOARD_PHONE_BREAKPOINT = 640;
+const DASHBOARD_DESKTOP_BREAKPOINT = 960;
 type BoundGlobalFilterValue = Exclude<
   DashboardGlobalFilter["value"],
   undefined
@@ -61,6 +63,10 @@ function DashboardShell({
   const [namesByCardId, setNamesByCardId] = React.useState<
     Record<string, string>
   >({});
+  const responsiveLayout = React.useMemo(
+    () => getResponsiveLayout(layout, width),
+    [layout, width],
+  );
 
   React.useEffect(() => {
     setLayout((currentLayout) =>
@@ -145,36 +151,45 @@ function DashboardShell({
         ) : null}
 
         {config.cards.length ? (
-          <div className="panel-dashboard-grid" ref={containerRef}>
+          <div
+            className="panel-dashboard-grid"
+            data-layout-columns={responsiveLayout.columns}
+            data-layout-mode={responsiveLayout.mode}
+            ref={containerRef}
+          >
             {mounted ? (
               <ReactGridLayout
                 className="panel-dashboard-layout"
                 dragConfig={{
-                  enabled: !editDisabled,
+                  enabled: !editDisabled && responsiveLayout.editable,
                   handle: ".panel-card-drag-handle",
                   cancel: ".panel-card-drag-cancel, a, input, textarea, select",
                   bounded: true,
                 }}
                 gridConfig={{
-                  cols: DASHBOARD_GRID_COLUMNS,
+                  cols: responsiveLayout.columns,
                   containerPadding: null,
                   margin: DASHBOARD_GRID_GAP,
                   rowHeight: DASHBOARD_ROW_HEIGHT,
                 }}
-                layout={layout}
+                layout={responsiveLayout.layout}
                 onLayoutChange={(nextLayout) => {
-                  setLayout(nextLayout);
+                  if (responsiveLayout.editable) {
+                    setLayout(nextLayout);
+                  }
                 }}
                 onDragStop={(nextLayout) => {
+                  if (!responsiveLayout.editable) return;
                   setLayout(nextLayout);
                   onLayoutCommit?.(nextLayout);
                 }}
                 onResizeStop={(nextLayout) => {
+                  if (!responsiveLayout.editable) return;
                   setLayout(nextLayout);
                   onLayoutCommit?.(nextLayout);
                 }}
                 resizeConfig={{
-                  enabled: !editDisabled,
+                  enabled: !editDisabled && responsiveLayout.editable,
                   handles: ["s", "e", "se"],
                 }}
                 width={width}
@@ -186,6 +201,7 @@ function DashboardShell({
                       className="h-full min-h-0"
                       displayName={namesByCardId[card.id] ?? card.name}
                       editDisabled={editDisabled}
+                      layoutEditingDisabled={!responsiveLayout.editable}
                       onRename={(name) => {
                         handleRenameCard(card, name);
                       }}
@@ -216,7 +232,7 @@ function DashboardShell({
           <footer className="flex flex-wrap items-center gap-2 border-t border-border pt-5 text-sm text-muted-foreground">
             {config.footer.href ? (
               <a
-                className="font-medium text-primary underline-offset-4 hover:underline"
+                className="inline-flex min-h-11 min-w-11 items-center font-medium text-primary underline-offset-4 hover:underline sm:min-h-0 sm:min-w-0"
                 href={config.footer.href}
               >
                 {config.footer.text}
@@ -267,7 +283,7 @@ function GlobalFilterControl({
         <span>{label}</span>
         <input
           aria-label={`${label} filter`}
-          className="w-28 rounded border border-input bg-background px-2 py-1 font-normal text-foreground"
+          className="min-h-11 w-28 rounded border border-input bg-background px-2 py-1 font-normal text-foreground sm:min-h-0"
           disabled={disabled || !onChange}
           onChange={(event) => setValue(event.target.value)}
           placeholder={
@@ -281,7 +297,7 @@ function GlobalFilterControl({
         />
       </label>
       <button
-        className="rounded px-2 py-1 text-xs font-medium text-primary disabled:text-muted-foreground"
+        className="min-h-11 min-w-11 rounded px-2 py-1 text-xs font-medium text-primary disabled:text-muted-foreground sm:min-h-0 sm:min-w-0"
         disabled={disabled || !onChange}
         type="submit"
       >
@@ -411,6 +427,109 @@ function mergeLayoutWithCards(
   }
 
   return nextLayout;
+}
+
+type ResponsiveDashboardLayout = {
+  columns: number;
+  editable: boolean;
+  layout: Layout;
+  mode: "desktop" | "phone" | "tablet";
+};
+
+function getResponsiveLayout(
+  canonicalLayout: Layout,
+  width: number,
+): ResponsiveDashboardLayout {
+  if (width >= DASHBOARD_DESKTOP_BREAKPOINT) {
+    return {
+      columns: DASHBOARD_GRID_COLUMNS,
+      editable: true,
+      layout: canonicalLayout,
+      mode: "desktop",
+    };
+  }
+
+  const columns = width < DASHBOARD_PHONE_BREAKPOINT ? 1 : 2;
+
+  return {
+    columns,
+    editable: false,
+    layout: projectLayout(canonicalLayout, columns),
+    mode: columns === 1 ? "phone" : "tablet",
+  };
+}
+
+function projectLayout(canonicalLayout: Layout, columns: number): Layout {
+  const sortedLayout = canonicalLayout
+    .map(cloneLayoutItem)
+    .sort((left, right) => left.y - right.y || left.x - right.x);
+  let projectedLayout: Layout = [];
+
+  for (const item of sortedLayout) {
+    const columnSpan =
+      columns === 1 ? 1 : Math.min(columns, Math.max(1, Math.ceil(item.w / 2)));
+    const position = findFirstAvailablePosition(
+      projectedLayout,
+      columnSpan,
+      item.h,
+      columns,
+    );
+
+    projectedLayout = [
+      ...projectedLayout,
+      {
+        ...item,
+        maxW: columns,
+        minW: 1,
+        w: columnSpan,
+        x: position.x,
+        y: position.y,
+      },
+    ];
+  }
+
+  return projectedLayout;
+}
+
+function findFirstAvailablePosition(
+  layout: Layout,
+  width: number,
+  height: number,
+  columns: number,
+) {
+  for (let y = 0; ; y += 1) {
+    for (let x = 0; x <= columns - width; x += 1) {
+      const candidate = { height, width, x, y };
+      const collides = layout.some((item) =>
+        rectanglesOverlap(candidate, {
+          height: item.h,
+          width: item.w,
+          x: item.x,
+          y: item.y,
+        }),
+      );
+
+      if (!collides) {
+        return { x, y };
+      }
+    }
+  }
+}
+
+type GridRectangle = {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+};
+
+function rectanglesOverlap(left: GridRectangle, right: GridRectangle) {
+  return (
+    left.x < right.x + right.width &&
+    left.x + left.width > right.x &&
+    left.y < right.y + right.height &&
+    left.y + left.height > right.y
+  );
 }
 
 function cloneLayoutItem(item: LayoutItem): LayoutItem {

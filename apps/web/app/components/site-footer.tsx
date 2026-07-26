@@ -5,7 +5,7 @@ function SiteFooter() {
         <span className="font-medium text-foreground">Gridframe</span>
         <div className="flex items-center gap-4">
           <a
-            className="transition-colors hover:text-foreground"
+            className="flex min-h-11 min-w-11 items-center justify-center transition-colors hover:text-foreground sm:min-h-0 sm:min-w-0"
             href="https://www.npmjs.com/package/@gridframe/react"
             rel="noreferrer"
             target="_blank"
@@ -13,7 +13,7 @@ function SiteFooter() {
             npm
           </a>
           <a
-            className="transition-colors hover:text-foreground"
+            className="flex min-h-11 items-center transition-colors hover:text-foreground sm:min-h-0"
             href="https://github.com/nicholasgriffintn/gridframe"
             rel="noreferrer"
             target="_blank"

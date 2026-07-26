@@ -10,6 +10,7 @@ function MetricVisualization({ data }: MetricVisualizationProps) {
     <div
       className="flex min-h-0 w-full flex-1 flex-col justify-center gap-4 overflow-hidden"
       data-slot="metric-visualization"
+      style={{ containerType: "inline-size" }}
     >
       <div className="space-y-2">
         {data.label ? (
@@ -18,9 +19,15 @@ function MetricVisualization({ data }: MetricVisualizationProps) {
           </p>
         ) : null}
         <p
-          className={`truncate font-semibold tracking-tight text-foreground ${
+          className={`break-words font-semibold tracking-tight text-foreground ${
             data.label ? "text-3xl" : "text-4xl"
           }`}
+          style={{
+            fontSize: data.label
+              ? "clamp(1.5rem, 10cqw, 1.875rem)"
+              : "clamp(1.75rem, 10cqw, 2.25rem)",
+            lineHeight: 1.1,
+          }}
         >
           {data.value}
         </p>
