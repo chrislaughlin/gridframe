@@ -92,8 +92,9 @@ function AreaChartVisualization({ data }: AreaChartVisualizationProps) {
             }
             cursor={false}
           />
-          {visibleSeries.map((series) => (
+          {visibleSeries.map((series, seriesIndex) => (
             <Area
+              className={`gridframe-series-${seriesIndex % 5}`}
               dataKey={series.key}
               fill={
                 data.showGradient

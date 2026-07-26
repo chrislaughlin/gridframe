@@ -27,6 +27,8 @@ import { type PanelDashboardConfig } from "./types";
 import { DashboardShell } from "./dashboard-shell";
 import { CardLibrary } from "./card-library";
 import { DashboardAIDialog } from "./dashboard-ai-dialog";
+import { GridframeThemeScope } from "./gridframe-theme-scope";
+import { type GridframeTheme } from "./theme";
 
 type ApiManagedDashboardOptions = {
   userId: string;
@@ -35,17 +37,20 @@ type ApiManagedDashboardOptions = {
   onDashboardChange?: (dashboardId: string) => void;
 };
 
+type PanelDashboardCommonProps = {
+  className?: string;
+  theme?: GridframeTheme;
+};
+
 export type PanelDashboardProps =
-  | {
+  | (PanelDashboardCommonProps & {
       config: PanelDashboardConfig;
       dashboard?: never;
-      className?: string;
-    }
-  | {
+    })
+  | (PanelDashboardCommonProps & {
       config?: never;
       dashboard: ApiManagedDashboardOptions;
-      className?: string;
-    };
+    });
 
 function PanelDashboard(props: PanelDashboardProps) {
   const [queryClient] = React.useState(
@@ -61,7 +66,7 @@ function PanelDashboard(props: PanelDashboardProps) {
       }),
   );
 
-  return (
+  const dashboard = (
     <QueryClientProvider client={queryClient}>
       {props.dashboard ? (
         <ApiManagedDashboard
@@ -72,6 +77,12 @@ function PanelDashboard(props: PanelDashboardProps) {
         <DashboardShell className={props.className} config={props.config} />
       )}
     </QueryClientProvider>
+  );
+
+  return props.theme ? (
+    <GridframeThemeScope theme={props.theme}>{dashboard}</GridframeThemeScope>
+  ) : (
+    dashboard
   );
 }
 

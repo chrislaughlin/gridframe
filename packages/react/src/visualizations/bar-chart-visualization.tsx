@@ -77,8 +77,9 @@ function BarChartVisualization({ data }: BarChartVisualizationProps) {
             }
             cursor={false}
           />
-          {visibleSeries.map((series) => (
+          {visibleSeries.map((series, seriesIndex) => (
             <Bar
+              className={`gridframe-series-${seriesIndex % 5}`}
               dataKey={series.key}
               fill={`var(--color-${series.key})`}
               isAnimationActive={false}
@@ -89,6 +90,9 @@ function BarChartVisualization({ data }: BarChartVisualizationProps) {
               {data.activeIndex !== undefined || data.mixed
                 ? data.data.map((datum, index) => (
                     <Cell
+                      className={`gridframe-series-${
+                        data.mixed ? index % 5 : seriesIndex % 5
+                      }`}
                       fill={
                         data.mixed
                           ? `var(--chart-${(index % 5) + 1})`

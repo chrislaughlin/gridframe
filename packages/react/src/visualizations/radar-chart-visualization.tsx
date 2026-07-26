@@ -58,8 +58,9 @@ function RadarChartVisualization({ data }: RadarChartVisualizationProps) {
             }
             cursor={false}
           />
-          {data.series.map((series) => (
+          {data.series.map((series, seriesIndex) => (
             <Radar
+              className={`gridframe-series-${seriesIndex % 5}`}
               dataKey={series.key}
               fill={`var(--color-${series.key})`}
               fillOpacity={data.linesOnly ? 0 : data.gridFill ? 0.35 : 0.22}

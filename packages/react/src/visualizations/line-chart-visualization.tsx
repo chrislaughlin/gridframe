@@ -65,8 +65,9 @@ function LineChartVisualization({ data }: LineChartVisualizationProps) {
             }
             cursor={false}
           />
-          {visibleSeries.map((series) => (
+          {visibleSeries.map((series, seriesIndex) => (
             <Line
+              className={`gridframe-series-${seriesIndex % 5}`}
               dataKey={series.key}
               dot={getDot(data, series.key)}
               isAnimationActive={false}

@@ -64,11 +64,12 @@ function PieChartVisualization({ data }: PieChartVisualizationProps) {
             stroke="var(--background)"
             strokeWidth={data.separator === false ? 0 : data.separator ? 4 : 2}
           >
-            {data.data.map((datum) => {
+            {data.data.map((datum, datumIndex) => {
               const series = getDatumSeries(datum, data.nameKey, seriesByKey);
 
               return (
                 <Cell
+                  className={`gridframe-series-${datumIndex % 5}`}
                   fill={series ? `var(--color-${series.key})` : "var(--muted)"}
                   fillOpacity={
                     data.interactive && data.activeIndex !== undefined
@@ -138,11 +139,12 @@ function PieChartVisualization({ data }: PieChartVisualizationProps) {
               stroke="var(--background)"
               strokeWidth={2}
             >
-              {data.data.map((datum) => {
+              {data.data.map((datum, datumIndex) => {
                 const series = getDatumSeries(datum, data.nameKey, seriesByKey);
 
                 return (
                   <Cell
+                    className={`gridframe-series-${datumIndex % 5}`}
                     fill={
                       series ? `var(--color-${series.key})` : "var(--muted)"
                     }

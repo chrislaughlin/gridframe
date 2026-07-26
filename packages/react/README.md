@@ -11,6 +11,42 @@ Use `<PanelDashboard config={config} />` for a static Dashboard or `<PanelDashbo
 
 `CardVisualization` and `SourceDataTable` are also exported as fetch-free presentation components for Card detail experiences.
 
+## Themes
+
+Gridframe ships reusable Light, Dark, and High Contrast Theme presets plus a
+generator for consumer-owned Themes:
+
+```tsx
+import { GridframeThemeScope, PanelDashboard } from "@gridframe/react";
+import {
+  createGridframeTheme,
+  highContrastTheme,
+} from "@gridframe/react/theme";
+
+const custom = createGridframeTheme(
+  {
+    background: "#f8fafc",
+    surface: "#ffffff",
+    text: "#111827",
+    primary: "#1d4ed8",
+    accent: "#0f766e",
+    destructive: "#b91c1c",
+  },
+  { name: "Product analytics" },
+);
+
+<PanelDashboard config={config} theme={highContrastTheme} />;
+
+<GridframeThemeScope theme={custom.theme}>
+  <DashboardExperience />
+</GridframeThemeScope>;
+```
+
+The server-safe `@gridframe/react/theme` subpath exports Theme types, presets,
+generation and validation functions, and versioned JSON and CSS-variable
+serializers. `createGridframeTheme` always returns structured validation issues;
+check `result.valid` before making a generated Theme selectable.
+
 ## AI-generated Dashboard proposals
 
 API-managed mode includes a **Create with AI** dialog when the host mounts the

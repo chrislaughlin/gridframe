@@ -11,6 +11,12 @@
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./theme": {
+      "types": "./dist/theme.d.ts",
+      "import": "./dist/theme.js",
+      "require": "./dist/theme.js",
+      "default": "./dist/theme.js"
+    },
     "./styles.css": "./dist/styles.css"
   },
   "files": [
@@ -33,6 +39,7 @@
     "@tailwindcss/cli": "^4.1.17",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
+    "@types/culori": "2.1.1",
     "@types/react": "19.2.2",
     "eslint": "^9.39.1",
     "jsdom": "^29.1.1",
@@ -49,6 +56,7 @@
     "@tanstack/react-query": "^5.90.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "culori": "4.0.2",
     "lucide-react": "^1.23.0",
     "react-grid-layout": "^2.2.3",
     "recharts": "^3.3.0",
