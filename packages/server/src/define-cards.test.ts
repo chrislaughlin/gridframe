@@ -60,6 +60,65 @@ describe("defineCards", () => {
     ).toEqualTypeOf<"orders">();
   });
 
+  it("derives the AI Card library only from explicitly AI-capable Card definitions", () => {
+    const cards = defineCards({
+      revenue: {
+        name: "Revenue",
+        description: "Total order revenue.",
+        visualization: "metric",
+        defaultLayout: { width: 1, height: 2 },
+        ai: {
+          tags: ["sales", "revenue"],
+          questionsAnswered: ["What is total revenue?"],
+          requiredDataShape: { minMetrics: 1, maxMetrics: 1 },
+          supportedFilters: ["equals", "between"],
+        },
+        resolve: () => ({
+          status: "success",
+          data: { visualization: "metric", value: 42 },
+        }),
+      },
+      internal: {
+        name: "Internal",
+        visualization: "table",
+        defaultLayout: { width: 4, height: 4 },
+        resolve: () => ({ status: "empty" }),
+      },
+    });
+
+    expect(cards.aiCardLibrary).toEqual([
+      {
+        key: "revenue",
+        name: "Revenue",
+        description: "Total order revenue.",
+        visualization: "metric",
+        tags: ["sales", "revenue"],
+        questionsAnswered: ["What is total revenue?"],
+        requiredDataShape: { minMetrics: 1, maxMetrics: 1 },
+        supportedFilters: ["equals", "between"],
+        defaultLayout: { width: 1, height: 2 },
+      },
+    ]);
+  });
+
+  it("rejects incomplete AI Card metadata", () => {
+    expect(() =>
+      defineCards({
+        revenue: {
+          name: "Revenue",
+          visualization: "metric",
+          defaultLayout: { width: 1, height: 2 },
+          ai: {
+            tags: ["sales"],
+            questionsAnswered: ["What is revenue?"],
+            requiredDataShape: { minMetrics: 1 },
+          },
+          resolve: () => ({ status: "empty" }),
+        },
+      }),
+    ).toThrow("Card definition revenue needs a description for AI planning");
+  });
+
   it("dispatches synchronous and asynchronous Card resolvers by definition key", async () => {
     const cards = defineCards({
       revenue: {

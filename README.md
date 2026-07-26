@@ -22,6 +22,7 @@ It gives you reusable dashboard components for the UI, plus a backend API layer 
 - **Comprehensive loading, empty, not-found, error, and revision-conflict states** for every component and handler.
 - **Framework-neutral server handlers** — `@gridframe/server` exports Fetch-native `Request`/`Response` handlers that work with any framework (Next.js, Express, TanStack Start, Hono, etc.).
 - **Typed client** — `@gridframe/client` provides a fully typed HTTP client with Zod-validated responses and typed error classes.
+- **AI-generated Dashboard proposals:** Provider-backed planning through OpenRouter, OpenAI, Anthropic, Google, or an OpenAI-compatible endpoint selects registered Cards and safe fields, validates a preview, and waits for an explicit revision-gated Apply. See [AI-generated Dashboards](docs/ai-dashboards.md).
 
 ## Architecture
 

@@ -121,6 +121,21 @@ afterEach(() => {
 });
 
 describe("PanelDashboard static mode", () => {
+  it("renders guidance instead of a blank Card grid", () => {
+    render(
+      <PanelDashboard
+        config={{ title: "Monthly Sales Dashboard", cards: [] }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Nothing here yet" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Add a Card to start building this Dashboard."),
+    ).toBeInTheDocument();
+  });
+
   it("renders every supported Visualization from a caller-owned config", async () => {
     render(<PanelDashboard config={config} />);
 
@@ -149,6 +164,128 @@ describe("PanelDashboard static mode", () => {
 });
 
 describe("PanelDashboard API-managed mode", () => {
+  it("round-trips a string filter that resembles a JSON scalar", async () => {
+    const base = apiBootstrap();
+    const bootstrap = {
+      ...base,
+      dashboard: {
+        ...base.dashboard,
+        config: {
+          ...base.dashboard.config,
+          globalFilters: [
+            {
+              id: "order-id",
+              label: "Order ID",
+              field: "order_id",
+              operator: "equals" as const,
+              value: "123",
+            },
+          ],
+        },
+      },
+    };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/dashboards/bootstrap")) {
+        return new Response(JSON.stringify(bootstrap));
+      }
+      if (url.endsWith("/global-filters/order-id")) {
+        return new Response(JSON.stringify(bootstrap.dashboard));
+      }
+      return new Response(JSON.stringify(responseFor("metric")));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
+    expect(await screen.findByLabelText("Order ID filter")).toHaveValue(
+      '"123"',
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringMatching(/global-filters\/order-id$/),
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify({ revision: "1", value: "123" }),
+        }),
+      ),
+    );
+  });
+
+  it("lets the user bind an AI-created global filter", async () => {
+    const base = apiBootstrap();
+    const bootstrap = {
+      ...base,
+      dashboard: {
+        ...base.dashboard,
+        config: {
+          ...base.dashboard.config,
+          globalFilters: [
+            {
+              id: "region",
+              label: "Region",
+              field: "region",
+              operator: "in" as const,
+              value: ["East", "West"],
+            },
+          ],
+        },
+      },
+    };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/dashboards/bootstrap")) {
+        return new Response(JSON.stringify(bootstrap));
+      }
+      if (url.endsWith("/global-filters/region")) {
+        return new Response(
+          JSON.stringify({
+            ...bootstrap.dashboard,
+            revision: "2",
+            config: {
+              ...bootstrap.dashboard.config,
+              globalFilters: [
+                {
+                  ...bootstrap.dashboard.config.globalFilters[0],
+                  value: ["North", "South"],
+                },
+              ],
+            },
+          }),
+        );
+      }
+      return new Response(JSON.stringify(responseFor("metric")));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
+    const input = await screen.findByLabelText("Region filter");
+    expect(input).toHaveValue('["East","West"]');
+    fireEvent.change(input, { target: { value: '["North","South"]' } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringMatching(/global-filters\/region$/),
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify({
+            revision: "1",
+            value: ["North", "South"],
+          }),
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.filter(([input]) =>
+          String(input).endsWith("/cards/metric/data"),
+        ),
+      ).toHaveLength(2),
+    );
+  });
+
   it("adds an available Card from the Card library", async () => {
     const bootstrap = apiBootstrap();
     let resolveAdd!: (response: Response) => void;
@@ -289,14 +426,26 @@ describe("PanelDashboard API-managed mode", () => {
     expect(await screen.findByText("Total revenue")).toBeInTheDocument();
     expect(await screen.findByText("Revenue by region")).toBeInTheDocument();
     expect(await screen.findByText("Recent orders")).toBeInTheDocument();
+    const editButtons = screen.getAllByRole("button", {
+      name: "Edit card name",
+    });
+    expect(editButtons).toHaveLength(3);
+    for (const editButton of editButtons) {
+      expect(editButton).not.toHaveTextContent("Edit");
+      expect(editButton.querySelector("svg")).toHaveClass("lucide-pencil");
+      expect(editButton.nextElementSibling).toHaveAccessibleName("Drag card");
+    }
     expect(
       screen.queryByText(
         "/api/gridframe/users/user-1/dashboards/dashboard-1/cards/metric/data",
       ),
     ).not.toBeInTheDocument();
-    expect(
-      document.querySelector('[data-slot="metric-visualization"]'),
-    ).toHaveClass("min-h-0", "h-full");
+    const metricVisualization = document.querySelector(
+      '[data-slot="metric-visualization"]',
+    );
+    expect(metricVisualization).toHaveClass("min-h-0", "flex-1");
+    expect(metricVisualization).toHaveTextContent("Revenue");
+    expect(metricVisualization?.children).toHaveLength(1);
     expect(fetch).toHaveBeenCalledWith(
       "/api/gridframe/users/user-1/dashboards/bootstrap",
       expect.objectContaining({ method: "POST" }),
@@ -659,7 +808,7 @@ function responseFor(id: string): PanelCardDataResponse {
     case "metric":
       return {
         status: "success",
-        data: { visualization: "metric", value: 10 },
+        data: { visualization: "metric", label: "Revenue", value: 10 },
       };
     case "area":
       return {

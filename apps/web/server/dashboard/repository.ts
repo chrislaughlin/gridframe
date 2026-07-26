@@ -2,8 +2,10 @@ import {
   DASHBOARD_GRID_COLUMNS,
   type CardDeeplinkConfig,
   type CardLibraryItem,
+  type DashboardCardDataConfig,
   type DashboardCardLayout,
   type DashboardFooterConfig,
+  type DashboardGlobalFilter,
   type DashboardLayoutItem,
   type DashboardSummary,
   type VisualizationType,
@@ -15,8 +17,11 @@ import {
   DashboardInvalidLibraryItemError,
   DashboardNotFoundError,
   DashboardRevisionConflictError,
+  findFirstAvailableDashboardLayout,
   type CardLibraryTemplate,
   type DashboardBootstrap,
+  type DashboardAIRepository as GridframeDashboardAIRepository,
+  type DashboardProposalApplyUpdate,
   type DashboardRepository as GridframeDashboardRepository,
   type DashboardSeed,
   type PersistedDashboard,
@@ -31,7 +36,9 @@ import { defaultDashboardSeed } from "./seed";
 type DashboardCardCreate = {
   libraryItemKey?: string;
   name: string;
+  description?: string;
   visualization: VisualizationType;
+  data?: DashboardCardDataConfig;
   deeplink?: Omit<CardDeeplinkConfig, "href">;
   layout: DashboardCardLayout;
 };
@@ -65,6 +72,13 @@ interface DashboardRepository {
     revision: number,
     name: string,
   ): Promise<PersistedDashboard>;
+  updateGlobalFilterValue(
+    ownerUserId: string,
+    dashboardId: string,
+    filterId: string,
+    revision: number,
+    value: unknown | undefined,
+  ): Promise<PersistedDashboard>;
   listCardLibrary(
     ownerUserId: string,
     dashboardId: string,
@@ -87,10 +101,23 @@ interface DashboardRepository {
     cardId: string,
     revision: number,
   ): Promise<PersistedDashboard>;
+  applyDashboardProposal(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    update: DashboardProposalApplyUpdate,
+  ): Promise<PersistedDashboard>;
+  createDashboardFromProposal(
+    ownerUserId: string,
+    update: DashboardProposalApplyUpdate,
+  ): Promise<PersistedDashboard>;
 }
 
 class NeonDashboardRepository
-  implements DashboardRepository, GridframeDashboardRepository
+  implements
+    DashboardRepository,
+    GridframeDashboardRepository,
+    GridframeDashboardAIRepository
 {
   constructor(private readonly database: DashboardDatabase) {}
 
@@ -135,8 +162,8 @@ class NeonDashboardRepository
       `WITH inserted_dashboard AS (
          INSERT INTO dashboards (
            id, owner_user_id, title, description, footer_json,
-           is_default, revision, created_at, updated_at
-         ) VALUES ($1, $2, $3, $4, $5::jsonb, TRUE, 1, $6, $6)
+           global_filters_json, is_default, revision, created_at, updated_at
+         ) VALUES ($1, $2, $3, $4, $5::jsonb, '[]'::jsonb, TRUE, 1, $6, $6)
          ON CONFLICT (owner_user_id) WHERE is_default DO NOTHING
          RETURNING id
        )
@@ -305,6 +332,56 @@ class NeonDashboardRepository
     return this.loadDashboard(ownerUserId, dashboardId);
   }
 
+  async updateGlobalFilterValue(
+    ownerUserId: string,
+    dashboardId: string,
+    filterId: string,
+    revision: number,
+    value: unknown | undefined,
+  ): Promise<PersistedDashboard> {
+    const timestamp = new Date().toISOString();
+    const { rows } = await this.database.query<{ revised: boolean }>(
+      `WITH revised AS (
+         UPDATE dashboards dashboard
+         SET global_filters_json = (
+           SELECT COALESCE(
+             jsonb_agg(
+               CASE WHEN filter->>'id' = $3
+                 THEN CASE WHEN $6
+                   THEN jsonb_set(filter, '{value}', $7::jsonb, TRUE)
+                   ELSE filter - 'value'
+                 END
+                 ELSE filter
+               END
+             ),
+             '[]'::jsonb
+           )
+           FROM jsonb_array_elements(dashboard.global_filters_json) filter
+         ), revision = revision + 1, updated_at = $5
+         WHERE dashboard.id = $1 AND dashboard.owner_user_id = $2
+           AND dashboard.revision = $4
+           AND EXISTS (
+             SELECT 1
+             FROM jsonb_array_elements(dashboard.global_filters_json) filter
+             WHERE filter->>'id' = $3
+           )
+         RETURNING id
+       )
+       SELECT EXISTS(SELECT 1 FROM revised) AS revised`,
+      [
+        dashboardId,
+        ownerUserId,
+        filterId,
+        revision,
+        timestamp,
+        value !== undefined,
+        JSON.stringify(value ?? null),
+      ],
+    );
+    if (!rows[0]?.revised) throw new DashboardRevisionConflictError();
+    return this.loadDashboard(ownerUserId, dashboardId);
+  }
+
   async listCardLibrary(
     ownerUserId: string,
     dashboardId: string,
@@ -365,12 +442,13 @@ class NeonDashboardRepository
            RETURNING id
          ), inserted_card AS (
            INSERT INTO dashboard_cards (
-             id, dashboard_id, library_item_key, name, visualization,
-             source_query, deeplink_json, grid_x, grid_y, grid_width,
-             grid_height, sort_order, created_at, updated_at
+             id, dashboard_id, library_item_key, name, description,
+             visualization, data_config_json, source_query, deeplink_json,
+             grid_x, grid_y, grid_width, grid_height, sort_order,
+             created_at, updated_at
            )
-           SELECT $5, revised.id, $6, $7, $8, $9, $10::jsonb,
-             $11, $12, $13, $14, $15, $4, $4
+           SELECT $5, revised.id, $6, $7, $8, $9, $10::jsonb, $11,
+             $12::jsonb, $13, $14, $15, $16, $17, $4, $4
            FROM revised
            RETURNING id
          )
@@ -383,7 +461,9 @@ class NeonDashboardRepository
           randomUUID(),
           card.libraryItemKey ?? null,
           card.name,
+          card.description ?? null,
           card.visualization,
+          JSON.stringify(card.data ?? null),
           card.libraryItemKey
             ? `/api/consumer/cards/${card.libraryItemKey}`
             : "",
@@ -439,6 +519,210 @@ class NeonDashboardRepository
     );
     if (!rows[0]?.revised) throw new DashboardRevisionConflictError();
     return this.loadDashboard(ownerUserId, dashboardId);
+  }
+
+  async applyDashboardProposal(
+    ownerUserId: string,
+    dashboardId: string,
+    revision: number,
+    update: DashboardProposalApplyUpdate,
+  ): Promise<PersistedDashboard> {
+    const dashboard = await this.loadDashboard(ownerUserId, dashboardId);
+    const cards = this.prepareProposalCards(update.cards, dashboard.cards);
+
+    const timestamp = new Date().toISOString();
+    const { rows } = await this.database.query<{ revised: boolean }>(
+      `WITH revised AS (
+         UPDATE dashboards
+         SET title = $4, description = $5,
+           global_filters_json = $6::jsonb,
+           revision = revision + 1, updated_at = $7
+         WHERE id = $1 AND owner_user_id = $2 AND revision = $3
+         RETURNING id
+       ), proposed_cards AS (
+         SELECT * FROM jsonb_to_recordset($8::jsonb) AS proposed(
+           id UUID, library_item_key TEXT, name TEXT, description TEXT,
+           visualization TEXT, data_config_json JSONB, source_query TEXT,
+           deeplink_json JSONB, grid_x INTEGER, grid_y INTEGER,
+           grid_width INTEGER, grid_height INTEGER, sort_order INTEGER
+         )
+       ), deleted_cards AS (
+         DELETE FROM dashboard_cards card
+         USING revised
+         WHERE card.dashboard_id = revised.id
+           AND NOT EXISTS (
+             SELECT 1 FROM proposed_cards proposed WHERE proposed.id = card.id
+           )
+         RETURNING card.id
+       ), updated_cards AS (
+         UPDATE dashboard_cards card
+         SET library_item_key = proposed.library_item_key,
+           name = proposed.name, description = proposed.description,
+           visualization = proposed.visualization,
+           data_config_json = proposed.data_config_json,
+           source_query = proposed.source_query,
+           deeplink_json = proposed.deeplink_json,
+           grid_x = proposed.grid_x, grid_y = proposed.grid_y,
+           grid_width = proposed.grid_width, grid_height = proposed.grid_height,
+           sort_order = proposed.sort_order, updated_at = $7
+         FROM revised, proposed_cards proposed
+         WHERE card.dashboard_id = revised.id AND card.id = proposed.id
+         RETURNING card.id
+       ), inserted_cards AS (
+         INSERT INTO dashboard_cards (
+           id, dashboard_id, library_item_key, name, description,
+           visualization, data_config_json, source_query, deeplink_json,
+           grid_x, grid_y, grid_width, grid_height, sort_order,
+           created_at, updated_at
+         )
+         SELECT proposed.id, revised.id, proposed.library_item_key,
+           proposed.name, proposed.description, proposed.visualization,
+           proposed.data_config_json, proposed.source_query,
+           proposed.deeplink_json, proposed.grid_x, proposed.grid_y,
+           proposed.grid_width, proposed.grid_height, proposed.sort_order,
+           $7, $7
+         FROM revised, proposed_cards proposed
+         WHERE NOT EXISTS (
+           SELECT 1 FROM dashboard_cards existing WHERE existing.id = proposed.id
+         )
+         RETURNING id
+       )
+       SELECT EXISTS(SELECT 1 FROM revised) AS revised`,
+      [
+        dashboardId,
+        ownerUserId,
+        revision,
+        update.title,
+        update.description ?? null,
+        JSON.stringify(update.globalFilters),
+        timestamp,
+        JSON.stringify(cards.map(toProposalCardRow)),
+      ],
+    );
+    if (!rows[0]?.revised) throw new DashboardRevisionConflictError();
+    return this.loadDashboard(ownerUserId, dashboardId);
+  }
+
+  async createDashboardFromProposal(
+    ownerUserId: string,
+    update: DashboardProposalApplyUpdate,
+  ): Promise<PersistedDashboard> {
+    const dashboardId = randomUUID();
+    const cards = this.prepareProposalCards(update.cards, []);
+    const timestamp = new Date().toISOString();
+    const { rows } = await this.database.query<{ id: string }>(
+      `WITH inserted_dashboard AS (
+         INSERT INTO dashboards (
+           id, owner_user_id, title, description, footer_json,
+           global_filters_json, is_default, revision, created_at, updated_at
+         ) VALUES (
+           $1, $2, $3, $4, NULL, $5::jsonb,
+           NOT EXISTS (SELECT 1 FROM dashboards WHERE owner_user_id = $2),
+           1, $6, $6
+         )
+         RETURNING id
+       ), proposed_cards AS (
+         SELECT * FROM jsonb_to_recordset($7::jsonb) AS proposed(
+           id UUID, library_item_key TEXT, name TEXT, description TEXT,
+           visualization TEXT, data_config_json JSONB, source_query TEXT,
+           deeplink_json JSONB, grid_x INTEGER, grid_y INTEGER,
+           grid_width INTEGER, grid_height INTEGER, sort_order INTEGER
+         )
+       ), inserted_cards AS (
+         INSERT INTO dashboard_cards (
+           id, dashboard_id, library_item_key, name, description,
+           visualization, data_config_json, source_query, deeplink_json,
+           grid_x, grid_y, grid_width, grid_height, sort_order,
+           created_at, updated_at
+         )
+         SELECT proposed.id, inserted_dashboard.id,
+           proposed.library_item_key, proposed.name, proposed.description,
+           proposed.visualization, proposed.data_config_json,
+           proposed.source_query, proposed.deeplink_json, proposed.grid_x,
+           proposed.grid_y, proposed.grid_width, proposed.grid_height,
+           proposed.sort_order, $6, $6
+         FROM inserted_dashboard
+         CROSS JOIN proposed_cards proposed
+         RETURNING id
+       )
+       SELECT id FROM inserted_dashboard`,
+      [
+        dashboardId,
+        ownerUserId,
+        update.title,
+        update.description ?? null,
+        JSON.stringify(update.globalFilters),
+        timestamp,
+        JSON.stringify(cards.map(toProposalCardRow)),
+      ],
+    );
+    if (!rows[0]) throw new Error("Dashboard could not be created");
+    return this.loadDashboard(ownerUserId, dashboardId);
+  }
+
+  private prepareProposalCards(
+    proposedCards: DashboardProposalApplyUpdate["cards"],
+    existingCards: PersistedDashboard["cards"],
+  ) {
+    const existingById = new Map(existingCards.map((card) => [card.id, card]));
+    const cards = proposedCards.map((card, sortOrder) => {
+      const existing = card.id ? existingById.get(card.id) : undefined;
+      if (card.id && !existing) throw new DashboardNotFoundError();
+      const definition = card.libraryItemKey
+        ? getCardDefinition(card.libraryItemKey)
+        : undefined;
+      if (card.libraryItemKey && !definition && !existing) {
+        throw new DashboardInvalidLibraryItemError();
+      }
+      if (
+        existing &&
+        card.libraryItemKey !== existing.libraryItemKey &&
+        !definition
+      ) {
+        throw new DashboardInvalidLibraryItemError();
+      }
+
+      return {
+        id: card.id ?? randomUUID(),
+        libraryItemKey: definition?.key ?? existing?.libraryItemKey,
+        name: card.name,
+        description: card.description ?? null,
+        visualization:
+          definition?.visualization ??
+          card.visualization ??
+          existing!.visualization,
+        data: card.data ?? null,
+        sourceQuery:
+          definition?.key !== undefined
+            ? `/api/consumer/cards/${definition.key}`
+            : (card.sourceQuery ?? existing?.sourceQuery ?? ""),
+        deeplink: definition?.deeplinkLabel
+          ? { label: definition.deeplinkLabel }
+          : (card.deeplink ?? existing?.deeplink ?? null),
+        ...card.layout,
+        sortOrder,
+      };
+    });
+    const validation = validateDashboardLayout(
+      cards.map((card) => ({
+        id: card.id,
+        x: card.x,
+        y: card.y,
+        width: card.width,
+        height: card.height,
+      })),
+      cards.map((card) => card.id),
+    );
+    if (!validation.valid) {
+      throw new DashboardInvalidLayoutError(validation.errors);
+    }
+    const libraryKeys = cards.flatMap((card) =>
+      card.libraryItemKey ? [card.libraryItemKey] : [],
+    );
+    if (new Set(libraryKeys).size !== libraryKeys.length) {
+      throw new DashboardCardAlreadyAddedError();
+    }
+    return cards;
   }
 
   private async requireOwnedDashboard(
@@ -517,6 +801,7 @@ type DashboardRow = Record<string, unknown> & {
   title: string;
   description: string | null;
   footer_json: unknown | null;
+  global_filters_json: unknown | null;
   is_default: boolean;
   revision: number;
 };
@@ -526,7 +811,9 @@ type CardRow = Record<string, unknown> & {
   dashboard_id: string;
   library_item_key: string | null;
   name: string;
+  description: string | null;
   visualization: VisualizationType;
+  data_config_json: unknown | null;
   source_query: string;
   deeplink_json: unknown | null;
   grid_x: number;
@@ -547,9 +834,43 @@ function mapDashboard(row: DashboardRow, cards: CardRow[]): PersistedDashboard {
     title: row.title,
     description: row.description ?? undefined,
     footer: parseJson<DashboardFooterConfig>(row.footer_json),
+    globalFilters:
+      parseJson<DashboardGlobalFilter[]>(row.global_filters_json) ?? [],
     isDefault: row.is_default,
     revision: row.revision,
     cards: cards.map(mapCard),
+  };
+}
+
+function toProposalCardRow(card: {
+  id: string;
+  libraryItemKey?: string;
+  name: string;
+  description: string | null;
+  visualization: VisualizationType;
+  data: DashboardCardDataConfig | null;
+  sourceQuery: string;
+  deeplink: Omit<CardDeeplinkConfig, "href"> | null;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  sortOrder: number;
+}) {
+  return {
+    id: card.id,
+    library_item_key: card.libraryItemKey ?? null,
+    name: card.name,
+    description: card.description,
+    visualization: card.visualization,
+    data_config_json: card.data,
+    source_query: card.sourceQuery,
+    deeplink_json: card.deeplink,
+    grid_x: card.x,
+    grid_y: card.y,
+    grid_width: card.width,
+    grid_height: card.height,
+    sort_order: card.sortOrder,
   };
 }
 
@@ -559,7 +880,9 @@ function mapCard(row: CardRow): PersistedDashboardCardWithQuery {
     dashboardId: row.dashboard_id,
     libraryItemKey: row.library_item_key ?? undefined,
     name: row.name,
+    description: row.description ?? undefined,
     visualization: row.visualization,
+    data: parseJson<DashboardCardDataConfig>(row.data_config_json),
     sourceQuery: row.source_query,
     deeplink: parseJson<Omit<CardDeeplinkConfig, "href">>(row.deeplink_json),
     layout: {
@@ -590,28 +913,13 @@ function firstAvailableLayout(
   cards: readonly { layout: DashboardCardLayout }[],
   size: { width: number; height: number },
 ): DashboardCardLayout {
-  if (size.width > DASHBOARD_GRID_COLUMNS) {
+  const layout = findFirstAvailableDashboardLayout(cards, size);
+  if (!layout) {
     throw new DashboardInvalidLayoutError([
       `Card width ${size.width} exceeds the ${DASHBOARD_GRID_COLUMNS}-column grid`,
     ]);
   }
-  for (let y = 0; ; y += 1) {
-    for (let x = 0; x + size.width <= DASHBOARD_GRID_COLUMNS; x += 1) {
-      const candidate = { x, y, ...size };
-      if (!cards.some((card) => layoutsOverlap(candidate, card.layout))) {
-        return candidate;
-      }
-    }
-  }
-}
-
-function layoutsOverlap(a: DashboardCardLayout, b: DashboardCardLayout) {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
+  return layout;
 }
 
 export {

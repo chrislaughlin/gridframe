@@ -13,17 +13,20 @@ import {
   DashboardClientError,
   bootstrapDashboard,
   updateDashboardCard,
+  updateDashboardGlobalFilter,
   updateDashboardLayout,
 } from "@gridframe/client";
 import type {
   DashboardBootstrapResponse,
   DashboardDocument,
+  DashboardGlobalFilter,
 } from "@gridframe/core";
 import type { Layout } from "react-grid-layout";
 import { type PanelDashboardConfig } from "./types";
 
 import { DashboardShell } from "./dashboard-shell";
 import { CardLibrary } from "./card-library";
+import { DashboardAIDialog } from "./dashboard-ai-dialog";
 
 type ApiManagedDashboardOptions = {
   userId: string;
@@ -116,18 +119,27 @@ function ApiManagedDashboard({
         dashboardId: action.optimistic.id,
         apiBaseUrl: options.apiBaseUrl,
       };
-      return action.kind === "layout"
-        ? updateDashboardLayout({
-            ...identity,
-            revision: action.revision,
-            cards: action.cards,
-          })
-        : updateDashboardCard({
-            ...identity,
-            cardId: action.cardId,
-            revision: action.revision,
-            name: action.name,
-          });
+      if (action.kind === "layout") {
+        return updateDashboardLayout({
+          ...identity,
+          revision: action.revision,
+          cards: action.cards,
+        });
+      }
+      if (action.kind === "rename") {
+        return updateDashboardCard({
+          ...identity,
+          cardId: action.cardId,
+          revision: action.revision,
+          name: action.name,
+        });
+      }
+      return updateDashboardGlobalFilter({
+        ...identity,
+        filterId: action.filterId,
+        revision: action.revision,
+        value: action.value,
+      });
     },
     onMutate: (action) => {
       setNotice(undefined);
@@ -136,11 +148,16 @@ function ApiManagedDashboard({
         setDisplayDashboard(action.optimistic);
       }
     },
-    onSuccess: (dashboard, action) => {
+    onSuccess: async (dashboard, action) => {
       queryClient.setQueryData<DashboardBootstrapResponse>(
         action.queryKey,
         (current) => (current ? { ...current, dashboard } : current),
       );
+      if (action.kind === "global-filter") {
+        await queryClient.invalidateQueries({
+          queryKey: ["panel-dashboard-card"],
+        });
+      }
       if (query.data?.dashboard.id !== action.optimistic.id) return;
       setConfirmedDashboard(dashboard);
       setDisplayDashboard(dashboard);
@@ -238,19 +255,74 @@ function ApiManagedDashboard({
   const toolbar = (
     <div className="flex flex-col items-end gap-3">
       {dashboardSelector}
-      <CardLibrary
-        apiBaseUrl={options.apiBaseUrl}
-        dashboard={dashboard}
-        disabled={mutation.isPending || query.isFetching}
-        onOpenChange={setIsCardLibraryOpen}
-        onDashboardChange={(next) => {
-          setConfirmedDashboard(next);
-          setDisplayDashboard(next);
-          setShellEpoch((value) => value + 1);
-        }}
-        open={isCardLibraryOpen}
-        userId={options.userId}
-      />
+      <div className="flex flex-wrap justify-end gap-2">
+        <DashboardAIDialog
+          apiBaseUrl={options.apiBaseUrl}
+          dashboard={dashboard}
+          disabled={mutation.isPending || query.isFetching}
+          onDashboardChange={(next) => {
+            if (next.id !== dashboard.id) {
+              const nextQueryKey = [
+                "gridframe-dashboard",
+                options.apiBaseUrl,
+                options.userId,
+                next.id,
+              ] as const;
+              queryClient.setQueryData<DashboardBootstrapResponse>(
+                nextQueryKey,
+                (current) =>
+                  current
+                    ? { ...current, dashboard: next }
+                    : {
+                        dashboard: next,
+                        dashboards: [
+                          ...response.dashboards,
+                          {
+                            id: next.id,
+                            title: next.config.title,
+                            isDefault: false,
+                          },
+                        ],
+                      },
+              );
+              if (options.dashboardId === undefined) {
+                setLocalDashboardId(next.id);
+              }
+              options.onDashboardChange?.(next.id);
+            }
+            queryClient.setQueryData<DashboardBootstrapResponse>(
+              queryKey,
+              (current) =>
+                current ? { ...current, dashboard: next } : current,
+            );
+            void queryClient.invalidateQueries({
+              queryKey: [
+                "gridframe-card-library",
+                options.apiBaseUrl,
+                options.userId,
+                next.id,
+              ],
+            });
+            setConfirmedDashboard(next);
+            setDisplayDashboard(next);
+            setShellEpoch((value) => value + 1);
+          }}
+          userId={options.userId}
+        />
+        <CardLibrary
+          apiBaseUrl={options.apiBaseUrl}
+          dashboard={dashboard}
+          disabled={mutation.isPending || query.isFetching}
+          onOpenChange={setIsCardLibraryOpen}
+          onDashboardChange={(next) => {
+            setConfirmedDashboard(next);
+            setDisplayDashboard(next);
+            setShellEpoch((value) => value + 1);
+          }}
+          open={isCardLibraryOpen}
+          userId={options.userId}
+        />
+      </div>
     </div>
   );
 
@@ -295,6 +367,27 @@ function ApiManagedDashboard({
           revision: dashboard.revision,
           cards,
           optimistic,
+        });
+      }}
+      onGlobalFilterChange={(filterId, value) => {
+        if (mutationInFlight.current || query.isFetching) return;
+        startMutation({
+          kind: "global-filter",
+          queryKey,
+          revision: dashboard.revision,
+          filterId,
+          value,
+          optimistic: {
+            ...dashboard,
+            config: {
+              ...dashboard.config,
+              globalFilters: dashboard.config.globalFilters?.map((filter) =>
+                filter.id === filterId
+                  ? setGlobalFilterValue(filter, value)
+                  : filter,
+              ),
+            },
+          },
         });
       }}
       onRenameCard={(cardId, name) => {
@@ -352,6 +445,19 @@ type DashboardMutationAction =
       cardId: string;
       name: string;
       optimistic: DashboardDocument;
+    }
+  | {
+      kind: "global-filter";
+      queryKey: readonly [
+        string,
+        string | undefined,
+        string,
+        string | undefined,
+      ];
+      revision: string;
+      filterId: string;
+      value: DashboardGlobalFilter["value"];
+      optimistic: DashboardDocument;
     };
 
 function applyLayout(
@@ -374,6 +480,15 @@ function applyLayout(
       }),
     },
   };
+}
+
+function setGlobalFilterValue<
+  T extends { value?: DashboardGlobalFilter["value"] },
+>(filter: T, value: DashboardGlobalFilter["value"]) {
+  if (value !== undefined) return { ...filter, value };
+  const unbound = { ...filter };
+  delete unbound.value;
+  return unbound;
 }
 
 function DashboardLoadState({

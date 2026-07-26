@@ -77,3 +77,9 @@ export async function handle({ request, params }) {
 ```
 
 Host applications own authorization. The `userId` passed to handlers is an application identity key and must not be trusted without the host app checking access.
+
+## Dashboard AI
+
+`createDashboardAIService` adds proposal generation, validation, and transactional application. `createDashboardAIProvider` configures OpenRouter, OpenAI, Anthropic, Google, or a custom OpenAI-compatible endpoint behind one interface. Consumers supply authorization, AI-capable Cards, safe fields, and a `DashboardAIRepository` implementation.
+
+See [AI-generated Dashboards](https://github.com/chrislaughlin/gridframe/blob/main/docs/ai-dashboards.md) for setup, routes, provider configuration, security boundaries, and a complete example.

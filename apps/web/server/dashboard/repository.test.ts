@@ -234,4 +234,95 @@ describe.skipIf(!hasTestDatabase)("NeonDashboardRepository mutations", () => {
     ).rejects.toThrow(DashboardRevisionConflictError);
     expect((await repository.bootstrap(owner)).dashboard).toEqual(updated);
   });
+
+  it("applies a complete AI proposal transactionally in one revision", async () => {
+    const repository = createTestRepository();
+    const dashboard = (await repository.bootstrap(owner)).dashboard;
+    const revenue = dashboard.cards.find(
+      (card) => card.libraryItemKey === "total-revenue",
+    )!;
+    const recentOrders = dashboard.cards.find(
+      (card) => card.libraryItemKey === "recent-orders",
+    )!;
+
+    const updated = await repository.applyDashboardProposal(
+      owner,
+      dashboard.id,
+      dashboard.revision,
+      {
+        title: "AI sales overview",
+        description: "Generated from approved Gridframe capabilities.",
+        globalFilters: [
+          {
+            id: "region-filter",
+            label: "Region",
+            field: "region",
+            operator: "equals",
+            value: "North",
+          },
+        ],
+        cards: [
+          {
+            id: revenue.id,
+            libraryItemKey: "total-revenue",
+            name: "Net revenue",
+            visualization: "metric",
+            data: {
+              metrics: [{ field: "revenue", aggregation: "sum" }],
+            },
+            layout: { x: 0, y: 0, width: 1, height: 2 },
+          },
+          {
+            libraryItemKey: "total-orders",
+            name: "Total orders",
+            visualization: "metric",
+            data: {
+              metrics: [{ field: "order_id", aggregation: "count" }],
+            },
+            layout: { x: 1, y: 0, width: 1, height: 2 },
+          },
+          {
+            id: recentOrders.id,
+            libraryItemKey: "recent-orders",
+            name: "Recent orders",
+            visualization: "table",
+            data: { dimensions: ["order_id", "order_status"] },
+            layout: { x: 0, y: 2, width: 4, height: 4 },
+          },
+        ],
+      },
+    );
+
+    expect(updated.revision).toBe(dashboard.revision + 1);
+    expect(updated.title).toBe("AI sales overview");
+    expect(updated.globalFilters).toEqual([
+      expect.objectContaining({ id: "region-filter", field: "region" }),
+    ]);
+    expect(updated.cards.map((card) => card.libraryItemKey)).toEqual([
+      "total-revenue",
+      "total-orders",
+      "recent-orders",
+    ]);
+    expect(updated.cards[0]).toMatchObject({
+      id: revenue.id,
+      name: "Net revenue",
+      data: { metrics: [{ field: "revenue", aggregation: "sum" }] },
+    });
+
+    await expect(
+      repository.applyDashboardProposal(
+        owner,
+        dashboard.id,
+        dashboard.revision,
+        {
+          title: "Stale title",
+          globalFilters: [],
+          cards: [],
+        },
+      ),
+    ).rejects.toThrow(DashboardRevisionConflictError);
+    expect(await repository.loadDashboard(owner, dashboard.id)).toEqual(
+      updated,
+    );
+  });
 });

@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+import {
+  DashboardCardDataConfigSchema,
+  DashboardGlobalFilterSchema,
+} from "./dashboard-card-data";
+
+export * from "./dashboard-ai";
+export * from "./dashboard-card-data";
+
 const nullableScalarSchema = z.union([z.string(), z.number(), z.null()]);
 
 export const VisualizationTypeSchema = z.enum([
@@ -37,8 +45,10 @@ export type DashboardCardLayout = z.infer<typeof DashboardCardLayoutSchema>;
 export const DashboardCardConfigSchema = z.object({
   id: z.string(),
   name: z.string(),
+  description: z.string().optional(),
   visualization: VisualizationTypeSchema,
   query: z.string(),
+  data: DashboardCardDataConfigSchema.optional(),
   deeplink: CardDeeplinkConfigSchema.optional(),
   layout: DashboardCardLayoutSchema.optional(),
 });
@@ -55,6 +65,7 @@ export const PanelDashboardConfigSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
   footer: DashboardFooterConfigSchema.optional(),
+  globalFilters: z.array(DashboardGlobalFilterSchema).optional(),
   cards: z.array(DashboardCardConfigSchema),
 });
 export type PanelDashboardConfig = z.infer<typeof PanelDashboardConfigSchema>;
@@ -314,6 +325,11 @@ export const DashboardApiErrorCodeSchema = z.enum([
   "CARD_QUERY_FAILED",
   "REVISION_CONFLICT",
   "CARD_ALREADY_ADDED",
+  "AI_PERMISSION_DENIED",
+  "AI_PROPOSAL_INVALID",
+  "AI_PROPOSAL_NOT_APPLICABLE",
+  "AI_PROVIDER_FAILED",
+  "AI_NOT_CONFIGURED",
 ]);
 export type DashboardApiErrorCode = z.infer<typeof DashboardApiErrorCodeSchema>;
 
@@ -345,6 +361,14 @@ export const UpdateDashboardCardRequestSchema = z.object({
 });
 export type UpdateDashboardCardRequest = z.infer<
   typeof UpdateDashboardCardRequestSchema
+>;
+
+export const UpdateDashboardGlobalFilterRequestSchema = z.object({
+  revision: z.string(),
+  value: z.json().optional(),
+});
+export type UpdateDashboardGlobalFilterRequest = z.infer<
+  typeof UpdateDashboardGlobalFilterRequestSchema
 >;
 
 export const CardLibraryItemSchema = z.object({
@@ -386,6 +410,11 @@ export const DashboardCardMutationResponseSchema = z.object({
 });
 export type DashboardCardMutationResponse = z.infer<
   typeof DashboardCardMutationResponseSchema
+>;
+
+export const ApplyDashboardProposalResponseSchema = DashboardDocumentSchema;
+export type ApplyDashboardProposalResponse = z.infer<
+  typeof ApplyDashboardProposalResponseSchema
 >;
 
 export const DASHBOARD_GRID_COLUMNS = 4;
