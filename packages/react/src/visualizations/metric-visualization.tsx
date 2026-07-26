@@ -17,7 +17,11 @@ function MetricVisualization({ data }: MetricVisualizationProps) {
             {data.label}
           </p>
         ) : null}
-        <p className="truncate text-4xl font-semibold tracking-tight text-foreground">
+        <p
+          className={`truncate font-semibold tracking-tight text-foreground ${
+            data.label ? "text-3xl" : "text-4xl"
+          }`}
+        >
           {data.value}
         </p>
       </div>
