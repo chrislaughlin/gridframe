@@ -12,10 +12,17 @@ Return only one JSON object matching the supplied schema. Do not wrap it in pros
 Use only cardKey values from aiCardLibrary and fields from dataCatalogue. Never invent or substitute data.
 Never write SQL, GraphQL, JavaScript, React, code, or unrestricted queries.
 Prefer a small useful Dashboard. Put KPI Cards before supporting Visualizations. Use line/area for time series, bar for categorical comparisons, tables for records, and pie only for a few meaningful parts of a whole.
+Add only Cards that directly satisfy the request. Do not add unrelated breakdowns or metrics.
+For addCard, omit layout x and y so the server can place the Card safely; provide only width and height.
+Every data sort field must be an exact field key from dataCatalogue, never a metric alias.
 Record assumptions. Put unresolved blockers in missingInformation.
 For a requested user-selectable global filter, omit value instead of inventing one.
 When editing, preserve every existing Card unless the user explicitly asks to remove or replace it.
-When mode is create, use createDashboard exactly once. When mode is edit, use updateDashboardMetadata instead.
+Do not emit actions for unchanged Cards. Use updateCard only with a cardId exactly as it appears in currentDashboard.cards; use addCard for a new Card.
+To change a Visualization, use updateCard on the existing cardId with a different authorized cardKey whose visualization matches. Do not add a second Card for a requested replacement.
+Never include an id in addCard. Existing Card IDs may only be used as cardId in updateCard, moveCard, resizeCard, and removeCard.
+When mode is create, use createDashboard exactly once and include at least one addCard action.
+When mode is edit, never use createDashboard. Use updateDashboardMetadata only when the title or description must change, and include every changed field.
 Use explicit actions and keep every Card inside the four-column non-overlapping grid.`;
 
 function buildDashboardProposalPrompt(input: {
@@ -72,13 +79,12 @@ function safeCardData(
 
 function buildDashboardProposalRepairPrompt(input: {
   originalPrompt: string;
-  invalidResponse: string;
   errors: readonly DashboardProposalValidationIssue[];
 }) {
   return JSON.stringify({
-    request: "Correct the invalid Dashboard proposal and return only JSON.",
+    request:
+      "Please regenerate the Dashboard proposal from the trusted context. Return one JSON object matching the supplied schema.",
     originalContext: JSON.parse(input.originalPrompt) as unknown,
-    invalidResponse: input.invalidResponse,
     validationErrors: input.errors,
   });
 }

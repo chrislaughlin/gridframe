@@ -227,6 +227,12 @@ const cards = defineExampleCards({
     "Revenue share shown as a pie Visualization.",
     "pie",
   ),
+  "channel-share-bar": comparisonDefinition(
+    "Channel share",
+    "Revenue by channel shown as a bar Visualization.",
+    "channel",
+    "revenue",
+  ),
   "team-performance": chartDefinition(
     "Team performance",
     "Team performance shown as a radar Visualization.",
@@ -450,23 +456,6 @@ function comparisonDefinition(
   dimensionKey: string,
   metricKey: string,
 ) {
-  const categories =
-    dimensionKey === "order_status"
-      ? ["Processing", "Shipped", "Delivered", "Refunded"]
-      : [
-          "Notebook",
-          "Headphones",
-          "Backpack",
-          "Keyboard",
-          "Camera",
-          "Speaker",
-          "Monitor",
-          "Mouse",
-          "Desk lamp",
-          "Webcam",
-          "Microphone",
-          "Tablet stand",
-        ];
   return {
     name,
     description,
@@ -489,11 +478,13 @@ function comparisonDefinition(
         "between",
       ] as CardAIMetadata["supportedFilters"],
     },
-    generateRecords: (faker: Faker) =>
-      categories.map((category) => ({
+    generateRecords: (faker: Faker, dataConfig?: DashboardCardDataConfig) => {
+      const dimension = dataConfig?.dimensions?.[0] ?? dimensionKey;
+      return categoryValues(dimension).map((category) => ({
         ...syntheticMeasures(faker),
-        [dimensionKey]: category,
-      })),
+        [dimension]: category,
+      }));
+    },
     adapt: (records: SourceRecord[], dataConfig?: DashboardCardDataConfig) => {
       const dimension = dataConfig?.dimensions?.[0] ?? dimensionKey;
       const metric =
@@ -672,6 +663,10 @@ function defaultDataConfigForCard(key: string): DashboardCardDataConfig {
       time: { field: "created_at", range: "last 6 months", grain: "month" },
     },
     "channel-share": {
+      metrics: [{ field: "revenue", aggregation: "sum" }],
+      dimensions: ["channel"],
+    },
+    "channel-share-bar": {
       metrics: [{ field: "revenue", aggregation: "sum" }],
       dimensions: ["channel"],
     },
@@ -919,7 +914,20 @@ function categoryValues(field: string) {
   const values: Record<string, string[]> = {
     channel: ["Direct", "Partner", "Organic"],
     order_status: ["Processing", "Shipped", "Delivered", "Refunded"],
-    product: ["Notebook", "Headphones", "Backpack", "Keyboard", "Camera"],
+    product: [
+      "Notebook",
+      "Headphones",
+      "Backpack",
+      "Keyboard",
+      "Camera",
+      "Speaker",
+      "Monitor",
+      "Mouse",
+      "Desk lamp",
+      "Webcam",
+      "Microphone",
+      "Tablet stand",
+    ],
     region: ["North", "South", "East", "West"],
   };
   return values[field] ?? ["Group A", "Group B", "Group C"];

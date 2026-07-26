@@ -144,59 +144,73 @@ function DashboardShell({
           </div>
         ) : null}
 
-        <div className="panel-dashboard-grid" ref={containerRef}>
-          {mounted ? (
-            <ReactGridLayout
-              className="panel-dashboard-layout"
-              dragConfig={{
-                enabled: !editDisabled,
-                handle: ".panel-card-drag-handle",
-                cancel: ".panel-card-drag-cancel, a, input, textarea, select",
-                bounded: true,
-              }}
-              gridConfig={{
-                cols: DASHBOARD_GRID_COLUMNS,
-                containerPadding: null,
-                margin: DASHBOARD_GRID_GAP,
-                rowHeight: DASHBOARD_ROW_HEIGHT,
-              }}
-              layout={layout}
-              onLayoutChange={(nextLayout) => {
-                setLayout(nextLayout);
-              }}
-              onDragStop={(nextLayout) => {
-                setLayout(nextLayout);
-                onLayoutCommit?.(nextLayout);
-              }}
-              onResizeStop={(nextLayout) => {
-                setLayout(nextLayout);
-                onLayoutCommit?.(nextLayout);
-              }}
-              resizeConfig={{
-                enabled: !editDisabled,
-                handles: ["s", "e", "se"],
-              }}
-              width={width}
-            >
-              {config.cards.map((card) => (
-                <div key={card.id}>
-                  <DashboardCard
-                    card={card}
-                    className="h-full min-h-0"
-                    displayName={namesByCardId[card.id] ?? card.name}
-                    editDisabled={editDisabled}
-                    onRename={(name) => {
-                      handleRenameCard(card, name);
-                    }}
-                    onRemove={
-                      onRemoveCard ? () => onRemoveCard(card.id) : undefined
-                    }
-                  />
-                </div>
-              ))}
-            </ReactGridLayout>
-          ) : null}
-        </div>
+        {config.cards.length ? (
+          <div className="panel-dashboard-grid" ref={containerRef}>
+            {mounted ? (
+              <ReactGridLayout
+                className="panel-dashboard-layout"
+                dragConfig={{
+                  enabled: !editDisabled,
+                  handle: ".panel-card-drag-handle",
+                  cancel: ".panel-card-drag-cancel, a, input, textarea, select",
+                  bounded: true,
+                }}
+                gridConfig={{
+                  cols: DASHBOARD_GRID_COLUMNS,
+                  containerPadding: null,
+                  margin: DASHBOARD_GRID_GAP,
+                  rowHeight: DASHBOARD_ROW_HEIGHT,
+                }}
+                layout={layout}
+                onLayoutChange={(nextLayout) => {
+                  setLayout(nextLayout);
+                }}
+                onDragStop={(nextLayout) => {
+                  setLayout(nextLayout);
+                  onLayoutCommit?.(nextLayout);
+                }}
+                onResizeStop={(nextLayout) => {
+                  setLayout(nextLayout);
+                  onLayoutCommit?.(nextLayout);
+                }}
+                resizeConfig={{
+                  enabled: !editDisabled,
+                  handles: ["s", "e", "se"],
+                }}
+                width={width}
+              >
+                {config.cards.map((card) => (
+                  <div key={card.id}>
+                    <DashboardCard
+                      card={card}
+                      className="h-full min-h-0"
+                      displayName={namesByCardId[card.id] ?? card.name}
+                      editDisabled={editDisabled}
+                      onRename={(name) => {
+                        handleRenameCard(card, name);
+                      }}
+                      onRemove={
+                        onRemoveCard ? () => onRemoveCard(card.id) : undefined
+                      }
+                    />
+                  </div>
+                ))}
+              </ReactGridLayout>
+            ) : null}
+          </div>
+        ) : (
+          <div
+            className="flex min-h-64 items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center"
+            data-slot="empty-dashboard"
+          >
+            <div className="max-w-sm space-y-2">
+              <h2 className="text-base font-semibold">Nothing here yet</h2>
+              <p className="text-sm leading-6 text-muted-foreground">
+                Add a Card to start building this Dashboard.
+              </p>
+            </div>
+          </div>
+        )}
 
         {config.footer ? (
           <footer className="flex flex-wrap items-center gap-2 border-t border-border pt-5 text-sm text-muted-foreground">

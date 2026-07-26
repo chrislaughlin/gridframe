@@ -166,6 +166,29 @@ describe("validateDashboardProposal", () => {
     expect(valid.update?.title).toBe("New sales dashboard");
   });
 
+  it("rejects a new Dashboard proposal with no Cards", () => {
+    const result = validateDashboardProposal(
+      proposal({
+        actions: [
+          {
+            type: "createDashboard",
+            title: "Monthly sales dashboard",
+          },
+        ],
+      }),
+      context({ dashboard: undefined }),
+    );
+
+    expect(result.validation).toMatchObject({
+      valid: false,
+      canApply: false,
+    });
+    expect(result.validation.errors).toContainEqual(
+      expect.objectContaining({ code: "EMPTY_DASHBOARD" }),
+    );
+    expect(result.update).toBeUndefined();
+  });
+
   it("rejects an unknown cardKey", () => {
     const result = validateDashboardProposal(
       proposal({

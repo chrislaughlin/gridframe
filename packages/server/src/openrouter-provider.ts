@@ -10,7 +10,7 @@ import {
   readProviderResponseBody,
 } from "./provider-http";
 
-const DEFAULT_OPENROUTER_MODEL = "openai/gpt-oss-20b";
+const DEFAULT_OPENROUTER_MODEL = "openai/gpt-4o-mini";
 const DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 
 type OpenRouterProviderOptions = {
@@ -76,7 +76,8 @@ class OpenRouterDashboardAIProvider implements DashboardAIProvider {
             { role: "user", content: request.userPrompt },
           ],
           temperature: 0.1,
-          reasoning: { effort: "low" },
+          max_tokens: 4096,
+          plugins: [{ id: "response-healing" }],
           provider: { require_parameters: true },
           stream: false,
           response_format: {

@@ -49,7 +49,8 @@ describe("OpenRouterDashboardAIProvider", () => {
     expect(body).toMatchObject({
       model: DEFAULT_OPENROUTER_MODEL,
       temperature: 0.1,
-      reasoning: { effort: "low" },
+      max_tokens: 4096,
+      plugins: [{ id: "response-healing" }],
       provider: { require_parameters: true },
       stream: false,
       response_format: {
@@ -57,6 +58,7 @@ describe("OpenRouterDashboardAIProvider", () => {
         json_schema: { strict: true },
       },
     });
+    expect(body).not.toHaveProperty("reasoning");
     expect(JSON.stringify(body)).not.toContain("server-secret");
   });
 });

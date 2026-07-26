@@ -34,7 +34,7 @@ The app is split into four layers:
 ```
 app/                          # Next.js App Router — routes + pages + API
   page.tsx                    #   redirects to the example user's dashboards
-  layout.tsx                  #   root layout (fonts, CSS, Providers)
+  layout.tsx                  #   root layout (fonts and CSS)
   providers.tsx               #   MSW mock service worker in dev mode
   gridframe/                  #   frontend routes
     users/[userId]/dashboards/
@@ -192,10 +192,10 @@ It renders the full dashboard UI: title, cards (visualizations), footer, card li
 
 Placed at `/cards/:cardId` routes. Takes `{userId, dashboardId, cardId}` and renders a zoomed-in card visualization plus a source-data table underneath.
 
-## Layer 4 — Layout and providers (`app/layout.tsx` + `app/providers.tsx`)
+## Layer 4 — Layout (`app/layout.tsx`)
 
 - Root layout imports `@gridframe/react/styles.css` (shadcn/ui chart components), Tailwind globals, and Geist fonts.
-- `Providers` component initializes an MSW (Mock Service Worker) in development mode to intercept static chart-variant data requests for the shadcn example gallery. In production, this layer is a no-op.
+- A small client cleanup removes registrations left behind by the development-only mock worker used in earlier versions of the app. API requests are always handled by the real Next.js routes.
 
 ## Environment variables
 

@@ -127,6 +127,14 @@ describe("DashboardAIDialog", () => {
       screen.getByText("Revenue uses the account currency."),
     ).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    const previewBody = JSON.parse(
+      String(fetchMock.mock.calls[0]?.[1]?.body),
+    );
+    expect(previewBody).toMatchObject({
+      dashboardId: "dashboard-1",
+      revision: "1",
+      prompt: "Add a revenue KPI",
+    });
     expect(onDashboardChange).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: "Apply proposal" }));

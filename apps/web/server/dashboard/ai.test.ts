@@ -7,7 +7,7 @@ import {
 
 describe("Dashboard AI example provider configuration", () => {
   it.each([
-    ["openrouter", { OPENROUTER_API_KEY: "key" }, "openai/gpt-oss-20b"],
+    ["openrouter", { OPENROUTER_API_KEY: "key" }, "openai/gpt-4o-mini"],
     ["openai", { OPENAI_API_KEY: "key" }, "gpt-4o-mini"],
     ["anthropic", { ANTHROPIC_API_KEY: "key" }, "claude-sonnet-5"],
     ["google", { GEMINI_API_KEY: "key" }, "gemini-3.5-flash"],

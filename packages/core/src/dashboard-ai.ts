@@ -113,7 +113,7 @@ const UpdateDashboardMetadataActionSchema = z
 const AddCardActionSchema = z
   .object({
     type: z.literal("addCard"),
-    card: ProposedCardSchema,
+    card: ProposedCardSchema.omit({ id: true }),
   })
   .strict();
 
@@ -189,9 +189,9 @@ export const DashboardProposalSchema = z
         audience: z.string().optional(),
       })
       .strict(),
-    actions: z.array(DashboardActionSchema),
-    assumptions: z.array(z.string()),
-    missingInformation: z.array(z.string()),
+    actions: z.array(DashboardActionSchema).max(32),
+    assumptions: z.array(z.string()).max(20),
+    missingInformation: z.array(z.string()).max(20),
     explanation: z.string().optional(),
   })
   .strict();
@@ -202,6 +202,7 @@ export const DashboardProposalValidationIssueCodeSchema = z.enum([
   "DASHBOARD_ALREADY_EXISTS",
   "DUPLICATE_CARD_KEY",
   "DUPLICATE_FILTER_ID",
+  "EMPTY_DASHBOARD",
   "INVALID_DATA_SHAPE",
   "INVALID_JSON",
   "INVALID_LAYOUT",
@@ -336,8 +337,288 @@ export type ApplyDashboardProposalRequest = z.infer<
 >;
 
 export function dashboardProposalJsonSchema() {
+  return strictProviderSchema(baseDashboardProposalJsonSchema()) as Record<
+    string,
+    unknown
+  >;
+}
+
+const providerScalarSchema = {
+  anyOf: [
+    { type: "string" },
+    { type: "number" },
+    { type: "boolean" },
+    { type: "null" },
+  ],
+} as const;
+
+const providerFilterValueSchema = {
+  anyOf: [
+    ...providerScalarSchema.anyOf,
+    { type: "array", items: providerScalarSchema },
+  ],
+} as const;
+
+function baseDashboardProposalJsonSchema() {
   return z.toJSONSchema(DashboardProposalSchema, {
     target: "draft-07",
     unrepresentable: "any",
   });
+}
+
+function strictProviderSchema(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(strictProviderSchema);
+  }
+  if (!value || typeof value !== "object") return value;
+  const record = value as Record<string, unknown>;
+  if (isDiscriminatedProviderUnion(record.oneOf)) {
+    return mergeDiscriminatedProviderUnion(record.oneOf);
+  }
+  if (Array.isArray(record.allOf) && record.allOf.length === 1) {
+    return strictProviderSchema(record.allOf[0]);
+  }
+  if (
+    typeof record.$ref === "string" &&
+    record.$ref.startsWith("#/definitions/__schema")
+  ) {
+    return providerFilterValueSchema;
+  }
+  const transformed = Object.fromEntries(
+    Object.entries(record)
+      .filter(([key]) => key !== "definitions")
+      .map(([key, entry]) => [key, strictProviderSchema(entry)]),
+  );
+  if (
+    record.type !== "object" ||
+    !record.properties ||
+    typeof record.properties !== "object"
+  ) {
+    return transformed;
+  }
+  const originalRequired = new Set(
+    Array.isArray(record.required) ? record.required : [],
+  );
+  const properties = transformed.properties as Record<string, unknown>;
+  for (const [key, schema] of Object.entries(properties)) {
+    if (!originalRequired.has(key)) {
+      properties[key] = { anyOf: [schema, { type: "null" }] };
+    }
+  }
+  transformed.required = Object.keys(properties);
+  return transformed;
+}
+
+function isDiscriminatedProviderUnion(
+  value: unknown,
+): value is Record<string, unknown>[] {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((candidate) => {
+      if (!candidate || typeof candidate !== "object") return false;
+      const properties = (candidate as Record<string, unknown>).properties;
+      if (!properties || typeof properties !== "object") return false;
+      const type = (properties as Record<string, unknown>).type;
+      return (
+        type &&
+        typeof type === "object" &&
+        typeof (type as Record<string, unknown>).const === "string"
+      );
+    })
+  );
+}
+
+function mergeDiscriminatedProviderUnion(variants: Record<string, unknown>[]) {
+  const mergedProperties: Record<string, unknown> = {};
+  const types: string[] = [];
+  for (const variant of variants) {
+    const transformed = strictProviderSchema(variant) as {
+      properties: Record<string, unknown>;
+    };
+    const sourceType = (
+      (variant.properties as Record<string, unknown>).type as Record<
+        string,
+        unknown
+      >
+    ).const as string;
+    types.push(sourceType);
+    for (const [key, property] of Object.entries(transformed.properties)) {
+      if (key !== "type" && !(key in mergedProperties)) {
+        mergedProperties[key] = {
+          anyOf: [property, { type: "null" }],
+        };
+      }
+    }
+  }
+  const properties = {
+    type: { type: "string", enum: types },
+    ...mergedProperties,
+  };
+  return {
+    type: "object",
+    properties,
+    required: Object.keys(properties),
+    additionalProperties: false,
+  };
+}
+
+export function normalizeDashboardProposalProviderOutput(input: unknown) {
+  return restoreCreateDashboardMetadata(
+    normalizeProviderCards(
+      stripOptionalProviderNulls(input, baseDashboardProposalJsonSchema()),
+    ),
+  );
+}
+
+function normalizeProviderCards(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const proposal = value as Record<string, unknown>;
+  if (!Array.isArray(proposal.actions)) return value;
+
+  return {
+    ...proposal,
+    actions: proposal.actions.map((action) => {
+      if (!action || typeof action !== "object" || Array.isArray(action)) {
+        return action;
+      }
+      const actionRecord = action as Record<string, unknown>;
+      const card = actionRecord.card;
+      if (!card || typeof card !== "object" || Array.isArray(card)) {
+        return action;
+      }
+      const cardRecord = card as Record<string, unknown>;
+      const data = normalizeProviderCardSort(cardRecord.data);
+      const layout = cardRecord.layout;
+      return {
+        ...actionRecord,
+        card: {
+          ...cardRecord,
+          ...(data === cardRecord.data ? {} : { data }),
+          ...(actionRecord.type === "addCard" &&
+          layout &&
+          typeof layout === "object" &&
+          !Array.isArray(layout)
+            ? {
+                layout: Object.fromEntries(
+                  Object.entries(layout).filter(
+                    ([key]) => key !== "x" && key !== "y",
+                  ),
+                ),
+              }
+            : {}),
+        },
+      };
+    }),
+  };
+}
+
+function normalizeProviderCardSort(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const data = value as Record<string, unknown>;
+  if (!Array.isArray(data.metrics) || !Array.isArray(data.sort)) return value;
+  const aliases = new Map(
+    data.metrics.flatMap((metric) => {
+      if (!metric || typeof metric !== "object" || Array.isArray(metric)) {
+        return [];
+      }
+      const { alias, field } = metric as Record<string, unknown>;
+      return typeof alias === "string" && typeof field === "string"
+        ? [[alias, field] as const]
+        : [];
+    }),
+  );
+  if (aliases.size === 0) return value;
+  return {
+    ...data,
+    sort: data.sort.map((sort) => {
+      if (!sort || typeof sort !== "object" || Array.isArray(sort)) return sort;
+      const sortRecord = sort as Record<string, unknown>;
+      const field =
+        typeof sortRecord.field === "string"
+          ? aliases.get(sortRecord.field)
+          : undefined;
+      return field ? { ...sortRecord, field } : sort;
+    }),
+  };
+}
+
+function restoreCreateDashboardMetadata(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const proposal = value as Record<string, unknown>;
+  if (typeof proposal.title !== "string" || !Array.isArray(proposal.actions)) {
+    return value;
+  }
+  return {
+    ...proposal,
+    actions: proposal.actions.map((action) => {
+      if (
+        !action ||
+        typeof action !== "object" ||
+        Array.isArray(action) ||
+        (action as Record<string, unknown>).type !== "createDashboard"
+      ) {
+        return action;
+      }
+      const create = action as Record<string, unknown>;
+      return {
+        ...create,
+        title:
+          typeof create.title === "string" ? create.title : proposal.title,
+        ...(typeof create.description === "string"
+          ? {}
+          : typeof proposal.description === "string"
+            ? { description: proposal.description }
+            : {}),
+      };
+    }),
+  };
+}
+
+function stripOptionalProviderNulls(value: unknown, schema: unknown): unknown {
+  if (!schema || typeof schema !== "object") return value;
+  const record = schema as Record<string, unknown>;
+  if (Array.isArray(value)) {
+    return value.map((item) => stripOptionalProviderNulls(item, record.items));
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const source = value as Record<string, unknown>;
+  const selected = selectProviderObjectSchema(source, record);
+  const properties =
+    selected.properties && typeof selected.properties === "object"
+      ? (selected.properties as Record<string, unknown>)
+      : {};
+  const hasDeclaredProperties =
+    selected.properties !== undefined &&
+    typeof selected.properties === "object";
+  const required = new Set(
+    Array.isArray(selected.required) ? selected.required : [],
+  );
+  return Object.fromEntries(
+    Object.entries(source).flatMap(([key, entry]) => {
+      if (hasDeclaredProperties && !(key in properties)) return [];
+      if (entry === null && !required.has(key)) return [];
+      return [
+        [key, stripOptionalProviderNulls(entry, properties[key])] as const,
+      ];
+    }),
+  );
+}
+
+function selectProviderObjectSchema(
+  value: Record<string, unknown>,
+  schema: Record<string, unknown>,
+) {
+  if (!Array.isArray(schema.oneOf)) return schema;
+  return (schema.oneOf.find((candidate) => {
+    if (!candidate || typeof candidate !== "object") return false;
+    const properties = (candidate as Record<string, unknown>).properties;
+    if (!properties || typeof properties !== "object") return false;
+    const type = (properties as Record<string, unknown>).type;
+    return (
+      type &&
+      typeof type === "object" &&
+      (type as Record<string, unknown>).const === value.type
+    );
+  }) ?? schema) as Record<string, unknown>;
 }

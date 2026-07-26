@@ -113,15 +113,6 @@ function planProposal(
         description = action.description ?? description;
         break;
       case "addCard": {
-        if (action.card.id) {
-          addError(
-            errors,
-            "UNTRUSTED_CARD_ID",
-            "New Cards must not provide an ID",
-            actionIndex,
-            ["card", "id"],
-          );
-        }
         const card = proposedCard(
           action.card,
           `proposal-card-${actionIndex}`,
@@ -248,6 +239,16 @@ function planProposal(
       errors,
       "DUPLICATE_CARD_KEY",
       `Card ${key} can only be added once`,
+      undefined,
+      ["actions"],
+    );
+  }
+
+  if (!currentDashboard && cards.length === 0) {
+    addError(
+      errors,
+      "EMPTY_DASHBOARD",
+      "A new Dashboard proposal must add at least one Card",
       undefined,
       ["actions"],
     );

@@ -40,14 +40,14 @@ Choose a provider and set its server environment variables. The bundled example 
 ```env
 GRIDFRAME_AI_PROVIDER=openrouter
 OPENROUTER_API_KEY=your-server-key
-GRIDFRAME_AI_MODEL=openai/gpt-oss-20b
+GRIDFRAME_AI_MODEL=openai/gpt-4o-mini
 ```
 
 Each built-in provider has a model default, so `GRIDFRAME_AI_MODEL` is optional:
 
 | `GRIDFRAME_AI_PROVIDER` | Provider credential     | Default model        |
 | ----------------------- | ----------------------- | -------------------- |
-| `openrouter`            | `OPENROUTER_API_KEY`    | `openai/gpt-oss-20b` |
+| `openrouter`            | `OPENROUTER_API_KEY`    | `openai/gpt-4o-mini` |
 | `openai`                | `OPENAI_API_KEY`        | `gpt-4o-mini`        |
 | `anthropic`             | `ANTHROPIC_API_KEY`     | `claude-sonnet-5`    |
 | `google`                | `GEMINI_API_KEY`        | `gemini-3.5-flash`   |

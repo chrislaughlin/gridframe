@@ -121,6 +121,21 @@ afterEach(() => {
 });
 
 describe("PanelDashboard static mode", () => {
+  it("renders guidance instead of a blank Card grid", () => {
+    render(
+      <PanelDashboard
+        config={{ title: "Monthly Sales Dashboard", cards: [] }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Nothing here yet" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Add a Card to start building this Dashboard."),
+    ).toBeInTheDocument();
+  });
+
   it("renders every supported Visualization from a caller-owned config", async () => {
     render(<PanelDashboard config={config} />);
 

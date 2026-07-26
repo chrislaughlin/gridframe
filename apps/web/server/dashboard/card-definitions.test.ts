@@ -89,6 +89,23 @@ describe("AI-configured example Card resolvers", () => {
     ).toBe(true);
   });
 
+  it("offers a bar Visualization for channel share replacements", async () => {
+    const result = await resolve("channel-share-bar", {
+      metrics: [{ field: "revenue", aggregation: "sum" }],
+      dimensions: ["channel"],
+    });
+
+    if (result.status !== "success" || result.data.visualization !== "bar") {
+      throw new Error("Expected bar data");
+    }
+    expect(result.data.indexKey).toBe("channel");
+    expect(result.data.data.map((row) => row.channel)).toEqual([
+      "Direct",
+      "Partner",
+      "Organic",
+    ]);
+  });
+
   it("honours metric sorting and a top-10 limit", async () => {
     const result = await resolve("top-products", {
       metrics: [{ field: "revenue", aggregation: "sum" }],

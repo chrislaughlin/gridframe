@@ -1,6 +1,7 @@
 import {
   DashboardProposalSchema,
   dashboardProposalJsonSchema,
+  normalizeDashboardProposalProviderOutput,
   type AICardDefinition,
   type AIDataField,
   type CreateDashboardProposalResponse,
@@ -134,7 +135,6 @@ function createDashboardAIService(options: DashboardAIServiceOptions) {
         });
         const repairPrompt = buildDashboardProposalRepairPrompt({
           originalPrompt: userPrompt,
-          invalidResponse: first.content,
           errors: parsed.validation.errors,
         });
         const repaired = await generate(options, repairPrompt);
@@ -259,7 +259,7 @@ async function generate(
 function parseProposal(content: string, context: DashboardAIContext) {
   let json: unknown;
   try {
-    json = JSON.parse(content);
+    json = normalizeDashboardProposalProviderOutput(JSON.parse(content));
   } catch {
     const issue: DashboardProposalValidationIssue = {
       code: "INVALID_JSON",

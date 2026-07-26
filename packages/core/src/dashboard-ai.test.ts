@@ -4,6 +4,8 @@ import {
   CreateDashboardProposalRequestSchema,
   DashboardProposalSchema,
   ProposedCardSchema,
+  dashboardProposalJsonSchema,
+  normalizeDashboardProposalProviderOutput,
 } from ".";
 
 describe("DashboardProposalSchema", () => {
@@ -64,6 +66,207 @@ describe("DashboardProposalSchema", () => {
         missingInformation: [],
       }),
     ).toThrow();
+  });
+
+  it("bounds action count to prevent runaway structured output", () => {
+    expect(() =>
+      DashboardProposalSchema.parse({
+        version: 1,
+        title: "Runaway proposal",
+        intent: { objective: "Repeat forever" },
+        actions: Array.from({ length: 33 }, () => ({
+          type: "moveCard",
+          cardId: "card-1",
+          x: 0,
+          y: 0,
+        })),
+        assumptions: [],
+        missingInformation: [],
+      }),
+    ).toThrow();
+  });
+
+  it("emits a self-contained provider schema", () => {
+    const schema = dashboardProposalJsonSchema();
+    const serialized = JSON.stringify(schema);
+
+    expect(serialized).not.toContain('"$ref"');
+    expect(serialized).not.toContain('"definitions"');
+    expect(serialized).not.toContain('"oneOf"');
+    expect(serialized).not.toContain('"allOf"');
+    expect(
+      (
+        schema as {
+          properties?: { actions?: { maxItems?: number } };
+        }
+      ).properties?.actions?.maxItems,
+    ).toBe(32);
+    expect(
+      (
+        schema as {
+          properties?: {
+            actions?: {
+              items?: {
+                properties?: { type?: { enum?: string[] } };
+              };
+            };
+          };
+        }
+      ).properties?.actions?.items?.properties?.type?.enum,
+    ).toContain("updateCard");
+    expect(
+      (
+        schema as {
+          properties?: {
+            intent?: {
+              required?: string[];
+              properties?: { domain?: { anyOf?: unknown[] } };
+            };
+          };
+        }
+      ).properties?.intent?.required,
+    ).toEqual(["domain", "objective", "audience"]);
+    expect(
+      (
+        schema as {
+          properties?: {
+            intent?: {
+              properties?: { domain?: { anyOf?: unknown[] } };
+            };
+          };
+        }
+      ).properties?.intent?.properties?.domain?.anyOf,
+    ).toContainEqual({ type: "null" });
+  });
+
+  it("removes provider nulls only from optional fields", () => {
+    const normalized = normalizeDashboardProposalProviderOutput({
+      version: 1,
+      title: "Sales",
+      description: null,
+      intent: { domain: null, objective: "Track sales", audience: null },
+      actions: [
+        {
+          type: "addGlobalFilter",
+          cardId: "not-valid-for-this-action",
+          x: 4,
+          filter: {
+            id: null,
+            label: null,
+            field: "region",
+            operator: "equals",
+            value: null,
+          },
+        },
+      ],
+      assumptions: [],
+      missingInformation: [],
+      explanation: null,
+    });
+
+    expect(normalized).toEqual({
+      version: 1,
+      title: "Sales",
+      intent: { objective: "Track sales" },
+      actions: [
+        {
+          type: "addGlobalFilter",
+          filter: {
+            field: "region",
+            operator: "equals",
+          },
+        },
+      ],
+      assumptions: [],
+      missingInformation: [],
+    });
+  });
+
+  it("restores required create metadata from the proposal", () => {
+    const normalized = normalizeDashboardProposalProviderOutput({
+      version: 1,
+      title: "Monthly revenue",
+      description: "Revenue and product performance.",
+      intent: { domain: null, objective: "Track revenue", audience: null },
+      actions: [
+        {
+          type: "createDashboard",
+          title: null,
+          description: null,
+          card: null,
+          cardId: null,
+          x: null,
+          y: null,
+          width: null,
+          height: null,
+          filter: null,
+          filterId: null,
+        },
+      ],
+      assumptions: [],
+      missingInformation: [],
+      explanation: null,
+    });
+
+    expect(normalized).toMatchObject({
+      actions: [
+        {
+          type: "createDashboard",
+          title: "Monthly revenue",
+          description: "Revenue and product performance.",
+        },
+      ],
+    });
+  });
+
+  it("lets the server place generated cards and resolves metric aliases in sort fields", () => {
+    const normalized = normalizeDashboardProposalProviderOutput({
+      version: 1,
+      title: "Monthly revenue",
+      intent: { objective: "Track revenue" },
+      actions: [
+        {
+          type: "addCard",
+          card: {
+            cardKey: "top-products",
+            title: "Top products",
+            data: {
+              metrics: [
+                {
+                  field: "revenue",
+                  aggregation: "sum",
+                  alias: "Total Revenue",
+                },
+              ],
+              dimensions: ["product"],
+              sort: [{ field: "Total Revenue", direction: "desc" }],
+            },
+            layout: { x: 3, y: 0, width: 2, height: 4 },
+          },
+        },
+      ],
+      assumptions: [],
+      missingInformation: [],
+    });
+
+    expect(normalized).toMatchObject({
+      actions: [
+        {
+          type: "addCard",
+          card: {
+            data: { sort: [{ field: "revenue", direction: "desc" }] },
+            layout: { width: 2, height: 4 },
+          },
+        },
+      ],
+    });
+    expect(
+      (
+        normalized as {
+          actions: Array<{ card: { layout: Record<string, unknown> } }>;
+        }
+      ).actions[0]?.card.layout,
+    ).not.toHaveProperty("x");
   });
 
   it("allows an unbound global filter for the user to select later", () => {
