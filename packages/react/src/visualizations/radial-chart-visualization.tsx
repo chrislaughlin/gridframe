@@ -5,7 +5,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "../internal/ui";
-import { Label, PolarRadiusAxis, RadialBar, RadialBarChart } from "recharts";
+import {
+  Cell,
+  Label,
+  PolarRadiusAxis,
+  RadialBar,
+  RadialBarChart,
+} from "recharts";
 import {
   type ChartDatum,
   type ChartTooltipOptions,
@@ -62,9 +68,10 @@ function RadialChartVisualization({ data }: RadialChartVisualizationProps) {
           cursor={false}
         />
         {data.stacked ? (
-          data.series.map((series) => (
+          data.series.map((series, seriesIndex) => (
             <RadialBar
               background
+              className={`gridframe-series-${seriesIndex % 5}`}
               cornerRadius={data.shape === "square" ? 0 : 10}
               dataKey={series.key}
               fill={`var(--color-${series.key})`}
@@ -88,7 +95,15 @@ function RadialChartVisualization({ data }: RadialChartVisualizationProps) {
                   }
                 : false
             }
-          />
+          >
+            {chartData.map((datum, datumIndex) => (
+              <Cell
+                className={`gridframe-series-${datumIndex % 5}`}
+                fill={String(datum.fill ?? "var(--muted)")}
+                key={`radial-segment-${datumIndex}`}
+              />
+            ))}
+          </RadialBar>
         )}
         {data.centerText ? (
           <Label

@@ -50,6 +50,7 @@ vi.mock("react-grid-layout", () => ({
 }));
 
 import { PanelDashboard } from "./panel-dashboard";
+import { darkTheme } from "./theme";
 import { type PanelCardDataResponse, type PanelDashboardConfig } from "./types";
 
 const cards = [
@@ -121,6 +122,21 @@ afterEach(() => {
 });
 
 describe("PanelDashboard static mode", () => {
+  it("accepts a Theme scoped to one Dashboard", () => {
+    render(
+      <PanelDashboard
+        config={{ title: "Themed Dashboard", cards: [] }}
+        theme={darkTheme}
+      />,
+    );
+
+    expect(
+      screen
+        .getByRole("heading", { name: "Themed Dashboard" })
+        .closest('[data-gridframe-theme="dark"]'),
+    ).toHaveStyle({ "--background": darkTheme.colors.background });
+  });
+
   it("renders guidance instead of a blank Card grid", () => {
     render(
       <PanelDashboard

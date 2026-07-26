@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeSwitcher } from "../themes/theme-switcher";
 
 function SiteHeader() {
   return (
@@ -10,36 +11,39 @@ function SiteHeader() {
         >
           Gridframe
         </Link>
-        <nav className="hidden items-center gap-6 text-sm sm:flex">
-          <Link
-            className="text-muted-foreground transition-colors hover:text-foreground"
-            href="/examples"
-          >
-            Examples
-          </Link>
-          <Link
-            className="text-muted-foreground transition-colors hover:text-foreground"
-            href="/dashboard"
-          >
-            Dashboard
-          </Link>
-          <a
-            className="text-muted-foreground transition-colors hover:text-foreground"
-            href="https://github.com/chrislaughlin/gridframe/blob/main/docs/ai-dashboards.md"
-            rel="noreferrer"
-            target="_blank"
-          >
-            Docs
-          </a>
-          <a
-            className="text-muted-foreground transition-colors hover:text-foreground"
-            href="https://github.com/chrislaughlin/gridframe"
-            rel="noreferrer"
-            target="_blank"
-          >
-            GitHub
-          </a>
-        </nav>
+        <div className="hidden items-center gap-5 sm:flex">
+          <nav className="flex items-center gap-5 text-sm">
+            <Link
+              className="text-muted-foreground transition-colors hover:text-foreground"
+              href="/examples"
+            >
+              Examples
+            </Link>
+            <Link
+              className="text-muted-foreground transition-colors hover:text-foreground"
+              href="/dashboard"
+            >
+              Dashboard
+            </Link>
+            <a
+              className="text-muted-foreground transition-colors hover:text-foreground"
+              href="https://github.com/chrislaughlin/gridframe/blob/main/docs/ai-dashboards.md"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Docs
+            </a>
+            <a
+              className="text-muted-foreground transition-colors hover:text-foreground"
+              href="https://github.com/chrislaughlin/gridframe"
+              rel="noreferrer"
+              target="_blank"
+            >
+              GitHub
+            </a>
+          </nav>
+          <ThemeSwitcher />
+        </div>
         <details className="group relative sm:hidden">
           <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-md px-3 text-sm font-medium text-foreground outline-none transition-colors hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
             Menu
@@ -57,6 +61,7 @@ function SiteHeader() {
             >
               Dashboard
             </Link>
+            <ThemeSwitcher compact />
             <a
               className="flex min-h-11 items-center rounded-sm px-3 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               href="https://github.com/chrislaughlin/gridframe/blob/main/docs/ai-dashboards.md"

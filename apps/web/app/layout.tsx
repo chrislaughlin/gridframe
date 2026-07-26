@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import { SiteHeader } from "./components/site-header";
 import { SiteFooter } from "./components/site-footer";
 import { LegacyServiceWorkerCleanup } from "./legacy-service-worker-cleanup";
+import { ThemeProvider } from "./themes/theme-provider";
+import { themeBootScript } from "./themes/theme-boot-script";
 import "@gridframe/react/styles.css";
 import "./globals.css";
 
@@ -27,14 +29,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <LegacyServiceWorkerCleanup />
-        <div className="flex min-h-svh flex-col">
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
-        </div>
+        <ThemeProvider>
+          <LegacyServiceWorkerCleanup />
+          <div className="flex min-h-svh flex-col">
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

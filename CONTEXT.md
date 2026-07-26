@@ -55,3 +55,23 @@ _Avoid_: Card action bar, card CTA
 **Dashboard footer**:
 The bottom area of a dashboard, used for global dashboard context or links.
 _Avoid_: Page footer, app footer
+
+**Theme**:
+A cohesive set of visual values that controls the appearance of a Dashboard, its Cards, and their Visualizations.
+_Avoid_: Skin, color scheme, palette
+
+**Theme preset**:
+A named, ready-to-use Theme supplied for repeated use across Dashboards.
+_Avoid_: Built-in theme, default palette
+
+**Theme foundation**:
+The small set of user-chosen visual values from which a complete Custom theme is derived.
+_Avoid_: Base palette, seed colors
+
+**Custom theme**:
+A user-authored Theme generated from a Theme foundation.
+_Avoid_: User theme, generated theme
+
+**Theme Builder**:
+The interactive experience for creating and previewing a Custom theme.
+_Avoid_: Theme editor, color generator
