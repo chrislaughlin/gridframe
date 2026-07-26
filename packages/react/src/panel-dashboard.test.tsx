@@ -431,9 +431,12 @@ describe("PanelDashboard API-managed mode", () => {
         "/api/gridframe/users/user-1/dashboards/dashboard-1/cards/metric/data",
       ),
     ).not.toBeInTheDocument();
-    expect(
-      document.querySelector('[data-slot="metric-visualization"]'),
-    ).toHaveClass("min-h-0", "h-full");
+    const metricVisualization = document.querySelector(
+      '[data-slot="metric-visualization"]',
+    );
+    expect(metricVisualization).toHaveClass("min-h-0", "flex-1");
+    expect(metricVisualization).toHaveTextContent("Revenue");
+    expect(metricVisualization?.children).toHaveLength(1);
     expect(fetch).toHaveBeenCalledWith(
       "/api/gridframe/users/user-1/dashboards/bootstrap",
       expect.objectContaining({ method: "POST" }),
@@ -796,7 +799,7 @@ function responseFor(id: string): PanelCardDataResponse {
     case "metric":
       return {
         status: "success",
-        data: { visualization: "metric", value: 10 },
+        data: { visualization: "metric", label: "Revenue", value: 10 },
       };
     case "area":
       return {
