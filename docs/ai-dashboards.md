@@ -2,6 +2,16 @@
 
 Gridframe can turn a natural-language request into a validated Dashboard proposal. The model selects Cards from the consumer's Card library and fields from an explicit safe list. Gridframe validates the proposal, shows a preview, and waits for the user to apply it.
 
+## What ships today
+
+- **Create or edit:** users can propose a new named Dashboard or changes to the current Dashboard from the same React dialog.
+- **Nine typed actions:** create a Dashboard, update Dashboard metadata, add/update/remove/move/resize Cards, and add/remove global filters.
+- **Data-aware Cards:** proposals configure approved metrics, dimensions, time fields, aggregations, filters, sorting, and limits. Card data still comes from consumer-owned Card data resolvers.
+- **Server-resolved previews:** the response includes action labels, assumptions, missing information, validation issues, and the final four-column Card layout before any write occurs.
+- **Explicit, revision-gated Apply:** generation is read-only. Apply repeats authorization and capability checks, detects stale revisions, and asks the consumer-owned Dashboard repository for one transactional write.
+- **Provider choice:** OpenRouter, OpenAI, Anthropic, Google, an OpenAI-compatible endpoint, or a custom `DashboardAIProvider`.
+- **Structured-output repair:** malformed JSON, invalid proposals, unknown Cards, and unknown fields receive one constrained repair attempt before the request fails.
+
 ## Architecture
 
 The feature keeps each concern in its existing package:
@@ -23,7 +33,7 @@ The generation path is:
 5. Gridframe makes one repair request for malformed JSON, schema errors, unknown Card keys, or unknown fields.
 6. The client receives a preview. Generation does not write to the Dashboard repository.
 7. Apply repeats authorization, revision, schema, Card library, field, and layout checks.
-8. The consumer repository creates or updates the complete result in one transaction. Updates increment the revision once.
+8. The consumer-owned Dashboard repository creates or updates the complete result in one transaction. Updates increment the revision once.
 
 The model cannot send SQL, JavaScript, React components, or arbitrary database commands through the proposal schema. Card data still flows through registered Card data resolvers.
 
@@ -215,9 +225,10 @@ const preview = await ai.proposeDashboard({
   prompt: "Add revenue and order KPIs above a monthly revenue trend.",
 });
 
-if (preview.validation.canApply && preview.dashboardId && preview.revision) {
+if (preview.validation.canApply) {
   const updated = await ai.applyDashboardProposal({
     userId: "user-1",
+    // Both are undefined when the proposal creates a new Dashboard.
     dashboardId: preview.dashboardId,
     revision: preview.revision,
     proposal: preview.proposal,
@@ -225,7 +236,7 @@ if (preview.validation.canApply && preview.dashboardId && preview.revision) {
 }
 ```
 
-Omit `dashboardId` and `revision` to propose a new named Dashboard. Generation remains read-only; the proposal must include `createDashboard`, and the Dashboard record is created transactionally only when the client calls Apply. `RequestOptions` also accepts `headers` and `credentials` for a host application's authentication scheme; these options are HTTP metadata and never enter the JSON proposal payload.
+Omit `dashboardId` and `revision` from both calls to propose and apply a new named Dashboard. Generation remains read-only; the proposal must include `createDashboard`, and the Dashboard record is created transactionally only when the client calls Apply. `RequestOptions` also accepts `headers` and `credentials` for a host application's authentication scheme; these options are HTTP metadata and never enter the JSON proposal payload.
 
 `<PanelDashboard dashboard={{ userId }} />` includes the same flow in its **Create with AI** dialog. The user can edit the current Dashboard or create a new named Dashboard. It shows assumptions, missing information, validation errors, action labels, and the server-resolved final Card layout. The component sends Apply only after the user selects **Apply proposal**.
 
@@ -233,7 +244,7 @@ An `addGlobalFilter` action may omit `value`. The Dashboard then renders a user 
 
 ## Run the bundled example
 
-The repository's `apps/web` application wires the selected provider, Neon Dashboard repository, example routes, React dialog, ecommerce Card library, safe fields, and data-config-aware resolvers together.
+The repository's `apps/web` application wires the selected provider, Neon Dashboard repository, example routes, React dialog, ecommerce Card library, safe fields, and data-config-aware Card data resolvers together.
 
 1. Complete the existing `DATABASE_URL` and schema setup described in the root README.
 2. Set one provider configuration in the repository-root `.env.local`.

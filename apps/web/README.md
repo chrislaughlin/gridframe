@@ -6,7 +6,9 @@ A Next.js (App Router) application that demonstrates the full API-managed dashbo
 - persisted Card layouts and names with revision conflict handling;
 - Card library add/remove across every visualization type;
 - server-mediated data queries with SSRF protection;
-- Card deeplinks with source-data drill-down.
+- Card deeplinks with source-data drill-down;
+- AI-generated proposals that create or edit Dashboards through an explicit,
+  validated Apply step.
 
 ## Quick start
 
@@ -14,18 +16,21 @@ A Next.js (App Router) application that demonstrates the full API-managed dashbo
 pnpm dev   # root monorepo — serves web on :3000
 ```
 
-Open [localhost:3000](http://localhost:3000). The home route redirects to `/gridframe/users/example-user/dashboards` which boots a dashboard and renders it.
+Open [localhost:3000](http://localhost:3000) for the product site, or go
+directly to
+[`/gridframe/users/example-user/dashboards`](http://localhost:3000/gridframe/users/example-user/dashboards)
+to boot the example user's Dashboard and try **Create with AI**.
 
 ## Package reference
 
 All framework packages live in the monorepo under `packages/`:
 
-| Package             | Description                                                                                                                                   | Source                                                                                                       |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `@gridframe/core`   | Zod schemas, types, and constants (40+ schemas for dashboard documents, cards, layouts, API requests/responses)                               | [`packages/core/src/index.ts`](../packages/core/src/index.ts)                                                |
-| `@gridframe/server` | `createDashboardHandlers` factory, repository interface, and error classes (`DashboardNotFoundError`, `DashboardRevisionConflictError`, etc.) | [`packages/server/src/index.ts`](../packages/server/src/index.ts) — [`README`](../packages/server/README.md) |
-| `@gridframe/client` | Fetch wrappers for the dashboard API — `bootstrapDashboard`, `addDashboardCard`, `updateDashboardLayout`, `fetchDashboardCardData`, etc.      | [`packages/client/src/index.ts`](../packages/client/src/index.ts)                                            |
-| `@gridframe/react`  | React components — `PanelDashboard`, `CardVisualization`, `DashboardDrillDown`, `SourceDataTable`                                             | [`packages/react/src/index.ts`](../packages/react/src/index.ts) — [`README`](../packages/react/README.md)    |
+| Package             | Description                                                                                                                                   | Source                                                                                                             |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `@gridframe/core`   | Zod schemas, types, and constants (40+ schemas for dashboard documents, cards, layouts, API requests/responses)                               | [`packages/core/src/index.ts`](../../packages/core/src/index.ts)                                                   |
+| `@gridframe/server` | `createDashboardHandlers` factory, repository interface, and error classes (`DashboardNotFoundError`, `DashboardRevisionConflictError`, etc.) | [`packages/server/src/index.ts`](../../packages/server/src/index.ts) — [`README`](../../packages/server/README.md) |
+| `@gridframe/client` | Fetch wrappers for the dashboard API — `bootstrapDashboard`, `addDashboardCard`, `updateDashboardLayout`, `fetchDashboardCardData`, etc.      | [`packages/client/src/index.ts`](../../packages/client/src/index.ts)                                               |
+| `@gridframe/react`  | React components — `PanelDashboard`, `CardVisualization`, `DashboardDrillDown`, `SourceDataTable`                                             | [`packages/react/src/index.ts`](../../packages/react/src/index.ts) — [`README`](../../packages/react/README.md)    |
 
 ## Architecture
 
@@ -33,9 +38,8 @@ The app is split into four layers:
 
 ```
 app/                          # Next.js App Router — routes + pages + API
-  page.tsx                    #   redirects to the example user's dashboards
+  page.tsx                    #   product landing page
   layout.tsx                  #   root layout (fonts and CSS)
-  providers.tsx               #   MSW mock service worker in dev mode
   gridframe/                  #   frontend routes
     users/[userId]/dashboards/
       page.tsx                #     /gridframe/.../dashboards
@@ -47,6 +51,7 @@ app/                          # Next.js App Router — routes + pages + API
   api/                        #   backend routes
     consumer/cards/[sourceKey]/route.ts  # faker-based data endpoint
     gridframe/.../{bootstrap,layout,cards,card-library}/route.ts  # dashboard CRUD
+    gridframe/users/[userId]/ai/dashboard-proposals/  # propose, validate, apply
 
 server/dashboard/             # Server-side logic (not a Next.js convention, just a directory)
   handlers.ts                 #   wires @gridframe/server to local types
@@ -54,6 +59,8 @@ server/dashboard/             # Server-side logic (not a Next.js convention, jus
   service.ts                  #   singleton factory for the repository
   database.ts                 #   Neon HTTP client + schema initializer
   card-definitions.ts         #   8 card types with deterministic faker data
+  ai-data-fields.ts           #   semantic, AI-safe field catalogue
+  ai.ts                       #   provider selection + Dashboard AI service
   card-data-handler.ts        #   mediated card data (SSRF-safe proxy)
   consumer-handler.ts         #   faker API endpoint
   seed.ts                     #   default dashboard configuration
@@ -132,6 +139,10 @@ The eight built-in cards are:
 
 The example uses `defineCards`, which derives the exported `cardLibrary` array and `resolveExampleCardData` dispatcher passed to `createDashboardHandlers`.
 
+The same definitions include optional `ai` metadata. `defineCards` derives an
+`aiCardLibrary` containing only those approved Cards, so the model never sees
+Card definitions that have not opted into planning.
+
 ### Seed config (`seed.ts`)
 
 `defaultDashboardSeed` defines the initial dashboard that gets lazily created on first bootstrap:
@@ -150,7 +161,7 @@ A mediated proxy that reads the card's `sourceQuery` (persisted in the DB), vali
 
 The consumer API base URL is configurable via `GRIDFRAME_CONSUMER_API_BASE_URL`.
 
-### Consumer handler (`consumer-card-handler.ts`)
+### Consumer handler (`consumer-handler.ts`)
 
 A lightweight faker-backed endpoint that returns deterministic records for a given card key. Seeded by `key` so repeated calls return identical data. Registered at `app/api/consumer/cards/[sourceKey]/route.ts`.
 
@@ -158,15 +169,18 @@ A lightweight faker-backed endpoint that returns deterministic records for a giv
 
 All API routes follow the same pattern — import `getDashboardHandlers`, call the relevant handler:
 
-| Route                                                                     | Method | Handler                    | Purpose                                                                                                              |
-| ------------------------------------------------------------------------- | ------ | -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `/api/gridframe/users/:userId/dashboards/bootstrap`                       | POST   | `handlers.bootstrap`       | Lazy-create or load user's default dashboard. Idempotent — re-bootstrapping the same user returns the same dashboard |
-| `/api/gridframe/users/:userId/dashboards/:dashboardId/layout`             | PATCH  | `handlers.updateLayout`    | Update card positions/sizes with revision check                                                                      |
-| `/api/gridframe/users/:userId/dashboards/:dashboardId/cards`              | POST   | `handlers.addCard`         | Add a card from the library (revision-gated)                                                                         |
-| `/api/gridframe/users/:userId/dashboards/:dashboardId/cards/:cardId`      | PATCH  | `handlers.updateCard`      | Rename a card (revision-gated)                                                                                       |
-| `/api/gridframe/users/:userId/dashboards/:dashboardId/cards/:cardId`      | DELETE | `handlers.removeCard`      | Remove a card (revision-gated)                                                                                       |
-| `/api/gridframe/users/:userId/dashboards/:dashboardId/card-library`       | GET    | `handlers.listCardLibrary` | List available cards with add/removed state                                                                          |
-| `/api/gridframe/users/:userId/dashboards/:dashboardId/cards/:cardId/data` | GET    | `card-data-handler`        | Fetch card data via the SSRF-safe mediator                                                                           |
+| Route                                                                     | Method | Handler                     | Purpose                                                                                                              |
+| ------------------------------------------------------------------------- | ------ | --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `/api/gridframe/users/:userId/dashboards/bootstrap`                       | POST   | `handlers.bootstrap`        | Lazy-create or load user's default dashboard. Idempotent — re-bootstrapping the same user returns the same dashboard |
+| `/api/gridframe/users/:userId/dashboards/:dashboardId/layout`             | PATCH  | `handlers.updateLayout`     | Update card positions/sizes with revision check                                                                      |
+| `/api/gridframe/users/:userId/dashboards/:dashboardId/cards`              | POST   | `handlers.addCard`          | Add a card from the library (revision-gated)                                                                         |
+| `/api/gridframe/users/:userId/dashboards/:dashboardId/cards/:cardId`      | PATCH  | `handlers.updateCard`       | Rename a card (revision-gated)                                                                                       |
+| `/api/gridframe/users/:userId/dashboards/:dashboardId/cards/:cardId`      | DELETE | `handlers.removeCard`       | Remove a card (revision-gated)                                                                                       |
+| `/api/gridframe/users/:userId/dashboards/:dashboardId/card-library`       | GET    | `handlers.listCardLibrary`  | List available cards with add/removed state                                                                          |
+| `/api/gridframe/users/:userId/dashboards/:dashboardId/cards/:cardId/data` | GET    | `card-data-handler`         | Fetch card data via the SSRF-safe mediator                                                                           |
+| `/api/gridframe/users/:userId/ai/dashboard-proposals`                     | POST   | `proposeDashboard`          | Generate, repair when needed, validate, and preview a proposal without writing                                       |
+| `/api/gridframe/users/:userId/ai/dashboard-proposals/validate`            | POST   | `validateDashboardProposal` | Validate a supplied proposal against current permissions, Cards, fields, and layout                                  |
+| `/api/gridframe/users/:userId/ai/dashboard-proposals/apply`               | POST   | `applyDashboardProposal`    | Revalidate and create or replace a Dashboard transactionally with revision checks                                    |
 
 All routes use the Next.js Node.js runtime.
 
@@ -186,7 +200,12 @@ Placed at the `/dashboards` routes via `DashboardPage` (a thin client-side wrapp
 }
 ```
 
-It renders the full dashboard UI: title, cards (visualizations), footer, card library drawer, and layout editing. On first render it POSTs to `/bootstrap` to lazily create the user's default dashboard.
+It renders the full dashboard UI: title, Cards (Visualizations), global filters,
+footer, Card library drawer, layout editing, and the **Create with AI** dialog.
+The dialog can propose edits to the current Dashboard or a new named Dashboard.
+It previews every action and the final layout, and it does not write until the
+user selects **Apply proposal**. On first render the component POSTs to
+`/bootstrap` to lazily create the user's default Dashboard.
 
 ### `DashboardDrillDown`
 
@@ -199,11 +218,25 @@ Placed at `/cards/:cardId` routes. Takes `{userId, dashboardId, cardId}` and ren
 
 ## Environment variables
 
-| Variable                          | Default                               | Purpose                                       |
-| --------------------------------- | ------------------------------------- | --------------------------------------------- |
-| `DATABASE_URL`                    | required                              | Pooled or direct Neon Postgres connection URL |
-| `TEST_DATABASE_URL`               | none                                  | Dedicated Neon database for integration tests |
-| `GRIDFRAME_CONSUMER_API_BASE_URL` | `http://localhost:3000/api/consumer/` | Base URL for the SSRF-safe card data mediator |
+| Variable                          | Default                               | Purpose                                                                 |
+| --------------------------------- | ------------------------------------- | ----------------------------------------------------------------------- |
+| `DATABASE_URL`                    | required                              | Pooled or direct Neon Postgres connection URL                           |
+| `TEST_DATABASE_URL`               | none                                  | Dedicated Neon database for integration tests                           |
+| `GRIDFRAME_CONSUMER_API_BASE_URL` | `http://localhost:3000/api/consumer/` | Base URL for the SSRF-safe Card data mediator                           |
+| `GRIDFRAME_AI_PROVIDER`           | `openrouter`                          | `openrouter`, `openai`, `anthropic`, `google`, or `openai-compatible`   |
+| `GRIDFRAME_AI_MODEL`              | provider default                      | Optional provider model override; required for `openai-compatible`      |
+| `GRIDFRAME_AI_BASE_URL`           | provider endpoint                     | Optional endpoint override; required for `openai-compatible`            |
+| `GRIDFRAME_AI_API_KEY`            | none                                  | Generic credential override; may be empty for a local compatible server |
+
+Set the selected provider credential on the server: `OPENROUTER_API_KEY`,
+`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY`. The example returns
+`AI_NOT_CONFIGURED` until a usable provider configuration is present.
+
+The public example only accepts same-origin AI requests for its fixed
+`example-user` identity. That keeps the demo runnable but is not an
+authentication pattern for production. A host application must derive
+`principalId` from its authenticated server session, check it against the route
+identity, and rate-limit provider usage as appropriate.
 
 The app loads the repository-root `.env.development.local` during local Next.js development. In deployed environments, provide `DATABASE_URL` through the platform's environment configuration.
 

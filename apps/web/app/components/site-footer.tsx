@@ -14,7 +14,7 @@ function SiteFooter() {
           </a>
           <a
             className="flex min-h-11 items-center transition-colors hover:text-foreground sm:min-h-0"
-            href="https://github.com/nicholasgriffintn/gridframe"
+            href="https://github.com/chrislaughlin/gridframe"
             rel="noreferrer"
             target="_blank"
           >

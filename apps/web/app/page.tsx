@@ -58,6 +58,66 @@ function DashboardPreview() {
   );
 }
 
+function DashboardAI() {
+  const safeguards = [
+    "Approved Cards only",
+    "Semantic field allowlist",
+    "Read-only generation",
+    "Revision-gated Apply",
+  ];
+
+  return (
+    <section className="border-b border-border bg-card/40" id="dashboard-ai">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
+          <div>
+            <p className="text-sm font-medium text-primary">
+              AI-generated Dashboards
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Natural-language planning with an explicit Apply
+            </h2>
+            <p className="mt-4 max-w-xl leading-7 text-muted-foreground">
+              Users can create a named Dashboard or edit the current one with
+              OpenRouter, OpenAI, Anthropic, Google, or an OpenAI-compatible
+              endpoint. Gridframe validates every action and shows the final
+              Card layout before anything is saved.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                href="/gridframe/users/example-user/dashboards"
+              >
+                Try Create with AI
+              </Link>
+              <a
+                className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-background px-5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                href="https://github.com/chrislaughlin/gridframe/blob/main/docs/ai-dashboards.md"
+                rel="noreferrer"
+                target="_blank"
+              >
+                Read the AI guide
+              </a>
+            </div>
+          </div>
+          <div className="grid content-start gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
+            {safeguards.map((safeguard, index) => (
+              <div className="bg-card p-5" key={safeguard}>
+                <span className="font-mono text-xs text-primary">
+                  0{index + 1}
+                </span>
+                <p className="mt-8 text-sm font-medium text-card-foreground">
+                  {safeguard}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Features() {
   return (
     <section className="border-b border-border">
@@ -241,7 +301,7 @@ function AgentSkills() {
     },
     {
       description:
-        "Add future Card definitions and resolvers to the Card library without changing the Dashboard seed unless you explicitly ask.",
+        "Add future Card definitions and Card data resolvers to the Card library without changing the Dashboard seed unless you explicitly ask.",
       href: "https://github.com/chrislaughlin/gridframe/tree/main/skills/add-gridframe-card",
       name: "add-gridframe-card",
     },
@@ -382,6 +442,7 @@ function Home() {
     <>
       <Hero />
       <DashboardPreview />
+      <DashboardAI />
       <Features />
       <VisualizationShowcase />
       <CodeExample />

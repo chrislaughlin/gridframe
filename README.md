@@ -60,6 +60,21 @@ Browser                          Server                       Consumer API
   │<─ OK / 409 conflict ───────────│                             │
 ```
 
+AI-generated Dashboard flow:
+
+```
+Prompt → approved Cards + safe fields → provider → validate/repair → preview
+                                                                    ↓
+Dashboard repository ← transactional, revision-gated Apply ← explicit user action
+```
+
+The model produces versioned proposal actions rather than executable code.
+Generation is read-only; Apply repeats authorization, permission, Card, field,
+schema, layout, and revision checks. Proposals can create a named Dashboard,
+change Dashboard metadata, add/update/remove/move/resize Cards, and add or
+remove global filters. See [AI-generated Dashboards](docs/ai-dashboards.md) for
+provider setup and the complete security model.
+
 ## Packages
 
 | Package             | Description                                                                                         |

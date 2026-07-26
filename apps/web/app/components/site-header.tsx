@@ -25,7 +25,15 @@ function SiteHeader() {
           </Link>
           <a
             className="text-muted-foreground transition-colors hover:text-foreground"
-            href="https://github.com/nicholasgriffintn/gridframe"
+            href="https://github.com/chrislaughlin/gridframe/blob/main/docs/ai-dashboards.md"
+            rel="noreferrer"
+            target="_blank"
+          >
+            Docs
+          </a>
+          <a
+            className="text-muted-foreground transition-colors hover:text-foreground"
+            href="https://github.com/chrislaughlin/gridframe"
             rel="noreferrer"
             target="_blank"
           >
@@ -51,7 +59,15 @@ function SiteHeader() {
             </Link>
             <a
               className="flex min-h-11 items-center rounded-sm px-3 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              href="https://github.com/nicholasgriffintn/gridframe"
+              href="https://github.com/chrislaughlin/gridframe/blob/main/docs/ai-dashboards.md"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Docs
+            </a>
+            <a
+              className="flex min-h-11 items-center rounded-sm px-3 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              href="https://github.com/chrislaughlin/gridframe"
               rel="noreferrer"
               target="_blank"
             >
