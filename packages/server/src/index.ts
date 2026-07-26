@@ -7,6 +7,7 @@ import {
   DashboardDocumentSchema,
   DASHBOARD_GRID_COLUMNS,
   PanelCardDataResponseSchema,
+  PanelCardDataWithSourceResponseSchema,
   RemoveDashboardCardRequestSchema,
   UpdateDashboardCardRequestSchema,
   UpdateDashboardGlobalFilterRequestSchema,
@@ -40,6 +41,7 @@ type CardLibraryTemplate = {
     height: number;
   };
   deeplinkLabel?: string;
+  allowMultiple?: boolean;
 };
 
 type CardDefinitionResolver = (
@@ -202,6 +204,10 @@ type CardDataResolverInput = CardIdentity & {
   card: PersistedDashboardCard;
   globalFilters?: readonly import("@gridframe/core").DashboardGlobalFilter[];
   request: Request;
+  /** True when the caller requires the normalized source table used for drill-down. */
+  includeSource?: boolean;
+  /** Aborts when the incoming HTTP request is cancelled. */
+  signal?: AbortSignal;
 };
 
 class DashboardNotFoundError extends Error {
@@ -258,6 +264,7 @@ function defineCards<const T extends CardDefinitionMap>(
     visualization: definition.visualization,
     defaultLayout: definition.defaultLayout,
     deeplinkLabel: definition.deeplinkLabel,
+    allowMultiple: definition.allowMultiple ?? false,
   }));
   const aiCardLibrary = entries.flatMap(([key, definition]) => {
     if (!definition.ai) return [];
@@ -594,6 +601,7 @@ function createDashboardHandlers(options: DashboardHandlerOptions) {
           throw new DashboardInvalidLibraryItemError();
         }
         if (
+          !template.allowMultiple &&
           dashboard.cards.some(
             (card) => card.libraryItemKey === parsed.data.libraryItemKey,
           )
@@ -694,13 +702,18 @@ function createDashboardHandlers(options: DashboardHandlerOptions) {
           identity.dashboardId,
         );
 
+        const includeSource = new URL(request.url).searchParams.get("includeSource") === "true";
         const result = await options.resolveCardData({
           ...identity,
           card,
           globalFilters: dashboard.globalFilters ?? [],
           request,
+          includeSource,
+          signal: request.signal,
         });
-        const parsed = PanelCardDataResponseSchema.safeParse(result);
+        const parsed = (includeSource
+          ? PanelCardDataWithSourceResponseSchema
+          : PanelCardDataResponseSchema).safeParse(result);
 
         if (!parsed.success) {
           return cardQueryFailed();
@@ -770,10 +783,6 @@ function buildCardLibraryResponse(
   dashboard: PersistedDashboard,
   cardLibrary: readonly CardLibraryTemplate[],
 ) {
-  const installed = new Map(
-    dashboard.cards.map((card) => [card.libraryItemKey, card.id]),
-  );
-
   return CardLibraryResponseSchema.parse({
     items: cardLibrary.map(
       (template): CardLibraryItem => ({
@@ -782,7 +791,13 @@ function buildCardLibraryResponse(
         description: template.description,
         visualization: template.visualization,
         defaultLayout: template.defaultLayout,
-        addedCardId: installed.get(template.key),
+        allowMultiple: template.allowMultiple ?? false,
+        instances: dashboard.cards
+          .filter((card) => card.libraryItemKey === template.key)
+          .map((card) => ({ cardId: card.id, name: card.name })),
+        addedCardId: dashboard.cards.find(
+          (card) => card.libraryItemKey === template.key,
+        )?.id,
       }),
     ),
   });
@@ -907,6 +922,33 @@ function cardQueryFailed() {
   );
 }
 
+type GridframeServerOptions<T extends CardDefinitionMap> = {
+  repository: DashboardRepository;
+  cards: DefinedCards<T>;
+  seed: DashboardHandlerOptions["defaultDashboard"];
+  urls?: DashboardUrlOptions;
+};
+
+/** High-level configuration that keeps a trusted Card registry and its resolver together. */
+function createGridframe<const T extends CardDefinitionMap>(
+  options: GridframeServerOptions<T>,
+) {
+  const handlers = createDashboardHandlers({
+    repository: options.repository,
+    cardLibrary: options.cards.cardLibrary,
+    defaultDashboard: options.seed,
+    resolveCardData: options.cards.resolveCardData,
+    urls: options.urls,
+  });
+  return {
+    handlers,
+    cards: options.cards.definitions,
+    cardLibrary: options.cards.cardLibrary,
+    resolveCardData: options.cards.resolveCardData,
+    urls: options.urls,
+  } as const;
+}
+
 export {
   DashboardCardAlreadyAddedError,
   DashboardInvalidLayoutError,
@@ -914,6 +956,7 @@ export {
   DashboardNotFoundError,
   DashboardRevisionConflictError,
   createDashboardHandlers,
+  createGridframe,
   defineCards,
   serializeDashboardDocument,
   findFirstAvailableDashboardLayout,
@@ -929,6 +972,7 @@ export type {
   DashboardContext,
   DashboardHandlerOptions,
   DashboardRepository,
+  GridframeServerOptions,
   DashboardSeed,
   DashboardSeedCard,
   DashboardUrlOptions,

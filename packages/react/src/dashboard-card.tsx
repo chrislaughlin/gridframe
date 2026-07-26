@@ -36,8 +36,14 @@ function DashboardCard({
   onRemove,
 }: DashboardCardProps) {
   const query = useQuery({
-    queryKey: ["panel-dashboard-card", card.id, card.query],
-    queryFn: () => fetchPanelCardData(card.query),
+    queryKey: ["panel-dashboard-card", card.id, card.source, card.query],
+    queryFn: ({ signal }) => {
+      if (card.source?.type === "inline") return card.source.data;
+      const remote = card.source?.type === "remote" ? card.source : undefined;
+      const url = remote?.url ?? card.query;
+      if (!url) throw new Error("Card has no data source");
+      return fetchPanelCardData(url, { ...remote?.request, signal });
+    },
   });
   const [isEditingName, setIsEditingName] = React.useState(false);
   const [draftName, setDraftName] = React.useState(displayName);

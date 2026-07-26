@@ -83,3 +83,17 @@ Host applications own authorization. The `userId` passed to handlers is an appli
 `createDashboardAIService` adds proposal generation, validation, and transactional application. `createDashboardAIProvider` configures OpenRouter, OpenAI, Anthropic, Google, or a custom OpenAI-compatible endpoint behind one interface. Consumers supply authorization, AI-capable Cards, safe fields, and a `DashboardAIRepository` implementation.
 
 See [AI-generated Dashboards](https://github.com/chrislaughlin/gridframe/blob/main/docs/ai-dashboards.md) for setup, routes, provider configuration, security boundaries, and a complete example.
+
+## Unified configuration
+
+```ts
+const gridframe = createGridframe({
+  repository,
+  cards,
+  seed: ({ userId }) => dashboardSeedFor(userId),
+});
+```
+
+The returned value keeps handlers, Card metadata, and the resolver from the same trusted `defineCards` registry. `createDashboardHandlers` remains the lower-level API.
+
+For Next.js App Router, install `@gridframe/next` and mount this value from a catch-all route with `createNextGridframeRoute`. Its required `resolveIdentity` callback keeps authentication and authorization host-owned.

@@ -32,6 +32,7 @@ describe("defineCards", () => {
         visualization: "metric",
         defaultLayout: { width: 1, height: 2 },
         deeplinkLabel: "View revenue",
+        allowMultiple: false,
         sourceName: "orders",
         resolve: () => ({
           status: "success",
@@ -48,6 +49,7 @@ describe("defineCards", () => {
         visualization: "metric",
         defaultLayout: { width: 1, height: 2 },
         deeplinkLabel: "View revenue",
+        allowMultiple: false,
       },
     ]);
     expect(cards.definitions.revenue).toMatchObject({

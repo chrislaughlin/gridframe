@@ -42,41 +42,6 @@ export const DashboardCardLayoutSchema = z.object({
 });
 export type DashboardCardLayout = z.infer<typeof DashboardCardLayoutSchema>;
 
-export const DashboardCardConfigSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().optional(),
-  visualization: VisualizationTypeSchema,
-  query: z.string(),
-  data: DashboardCardDataConfigSchema.optional(),
-  deeplink: CardDeeplinkConfigSchema.optional(),
-  layout: DashboardCardLayoutSchema.optional(),
-});
-export type DashboardCardConfig = z.infer<typeof DashboardCardConfigSchema>;
-
-export const ApiDashboardCardConfigSchema = DashboardCardConfigSchema.extend({
-  layout: DashboardCardLayoutSchema,
-});
-export type ApiDashboardCardConfig = z.infer<
-  typeof ApiDashboardCardConfigSchema
->;
-
-export const PanelDashboardConfigSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  footer: DashboardFooterConfigSchema.optional(),
-  globalFilters: z.array(DashboardGlobalFilterSchema).optional(),
-  cards: z.array(DashboardCardConfigSchema),
-});
-export type PanelDashboardConfig = z.infer<typeof PanelDashboardConfigSchema>;
-
-export const ApiPanelDashboardConfigSchema = PanelDashboardConfigSchema.extend({
-  cards: z.array(ApiDashboardCardConfigSchema),
-});
-export type ApiPanelDashboardConfig = z.infer<
-  typeof ApiPanelDashboardConfigSchema
->;
-
 export const MetricTrendSchema = z.object({
   direction: z.enum(["up", "down", "neutral"]),
   value: z.string(),
@@ -288,6 +253,67 @@ export type PanelCardDataWithSourceResponse = z.infer<
   typeof PanelCardDataWithSourceResponseSchema
 >;
 
+export const InlineCardSourceSchema = z.object({
+  type: z.literal("inline"),
+  data: PanelCardDataResponseSchema,
+});
+export const RemoteCardSourceSchema = z.object({
+  type: z.literal("remote"),
+  url: z.string(),
+  request: z
+    .object({
+      headers: z.custom<HeadersInit>().optional(),
+      credentials: z.custom<RequestCredentials>().optional(),
+    })
+    .optional(),
+});
+export const CardSourceSchema = z.discriminatedUnion("type", [
+  InlineCardSourceSchema,
+  RemoteCardSourceSchema,
+]);
+export type InlineCardSource = z.infer<typeof InlineCardSourceSchema>;
+export type RemoteCardSource = z.infer<typeof RemoteCardSourceSchema>;
+export type CardSource = z.infer<typeof CardSourceSchema>;
+
+export const DashboardCardConfigSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().optional(),
+    visualization: VisualizationTypeSchema,
+    source: CardSourceSchema.optional(),
+    query: z.string().optional(),
+    data: DashboardCardDataConfigSchema.optional(),
+    deeplink: CardDeeplinkConfigSchema.optional(),
+    layout: DashboardCardLayoutSchema.optional(),
+  })
+  .refine((card) => card.source !== undefined || card.query !== undefined, {
+    message: "A Card requires source or legacy query",
+  });
+export type DashboardCardConfig = z.infer<typeof DashboardCardConfigSchema> & {
+  /** @deprecated Use `source: { type: "remote", url }` instead. */
+  query?: string;
+};
+
+export const ApiDashboardCardConfigSchema = DashboardCardConfigSchema.safeExtend({
+  layout: DashboardCardLayoutSchema,
+});
+export type ApiDashboardCardConfig = z.infer<typeof ApiDashboardCardConfigSchema>;
+
+export const PanelDashboardConfigSchema = z.object({
+  title: z.string(),
+  description: z.string().optional(),
+  footer: DashboardFooterConfigSchema.optional(),
+  globalFilters: z.array(DashboardGlobalFilterSchema).optional(),
+  cards: z.array(DashboardCardConfigSchema),
+});
+export type PanelDashboardConfig = z.infer<typeof PanelDashboardConfigSchema>;
+
+export const ApiPanelDashboardConfigSchema = PanelDashboardConfigSchema.extend({
+  cards: z.array(ApiDashboardCardConfigSchema),
+});
+export type ApiPanelDashboardConfig = z.infer<typeof ApiPanelDashboardConfigSchema>;
+
 export const DashboardSummarySchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -330,6 +356,10 @@ export const DashboardApiErrorCodeSchema = z.enum([
   "AI_PROPOSAL_NOT_APPLICABLE",
   "AI_PROVIDER_FAILED",
   "AI_NOT_CONFIGURED",
+  "SOURCE_DATA_UNAVAILABLE",
+  "FEATURE_NOT_AVAILABLE",
+  "CARD_CONFIGURATION_INVALID",
+  "CARD_CONFIGURATION_UNSUPPORTED",
 ]);
 export type DashboardApiErrorCode = z.infer<typeof DashboardApiErrorCodeSchema>;
 
@@ -381,6 +411,8 @@ export const CardLibraryItemSchema = z.object({
     height: z.number().int().positive(),
   }),
   addedCardId: z.string().optional(),
+  allowMultiple: z.boolean().optional(),
+  instances: z.array(z.object({ cardId: z.string(), name: z.string() })).optional(),
 });
 export type CardLibraryItem = z.infer<typeof CardLibraryItemSchema>;
 
@@ -419,6 +451,20 @@ export type ApplyDashboardProposalResponse = z.infer<
 
 export const DASHBOARD_GRID_COLUMNS = 4;
 
+export const GridframeLayoutConfigSchema = z.object({
+  desktopColumns: z.number().int().positive().default(4),
+  rowHeight: z.number().positive().default(96),
+  gap: z.tuple([z.number().nonnegative(), z.number().nonnegative()]).default([16, 16]),
+  breakpoints: z.object({ phone: z.number().positive(), desktop: z.number().positive() }).default({ phone: 640, desktop: 960 }),
+  presentationColumns: z.object({ phone: z.number().int().positive(), tablet: z.number().int().positive() }).default({ phone: 1, tablet: 2 }),
+  editableModes: z.array(z.enum(["phone", "tablet", "desktop"])).default(["desktop"]),
+  minCardWidth: z.number().int().positive().optional(),
+  minCardHeight: z.number().int().positive().optional(),
+  maxContentWidth: z.union([z.number().positive(), z.string()]).optional(),
+});
+export type GridframeLayoutConfig = z.input<typeof GridframeLayoutConfigSchema>;
+export const DEFAULT_GRIDFRAME_LAYOUT = GridframeLayoutConfigSchema.parse({});
+
 export type DashboardLayoutValidationResult =
   | { valid: true }
   | { valid: false; errors: string[] };
@@ -426,7 +472,9 @@ export type DashboardLayoutValidationResult =
 export function validateDashboardLayout(
   cards: readonly DashboardLayoutItem[],
   expectedCardIds: readonly string[],
+  configuration: GridframeLayoutConfig = DEFAULT_GRIDFRAME_LAYOUT,
 ): DashboardLayoutValidationResult {
+  const layout = GridframeLayoutConfigSchema.parse(configuration);
   const errors: string[] = [];
   const cardIds = cards.map((card) => card.id);
   const uniqueCardIds = new Set(cardIds);
@@ -445,9 +493,9 @@ export function validateDashboardLayout(
   }
 
   for (const card of cards) {
-    if (card.x + card.width > DASHBOARD_GRID_COLUMNS) {
+    if (card.x + card.width > layout.desktopColumns) {
       errors.push(
-        `Card ${card.id} extends beyond the ${DASHBOARD_GRID_COLUMNS}-column grid`,
+        `Card ${card.id} extends beyond the ${layout.desktopColumns}-column grid`,
       );
     }
   }

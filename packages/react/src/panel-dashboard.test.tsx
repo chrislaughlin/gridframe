@@ -122,6 +122,17 @@ afterEach(() => {
 });
 
 describe("PanelDashboard static mode", () => {
+  it.each([
+    ["success", { status: "success", data: { visualization: "metric", value: 42, label: "Orders" } }],
+    ["empty", { status: "empty", message: "No orders" }],
+    ["error", { status: "error", message: "Unavailable" }],
+  ] as const)("renders an inline %s response without fetch", async (_state, data) => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    render(<PanelDashboard config={{ title: "Inline", cards: [{ id: "inline-card", name: "Orders", visualization: "metric", source: { type: "inline", data } }] }} />);
+    await waitFor(() => expect(screen.queryByText("Loading card data...")).not.toBeInTheDocument());
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
+  });
   it("accepts a Theme scoped to one Dashboard", () => {
     render(
       <PanelDashboard

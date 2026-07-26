@@ -35,7 +35,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-:root {
+[data-gridframe-root] {
   color-scheme: light;
   --radius: 0.5rem;
   --background: oklch(0.985 0.006 250);
@@ -65,7 +65,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  [data-gridframe-root] {
     color-scheme: dark;
     --background: oklch(0.18 0.018 255);
     --foreground: oklch(0.93 0.012 250);

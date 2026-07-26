@@ -17,14 +17,16 @@
       "require": "./dist/theme.js",
       "default": "./dist/theme.js"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./base.css": "./dist/styles.css",
+    "./theme.css": "./dist/styles.css"
   },
   "files": [
     "dist",
     "README.md"
   ],
   "sideEffects": [
-    "./dist/styles.css"
+    "./dist/*.css"
   ],
   "publishConfig": {
     "access": "public"

@@ -181,12 +181,16 @@ describe("createDashboardHandlers", () => {
           visualization: "metric",
           defaultLayout: { width: 1, height: 2 },
           addedCardId: "card-1",
+          allowMultiple: false,
+          instances: [{ cardId: "card-1", name: "Revenue" }],
         },
         {
           key: "orders",
           name: "Orders",
           visualization: "bar",
           defaultLayout: { width: 3, height: 4 },
+          allowMultiple: false,
+          instances: [],
         },
       ],
     });

@@ -33,14 +33,12 @@ It gives you reusable dashboard components for the UI, plus a backend API layer 
     ├── @gridframe/server    Framework‑neutral server handlers
     └── @gridframe/react     React UI components (uses @gridframe/client internally)
             ^
-            └── @gridframe/ui    shadcn/ui‑style presentational components
 ```
 
 - **`@gridframe/core`** — Canonical contracts, Zod schemas, TypeScript types, and pure layout validation. No framework dependencies.
 - **`@gridframe/client`** — A typed HTTP client that wraps `fetch`, validates responses against core Zod schemas, and throws typed errors.
 - **`@gridframe/server`** — Framework-neutral server handlers. Implement the `DashboardRepository` interface for your database, define your card library, provide a card data resolver, and get a full dashboard API.
 - **`@gridframe/react`** — React components: `<PanelDashboard>` (static or API-managed mode), `<CardVisualization>`, `<SourceDataTable>`, and `<DashboardDrillDown>`. Owns its own TanStack Query client — no host-app provider setup needed.
-- **`@gridframe/ui`** — shadcn/ui-style presentational primitives (Alert, Badge, Button, Card, Chart, Dialog, Empty, Skeleton, Table).
 
 Data flow in API-managed mode:
 
@@ -83,7 +81,6 @@ provider setup and the complete security model.
 | `@gridframe/client` | Typed HTTP client for the dashboard REST API                                                        |
 | `@gridframe/react`  | React dashboard components (PanelDashboard, CardVisualization, SourceDataTable, DashboardDrillDown) |
 | `@gridframe/server` | Framework‑neutral Fetch-native server handlers                                                      |
-| `@gridframe/ui`     | shadcn/ui-style presentational primitives                                                           |
 
 ## Install
 
@@ -110,7 +107,7 @@ The React package provides pre-built styles for dashboard components and shadcn/
 import "@gridframe/react/styles.css";
 ```
 
-You also need Tailwind CSS v4 with `@tailwindcss/postcss` — see `apps/web/postcss.config.mjs` and `apps/web/app/globals.css` for the reference setup.
+The published stylesheet is compiled and scoped beneath `[data-gridframe-root]`; consumers do **not** need Tailwind. Tailwind is only an internal build tool.
 
 ### Agent skills
 
@@ -166,12 +163,13 @@ const config = {
       id: "card-1",
       name: "Total Revenue",
       layout: { x: 0, y: 0, width: 4, height: 2 },
-      query: "...",
-      visualization: {
-        type: "metric",
-        value: "$128,500",
-        label: "Revenue",
-        trend: { direction: "up", value: "12%" },
+      visualization: "metric",
+      source: {
+        type: "inline",
+        data: {
+          status: "success",
+          data: { visualization: "metric", value: "$128,500", label: "Revenue", trend: { direction: "up", value: "12%" } },
+        },
       },
     },
   ],

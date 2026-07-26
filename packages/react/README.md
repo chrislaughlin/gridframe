@@ -67,3 +67,9 @@ The provider, safe field catalogue, permissions, and persistence live in
 `@gridframe/server`; no provider credential is passed to the React package. See
 [AI-generated Dashboards](https://github.com/chrislaughlin/gridframe/blob/main/docs/ai-dashboards.md)
 for the complete server setup and security model.
+
+## Inline data and CSS isolation
+
+Static Cards use `source: { type: "inline", data }` and perform no request. Remote client-managed Cards use `source: { type: "remote", url, request }`. The old `query` field remains temporarily supported and is deprecated.
+
+`styles.css` is precompiled, requires no consumer Tailwind setup, and applies default Theme variables only inside the Gridframe root. Host `:root` variables and `color-scheme` are not modified. Wrap a larger custom experience in `GridframeThemeScope` when it needs the same scoped Theme.

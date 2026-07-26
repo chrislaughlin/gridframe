@@ -5,11 +5,14 @@ import {
 
 async function fetchPanelCardData(
   query: string,
+  init?: RequestInit,
 ): Promise<PanelCardDataResponse> {
   const response = await fetch(query, {
-    headers: {
+    ...init,
+    headers: new Headers({
       Accept: "application/json",
-    },
+      ...Object.fromEntries(new Headers(init?.headers)),
+    }),
   });
 
   if (!response.ok) {

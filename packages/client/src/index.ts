@@ -36,6 +36,7 @@ type RequestOptions = {
   signal?: AbortSignal;
   headers?: HeadersInit;
   credentials?: RequestCredentials;
+  fetch?: typeof globalThis.fetch;
 };
 
 type DashboardIdentity = RequestOptions & {
@@ -81,6 +82,7 @@ async function bootstrapDashboard(
   return requestJson({
     url: `${userDashboardsUrl(options)}/bootstrap`,
     init: jsonRequest("POST", { dashboardId: options.dashboardId }, options),
+    fetcher: options.fetch,
     schema: DashboardBootstrapResponseSchema,
   });
 }
@@ -104,6 +106,7 @@ async function fetchDashboardCardData(
       credentials: options.credentials,
       signal: options.signal,
     },
+    fetcher: options.fetch,
     schema: options.includeSource
       ? PanelCardDataWithSourceResponseSchema
       : PanelCardDataResponseSchema,
@@ -120,6 +123,7 @@ async function updateDashboardLayout(
       { revision: options.revision, cards: options.cards },
       options,
     ),
+    fetcher: options.fetch,
     schema: DashboardDocumentSchema,
   });
 }
@@ -134,6 +138,7 @@ async function updateDashboardCard(
       { revision: options.revision, name: options.name },
       options,
     ),
+    fetcher: options.fetch,
     schema: DashboardDocumentSchema,
   });
 }
@@ -149,6 +154,7 @@ async function updateDashboardGlobalFilter(
       { revision: options.revision, value: options.value },
       options,
     ),
+    fetcher: options.fetch,
     schema: DashboardDocumentSchema,
   });
 }
@@ -164,6 +170,7 @@ async function listCardLibrary(
       credentials: options.credentials,
       signal: options.signal,
     },
+    fetcher: options.fetch,
     schema: CardLibraryResponseSchema,
   });
 }
@@ -181,6 +188,7 @@ async function addDashboardCard(
       },
       options,
     ),
+    fetcher: options.fetch,
     schema: DashboardCardMutationResponseSchema,
   });
 }
@@ -191,6 +199,7 @@ async function removeDashboardCard(
   return requestJson({
     url: dashboardCardUrl(options),
     init: jsonRequest("DELETE", { revision: options.revision }, options),
+    fetcher: options.fetch,
     schema: DashboardCardMutationResponseSchema,
   });
 }
@@ -210,6 +219,7 @@ async function proposeDashboard(
       },
       options,
     ),
+    fetcher: options.fetch,
     schema: CreateDashboardProposalResponseSchema,
   });
 }
@@ -229,6 +239,7 @@ async function validateDashboardProposal(
       },
       options,
     ),
+    fetcher: options.fetch,
     schema: DashboardProposalValidationResultSchema,
   });
 }
@@ -248,6 +259,7 @@ async function applyDashboardProposal(
       },
       options,
     ),
+    fetcher: options.fetch,
     schema: ApplyDashboardProposalResponseSchema,
   });
 }
@@ -279,12 +291,14 @@ async function requestJson<T>({
   url,
   init,
   schema,
+  fetcher,
 }: {
   url: string;
   init: RequestInit;
+  fetcher?: typeof globalThis.fetch;
   schema: RuntimeSchema<T>;
 }): Promise<T> {
-  const response = await fetch(url, init);
+  const response = await (fetcher ?? globalThis.fetch)(url, init);
   const body = await readJson(response);
 
   if (!response.ok) {
@@ -337,6 +351,42 @@ function userAIUrl(options: DashboardAIIdentity) {
 function apiBaseUrl(value = DEFAULT_API_BASE_URL) {
   return value.replace(/\/+$/, "");
 }
+
+export type GridframeClientOptions = {
+  baseUrl?: string;
+  fetch?: typeof globalThis.fetch;
+  headers?: HeadersInit | (() => HeadersInit | Promise<HeadersInit>);
+  credentials?: RequestCredentials;
+};
+
+/** Creates an isolated client whose transport configuration is applied to every operation. */
+export function createGridframeClient(configuration: GridframeClientOptions = {}) {
+  async function options<T extends object>(input: T): Promise<T & RequestOptions> {
+    const headers = typeof configuration.headers === "function"
+      ? await configuration.headers()
+      : configuration.headers;
+    return { ...input, apiBaseUrl: configuration.baseUrl, fetch: configuration.fetch, headers, credentials: configuration.credentials };
+  }
+  return {
+    bootstrapDashboard: async (input: Parameters<typeof bootstrapDashboard>[0]) => bootstrapDashboard(await options(input)),
+    fetchDashboardCardData: async (input: CardIdentity & { includeSource?: boolean }): Promise<PanelCardDataResponse> => {
+      const configured = await options(input);
+      return configured.includeSource
+        ? fetchDashboardCardData({ ...configured, includeSource: true })
+        : fetchDashboardCardData({ ...configured, includeSource: false });
+    },
+    updateDashboardLayout: async (input: Parameters<typeof updateDashboardLayout>[0]) => updateDashboardLayout(await options(input)),
+    updateDashboardCard: async (input: Parameters<typeof updateDashboardCard>[0]) => updateDashboardCard(await options(input)),
+    updateDashboardGlobalFilter: async (input: Parameters<typeof updateDashboardGlobalFilter>[0]) => updateDashboardGlobalFilter(await options(input)),
+    listCardLibrary: async (input: Parameters<typeof listCardLibrary>[0]) => listCardLibrary(await options(input)),
+    addDashboardCard: async (input: Parameters<typeof addDashboardCard>[0]) => addDashboardCard(await options(input)),
+    removeDashboardCard: async (input: Parameters<typeof removeDashboardCard>[0]) => removeDashboardCard(await options(input)),
+    proposeDashboard: async (input: Parameters<typeof proposeDashboard>[0]) => proposeDashboard(await options(input)),
+    validateDashboardProposal: async (input: Parameters<typeof validateDashboardProposal>[0]) => validateDashboardProposal(await options(input)),
+    applyDashboardProposal: async (input: Parameters<typeof applyDashboardProposal>[0]) => applyDashboardProposal(await options(input)),
+  };
+}
+export type GridframeClient = ReturnType<typeof createGridframeClient>;
 
 export {
   DashboardClientError,
