@@ -405,6 +405,120 @@ function Architecture() {
   );
 }
 
+function TechStack() {
+  const technologies = [
+    {
+      category: "UI foundation",
+      description: "The component model behind every Dashboard and Card.",
+      href: "https://react.dev",
+      mark: "R",
+      name: "React",
+    },
+    {
+      category: "Type system",
+      description: "End-to-end types for configs, payloads, and consumers.",
+      href: "https://www.typescriptlang.org",
+      mark: "TS",
+      name: "TypeScript",
+    },
+    {
+      category: "Validation",
+      description: "Runtime validation for trusted Dashboard data.",
+      href: "https://zod.dev",
+      mark: "Z",
+      name: "Zod",
+    },
+    {
+      category: "Server state",
+      description: "Caching and request lifecycle management for Cards.",
+      href: "https://tanstack.com/query/latest",
+      mark: "TQ",
+      name: "TanStack Query",
+    },
+    {
+      category: "Visualizations",
+      description: "Composable chart primitives for Gridframe's visuals.",
+      href: "https://recharts.org",
+      mark: "RC",
+      name: "Recharts",
+    },
+    {
+      category: "Layout engine",
+      description: "Responsive drag, resize, and placement behavior.",
+      href: "https://github.com/react-grid-layout/react-grid-layout",
+      mark: "GL",
+      name: "React Grid Layout",
+    },
+    {
+      category: "Styling",
+      description: "A utility-first system for consistent, flexible themes.",
+      href: "https://tailwindcss.com",
+      mark: "TW",
+      name: "Tailwind CSS",
+    },
+    {
+      category: "Accessible primitives",
+      description: "Robust interaction foundations for dialogs and controls.",
+      href: "https://www.radix-ui.com/primitives",
+      mark: "RX",
+      name: "Radix UI",
+    },
+  ];
+
+  return (
+    <section className="border-b border-border bg-card/40" id="tech-stack">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="mb-10 grid gap-4 lg:grid-cols-2 lg:items-end">
+          <div>
+            <p className="text-sm font-medium text-primary">Tech stack</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Built on tools you already trust
+            </h2>
+          </div>
+          <p className="max-w-xl text-sm leading-6 text-muted-foreground lg:justify-self-end">
+            Gridframe stays focused by building on proven open-source libraries
+            for rendering, validation, data fetching, layout, and styling.
+          </p>
+        </div>
+        <div className="grid overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+          {technologies.map((technology) => (
+            <a
+              className="group m-px flex min-h-52 flex-col bg-background p-5 transition-colors hover:bg-accent focus-visible:z-10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              href={technology.href}
+              key={technology.name}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <div className="flex items-start justify-between">
+                <span className="flex size-10 items-center justify-center rounded-md border border-border bg-card font-mono text-xs font-semibold text-primary">
+                  {technology.mark}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground"
+                >
+                  ↗
+                </span>
+              </div>
+              <div className="mt-auto pt-8">
+                <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                  {technology.category}
+                </p>
+                <h3 className="mt-1 font-semibold text-foreground">
+                  {technology.name}
+                </h3>
+                <p className="mt-2 text-sm leading-5 text-muted-foreground">
+                  {technology.description}
+                </p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CallToAction() {
   return (
     <section>
@@ -448,6 +562,7 @@ function Home() {
       <CodeExample />
       <AgentSkills />
       <Architecture />
+      <TechStack />
       <CallToAction />
     </>
   );
