@@ -23,7 +23,7 @@ function PieChartVisualization({ data }: PieChartVisualizationProps) {
   const seriesByKey = getSeriesByKey(data.series);
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
+    <div className="flex h-full min-h-0 w-full flex-col gap-4">
       <ChartContainer
         className="mx-auto aspect-auto min-h-0 flex-1 w-full"
         config={chartConfig}
