@@ -11,7 +11,11 @@ const renderedPayloads: PanelCardPayload[] = [];
 vi.mock("./card-visualization", () => ({
   CardVisualization: ({ data }: { data: PanelCardPayload }) => {
     renderedPayloads.push(data);
-    return <output data-chart-preview={data.visualization} />;
+    return (
+      <button data-chart-preview={data.visualization} type="button">
+        Explore chart
+      </button>
+    );
   },
 }));
 
@@ -73,6 +77,18 @@ describe("CardLibraryPreview", () => {
     expect(container).toHaveTextContent("Name");
     expect(container).toHaveTextContent("Alpha");
     expect(renderedPayloads).toHaveLength(0);
+  });
+
+  it("removes decorative chart accessibility controls from keyboard focus", () => {
+    const { container } = render(<CardLibraryPreview visualization="bar" />);
+    const preview = container.querySelector(
+      '[data-card-library-preview="bar"]',
+    );
+
+    expect(preview).toHaveAttribute("aria-hidden", "true");
+    expect(preview).toHaveAttribute("inert");
+    expect(preview?.querySelector("button")).toBeInTheDocument();
+    expect(getKeyboardFocusStops(container)).toHaveLength(0);
   });
 
   it("passes stable static data to every chart renderer", () => {
@@ -137,3 +153,11 @@ describe("CardLibraryPreview", () => {
     }
   });
 });
+
+function getKeyboardFocusStops(container: HTMLElement) {
+  return [
+    ...container.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ),
+  ].filter((element) => !element.closest("[inert]"));
+}
