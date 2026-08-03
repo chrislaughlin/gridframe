@@ -95,6 +95,7 @@ function CardLibraryPreview({
       aria-hidden="true"
       className="pointer-events-none flex h-40 min-w-0 select-none items-stretch overflow-hidden rounded-md border border-border bg-muted/30 p-3"
       data-card-library-preview={visualization}
+      inert
     >
       {visualization === "metric" ? (
         <MetricPreview />
