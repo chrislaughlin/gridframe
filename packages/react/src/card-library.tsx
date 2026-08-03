@@ -24,6 +24,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./internal/ui";
+import { CardLibraryPreview } from "./card-library-preview";
 
 type Props = {
   userId: string;
@@ -159,14 +160,14 @@ function CardLibrary({
       <DialogTrigger asChild>
         <Button variant="outline">Card library</Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[min(42rem,calc(100vh-2rem))] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[min(52rem,calc(100vh-2rem))] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Card library</DialogTitle>
           <DialogDescription>
             Add or remove Cards from this Dashboard.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col">
+        <div className="min-w-0">
           {query.isPending ? (
             <p className="text-sm text-muted-foreground">
               Loading Card library...
@@ -181,35 +182,43 @@ function CardLibrary({
               Retry Card library
             </Button>
           ) : null}
-          {query.data?.items.map((item) => (
-            <div
-              className="flex items-center justify-between gap-3 border-b border-border py-3 last:border-0"
-              key={item.key}
-            >
-              <div>
-                <p className="text-sm font-medium">{item.name}</p>
-                {item.description ? (
-                  <p className="text-xs text-muted-foreground">
-                    {item.description}
-                  </p>
-                ) : null}
-              </div>
-              <Button
-                disabled={disabled || mutation.isPending}
-                onClick={() =>
-                  mutation.mutate(
-                    item.addedCardId
-                      ? { kind: "remove", cardId: item.addedCardId }
-                      : { kind: "add", item },
-                  )
-                }
-                size="sm"
-                variant="outline"
-              >
-                {item.addedCardId ? "Remove" : "Add"}
-              </Button>
+          {query.data ? (
+            <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {query.data.items.map((item) => (
+                <div
+                  className="flex min-w-0 flex-col gap-3 overflow-hidden rounded-lg border border-border bg-card p-3"
+                  key={item.key}
+                >
+                  <CardLibraryPreview visualization={item.visualization} />
+                  <div className="flex min-h-16 min-w-0 flex-1 flex-col gap-1">
+                    <p className="line-clamp-2 break-words text-sm font-medium">
+                      {item.name}
+                    </p>
+                    {item.description ? (
+                      <p className="line-clamp-2 break-words text-xs text-muted-foreground">
+                        {item.description}
+                      </p>
+                    ) : null}
+                  </div>
+                  <Button
+                    className="w-full"
+                    disabled={disabled || mutation.isPending}
+                    onClick={() =>
+                      mutation.mutate(
+                        item.addedCardId
+                          ? { kind: "remove", cardId: item.addedCardId }
+                          : { kind: "add", item },
+                      )
+                    }
+                    size="sm"
+                    variant="outline"
+                  >
+                    {item.addedCardId ? "Remove" : "Add"}
+                  </Button>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : null}
           {mutation.isError ? (
             <div
               role="status"
