@@ -27,7 +27,7 @@
   "devDependencies": {
     "@gridframe/eslint-config": "workspace:*",
     "@gridframe/typescript-config": "workspace:*",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.5",
     "typescript": "5.9.2",
     "vitest": "^4.1.10"
   },
