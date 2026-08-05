@@ -370,6 +370,10 @@ describe("PanelDashboard API-managed mode", () => {
     expect(document.querySelector('[data-slot="dialog-overlay"]')).toHaveClass(
       "z-50",
     );
+    expect(
+      document.querySelector('[data-card-library-preview="bar"]')?.parentElement
+        ?.parentElement,
+    ).toHaveClass("grid-cols-1", "md:grid-cols-2", "lg:grid-cols-3");
     fireEvent.click(await screen.findByRole("button", { name: "Add" }));
     await waitFor(() => {
       expect(
@@ -400,6 +404,73 @@ describe("PanelDashboard API-managed mode", () => {
         }),
       }),
     );
+  });
+
+  it("removes an added Card from the Card library", async () => {
+    const bootstrap = apiBootstrap();
+    const response = {
+      dashboard: {
+        ...bootstrap.dashboard,
+        revision: "2",
+        config: { ...bootstrap.dashboard.config, cards: [] },
+      },
+      cardLibrary: {
+        items: [
+          {
+            key: "total-revenue",
+            name: "Total revenue",
+            visualization: "metric" as const,
+            defaultLayout: { width: 1, height: 2 },
+          },
+        ],
+      },
+    };
+    const fetchMock = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/dashboards/bootstrap")) {
+          return new Response(JSON.stringify(bootstrap));
+        }
+        if (url.endsWith("/card-library")) {
+          return new Response(
+            JSON.stringify({
+              items: [
+                {
+                  ...response.cardLibrary.items[0],
+                  addedCardId: "metric",
+                },
+              ],
+            }),
+          );
+        }
+        if (url.endsWith("/cards/metric") && init?.method === "DELETE") {
+          return new Response(JSON.stringify(response));
+        }
+        return new Response(JSON.stringify(responseFor("metric")));
+      },
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<PanelDashboard dashboard={{ userId: "user-1" }} />);
+    await screen.findByText("Total revenue");
+    fireEvent.click(screen.getByRole("button", { name: "Card library" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Remove" }));
+
+    await waitFor(() => {
+      expect(
+        document.querySelector('[data-panel-card-id="metric"]'),
+      ).not.toBeInTheDocument();
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/cards\/metric$/),
+      expect.objectContaining({
+        method: "DELETE",
+        body: JSON.stringify({ revision: "1" }),
+      }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Card library" }),
+    ).toBeInTheDocument();
   });
 
   it("bootstraps and renders metric, chart, and table Cards", async () => {
